@@ -41,6 +41,7 @@ public:
     void setScale(glm::vec3 scale);
 
     glm::vec3 getWorldPosition();
+    glm::vec3 getLocalRotation();
 
     glm::vec3 getForwardVector();
     glm::vec3 getUpVector(); //TODO
@@ -49,11 +50,13 @@ public:
     void addChild(Object3D *child);
     void drawEntryPoint(struct RenderContext *renderContext);
 
-
 protected:
     glm::mat4 transformLocal = glm::mat4(1.0f); //local transform
     glm::mat4 transformGlobal = glm::mat4(1.0f); //global transform is recalculated for each frame //TODO: may optimize
     struct RenderContext *renderContext;
+    glm::vec3 forwardVectorLocal = glm::vec3 (0,0,1);
+    glm::vec3 upwardVectorLocal = glm::vec3 (0,1,0);
+    glm::vec3 rightVectorLocal = glm::vec3 (1,0,0);
 
     virtual int drawSelf();
 

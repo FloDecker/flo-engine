@@ -256,19 +256,6 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 
 //TODO: generalize this especially mouse capture
 void processInput(Camera3D *camera3D, GLFWwindow *window) {
-    glm::vec2 cameraInput = glm::vec2(0, 0);
-
-    if (keyPressed[GLFW_KEY_W]) cameraInput += glm::vec2(1, 0);
-    if (keyPressed[GLFW_KEY_S]) cameraInput += glm::vec2(-1, 0);
-    if (keyPressed[GLFW_KEY_D]) cameraInput += glm::vec2(0, 1);
-    if (keyPressed[GLFW_KEY_A]) cameraInput += glm::vec2(0, -1);
-
-    if ((cameraInput.x > 0 || cameraInput.y > 0)) cameraInput = glm::normalize(cameraInput);
-
-    camera3D->setPositionLocal(camera3D->getForwardVector() *
-                               static_cast<float >(cameraInput.x * camera3D->getRenderContext()->deltaTime *
-                                                   CAMERA_SPEED) +
-                               camera3D->getWorldPosition());
 
 
     glm::vec2 cursorDelta;
@@ -284,7 +271,23 @@ void processInput(Camera3D *camera3D, GLFWwindow *window) {
     }
 
     if (mouseCaptured) {
+        cursorDelta = mousePos - mouseLockPos;
         glfwSetCursorPos(window,mouseLockPos.x, mouseLockPos.y);
+        camera3D->setRotationLocal(glm::vec3 (glm::radians(cursorDelta.y),glm::radians(cursorDelta.x),0) + camera3D->getLocalRotation());
     }
+
+    glm::vec2 cameraInput = glm::vec2(0, 0);
+    if (keyPressed[GLFW_KEY_W]) cameraInput += glm::vec2(1, 0);
+    if (keyPressed[GLFW_KEY_S]) cameraInput += glm::vec2(-1, 0);
+    if (keyPressed[GLFW_KEY_D]) cameraInput += glm::vec2(0, 1);
+    if (keyPressed[GLFW_KEY_A]) cameraInput += glm::vec2(0, -1);
+
+    if ((cameraInput.x > 0 || cameraInput.y > 0)) cameraInput = glm::normalize(cameraInput);
+
+    camera3D->setPositionLocal(camera3D->getForwardVector() *
+                               static_cast<float >(cameraInput.x * camera3D->getRenderContext()->deltaTime *
+                                                   CAMERA_SPEED) +
+                               camera3D->getWorldPosition());
+
 }
 

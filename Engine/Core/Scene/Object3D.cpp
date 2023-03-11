@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Object3D.h"
+#include "gtx/string_cast.hpp"
 
 int Object3D::draw_(struct RenderContext *parentRenderContext) {
 
@@ -34,11 +35,15 @@ int Object3D::drawSelf() {
 
 glm::vec3 Object3D::getWorldPosition() {
     glm::vec4 temp = transformGlobal * glm::vec4 (0,0,0,1);
-    return glm::vec3 (temp.x,temp.y,temp.z);
+    return {temp.x,temp.y,temp.z};
+}
+
+glm::vec3 Object3D::getLocalRotation() {
+    return rotation_;
 }
 
 glm::vec3 Object3D::getForwardVector() {
-    glm::vec4 temp = glm::vec4 (0,0,1,0) * transformGlobal;
+    glm::vec4 temp = glm::vec4 (forwardVectorLocal,0) * transformGlobal;
     return {temp.x,temp.y,temp.z};
 }
 
@@ -73,21 +78,20 @@ void Object3D::setScale(glm::vec3 scale) {
 }
 
 void Object3D::recalculateTransform() {
-    //TODO: add rotation and scale
+    //TODO: add scale
     transformLocal = glm::mat4 (1.0f);
+
+    //apply transform
+    transformLocal = glm::translate(transformLocal, position_);
+
     //apply rotation
     transformLocal  = glm::rotate(transformLocal,rotation_.x,vecX);
     transformLocal  = glm::rotate(transformLocal,rotation_.y,vecY);
     transformLocal  = glm::rotate(transformLocal,rotation_.z,vecZ);
 
 
-    transformLocal = glm::translate(transformLocal, position_);
-
     this->recalculateTransformGlobal();
 }
-
-
-
 
 void Object3D::recalculateTransformGlobal() {
     this->transformGlobal = (parent)? parent->transformGlobal * this->transformLocal : this->transformLocal;
@@ -95,7 +99,3 @@ void Object3D::recalculateTransformGlobal() {
         child->recalculateTransformGlobal();
     }
 }
-
-
-
-
