@@ -18,8 +18,10 @@ public:
     void setShader(char *fragmentShader, char* vertexShader);
     int compileShader();
     unsigned int getShaderProgram();
+    void use() const;
 
     //uniforms
+    void setUniformMatrix4(const GLchar * name, const GLfloat * value);
 };
 
 

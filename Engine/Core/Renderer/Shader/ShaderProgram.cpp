@@ -57,4 +57,16 @@ unsigned int ShaderProgram::getShaderProgram() {
     return this->shaderProgram_;
 }
 
+void ShaderProgram::use() const {
+    glUseProgram(shaderProgram_);
+}
+
+//set uniforms
+void ShaderProgram::setUniformMatrix4(const GLchar *name, const GLfloat *value) {
+    GLint location = glGetUniformLocation(shaderProgram_, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, value);
+}
+
+
+
 

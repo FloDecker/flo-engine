@@ -5,25 +5,29 @@
 #include "Shader/ShaderProgram.h"
 #include "type_ptr.hpp"
 #include <glm.hpp>
+#include <vector>
 
 
 #ifndef ENGINE_VERTEXARRAY_H
 #define ENGINE_VERTEXARRAY_H
-class VertexArray : public Renderable {
 
+struct Vertex {
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoords;
+};
+
+class VertexArray : public Renderable {
 private:
-    unsigned int lengthVertices;
-    unsigned int lengthIndices;
-    float *vertices;
-    unsigned int *indices;
-    ShaderProgram *shaderProgram;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
     unsigned int VBO = 0;
     unsigned int VAO = 0;
     unsigned int EBO = 0;
     bool loaded = false;
 
 public:
-    VertexArray(unsigned int lengthVertices,unsigned int lengthIndices, float *vertices, unsigned int *indices, ShaderProgram *shaderProgram);
+    VertexArray(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
     int load() override;
     int draw() override;
 

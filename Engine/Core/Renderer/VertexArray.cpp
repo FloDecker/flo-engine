@@ -5,12 +5,10 @@
 #include "gtx/string_cast.hpp"
 
 
-VertexArray::VertexArray(unsigned int lengthVertices,unsigned int lengthIndices, float *vertices, unsigned int *indices, ShaderProgram *shaderProgram) {
-    this->lengthVertices = lengthVertices;
-    this->lengthIndices = lengthIndices;
+VertexArray::VertexArray(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
     this->vertices = vertices;
     this->indices = indices;
-    this->shaderProgram = shaderProgram;
+
 }
 
 
@@ -25,41 +23,35 @@ int VertexArray::load() {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, lengthVertices * sizeof(float), vertices, GL_STATIC_DRAW);
+    std::cout<<glm::to_string(vertices[0].Position);
+    std::cout<<glm::to_string(vertices[1].Position);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, lengthIndices * sizeof(int), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);//position - vec 3
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) sizeof(glm::vec3));//normal   - vec 3
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) (sizeof(glm::vec3) * 2));//uv       - vec 2
+
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
     loaded = true;
     return 1;
 }
 
+//draws object with currently used shader
 int VertexArray::draw() {
     if (!loaded) {
         std::cerr << "Draw-call issued for vertex array that hasn't been loaded yet" << std::endl;
         return -1;
     }
-    glUseProgram(shaderProgram->getShaderProgram());
-    //position
-    unsigned int modelLoc = glGetUniformLocation(shaderProgram->getShaderProgram(), "mMatrix");
-    unsigned int viewLoc = glGetUniformLocation(shaderProgram->getShaderProgram(), "vMatrix");
-    unsigned int projectionLoc = glGetUniformLocation(shaderProgram->getShaderProgram(), "pMatrix");
-    if (model) {
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(*model));
-    } else {
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0)));
-    }
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(*view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(*projection));
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, lengthIndices, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     return 1;
 }
-
-
-
-

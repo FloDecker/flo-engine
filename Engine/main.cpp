@@ -4,10 +4,11 @@
 #include "Core/Renderer/Shader/ShaderProgram.h"
 #include "Core/Renderer/VertexArray.h"
 #include "Core/Scene/Object3D.h"
-#include "Core/Scene/Mesh.h"
+#include "Core/Scene/Mesh3D.h"
 #include "Core/Renderer/RenderContext.h"
 #include "gtx/string_cast.hpp"
 #include "Core/Scene/Camera3D.h"
+#include "assimp/Importer.hpp"
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -31,6 +32,8 @@ bool mouseButtonsReleased[MOUSE_BUTTON_AMOUNT];
 glm::vec2 mousePos;
 bool mouseCaptured;
 glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
+
+class Importer;
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
@@ -68,69 +71,44 @@ int main() {
                                "uniform mat4 mMatrix;\n"
                                "uniform mat4 vMatrix;\n"
                                "uniform mat4 pMatrix;\n"
+                               "out vec3 posWS;\n"
                                "void main()\n"
                                "{\n"
+                               "posWS =( mMatrix * vec4(aPos, 1.0)).xyz;\n"
                                "vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);\n"
                                "gl_Position = pMatrix * vertexCamSpace; \n"
                                "}\0";
 
     char *fragmentShaderSource = "#version 330 core\n"
                                  "out vec4 FragColor;\n"
+                                 "in vec3 posWS;\n"
                                  "\n"
                                  "void main()\n"
                                  "{\n"
-                                 "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                 "    FragColor = vec4(posWS, 1.0f);\n"
                                  "} ";
 
-    float vertices[] = {
-            1, 1, 0,  // top right
-            1, -1, 0,  // bottom right
-            -1, -1, 0,  // bottom left
-            -1, 1, 0   // top left
+
+    std::vector<glm::vec3> cube = {
+            {1.000000,  1.000000,  -1.000000},
+            {1.000000,  -1.000000, -1.000000},
+            {1.000000,  1.000000,  1.000000},
+            {1.000000,  -1.000000, 1.000000},
+            {-1.000000, 1.000000,  -1.000000},
+            {-1.000000, -1.000000, -1.000000},
+            {-1.000000, 1.000000,  1.000000},
+            {-1.000000, -1.000000, 1.000000}
     };
 
-    float cube[] = {
-            1.000000, 1.000000, -1.000000,
-            1.000000, -1.000000, -1.000000,
-            1.000000, 1.000000, 1.000000,
-            1.000000, -1.000000, 1.000000,
-            -1.000000, 1.000000, -1.000000,
-            -1.000000, -1.000000, -1.000000,
-            -1.000000, 1.000000, 1.000000,
-            -1.000000, -1.000000, 1.000000
-    };
+    std::vector<Vertex> cubeVertices;
+    for (glm::vec3 f: cube) {
+        cubeVertices.push_back({f, glm::vec3(), glm::vec2()});
+    }
 
-    float a[] = {
-            -0.999999, 10.653018, 1.000000,
-            -0.999999, 10.653018, -1.000000,
-            1.000001, 10.653018, -1.000000,
-            10.653018, 1.000000, -1.000000,
-            10.653018, -1.000000, -1.000000,
-            10.653018, -1.000000, 1.000000,
-            1.000001, 1.000000, 10.653018,
-            1.000001, -1.000000, 10.653018,
-            -0.999999, -1.000000, 10.653018,
-            -10.699636, 1.000000, 0.067722,
-            -10.699636, -1.000000, 0.067722,
-            -10.525325, -1.000000, -1.924667,
-            -1.000000, 1.000000, -10.653018,
-            -1.000000, -1.000000, -10.653018,
-            1.000000, -1.000000, -10.653018,
-            -0.999998, -10.653018, -1.000000,
-            -0.999998, -10.653018, 1.000000,
-            1.000002, -10.653018, 1.000000
-    };
 
-    unsigned int aI[] = {
-            1, 3, 2,
-            4, 6, 5,
-            7, 9, 8,
-            10, 12, 11,
-            13, 15, 14,
-            16, 18, 17
-    };
 
-    unsigned int cubeVertices[] = {
+
+    std::vector<unsigned int> cubeVerticesIndex = {
             5, 3, 1,
             3, 8, 4,
             7, 6, 8,
@@ -145,37 +123,34 @@ int main() {
             5, 1, 2
     };
 
-    for (int i = 0; i < sizeof(aI) / sizeof(int); ++i) {
-        aI[i] = aI[i] - 1;
-
-    }
-    for (int i = 0; i < sizeof(cubeVertices) / sizeof(int); ++i) {
-        cubeVertices[i] = cubeVertices[i] - 1;
-
+    for (int i = 0; i < cubeVerticesIndex.size(); ++i) {
+        cubeVerticesIndex[i] = cubeVerticesIndex[i] - 1;
     }
 
-    unsigned int indices[] = {  // note that we start from 0!
-            0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
-    };
+    auto cubeVertexArray = new VertexArray(cubeVertices,cubeVerticesIndex);
+    cubeVertexArray->load();
+
 
 
     auto *s = new ShaderProgram();
     s->setShader(fragmentShaderSource,
                  vertexShaderSource);
     s->compileShader();
-    auto *v1 = new VertexArray(sizeof(cube) / sizeof(float), sizeof(cubeVertices) / sizeof(int), cube, cubeVertices, s);
+
+    auto material = new Material;
+    material->shaderProgram = s;
+
+    auto m = new Mesh;
+    m->vertexArrays.push_back(cubeVertexArray);
+    m->materials.push_back(material);
 
     auto root = new Object3D();
 
-    std::srand(0);
 
     //random 3D objects 
-    auto m = new Mesh();
-    m->setPositionLocal(5, 2, -10);
-    m->setVertexArray(v1);
-    root->addChild(m);
-    std::cout << glm::to_string(m->getWorldPosition());
+    auto m3D = new Mesh3D(m);
+    m3D->setPositionLocal(5, 2, -10);
+    root->addChild(m3D);
 
     auto editorRenderContext = RenderContext{
             *new Camera(600, 600)
@@ -185,7 +160,7 @@ int main() {
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetMouseButtonCallback(window,mouse_button_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 
     auto editor3DCamera = new Camera3D(&editorRenderContext);
@@ -266,14 +241,15 @@ void processInput(Camera3D *camera3D, GLFWwindow *window) {
     }
 
     if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_RIGHT]) {
-        mouseLockPos = {0,0};
+        mouseLockPos = {0, 0};
         mouseCaptured = false;
     }
 
     if (mouseCaptured) {
         cursorDelta = mousePos - mouseLockPos;
-        glfwSetCursorPos(window,mouseLockPos.x, mouseLockPos.y);
-        camera3D->setRotationLocal(glm::vec3 (glm::radians(cursorDelta.y),glm::radians(cursorDelta.x),0) + camera3D->getLocalRotation());
+        glfwSetCursorPos(window, mouseLockPos.x, mouseLockPos.y);
+        camera3D->setRotationLocal(
+                glm::vec3(glm::radians(cursorDelta.y), glm::radians(cursorDelta.x), 0) + camera3D->getLocalRotation());
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);
