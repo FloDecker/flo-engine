@@ -43,9 +43,15 @@ glm::vec3 Object3D::getLocalRotation() {
 }
 
 glm::vec3 Object3D::getForwardVector() {
-    glm::vec4 temp = glm::vec4 (forwardVectorLocal,0) * transformGlobal;
-    return {temp.x,temp.y,temp.z};
+    glm::vec4 temp = transformGlobal * glm::vec4 (forwardVectorLocal,0);
+    return glm::normalize(glm::vec3 (temp.x,temp.y,temp.z));
 }
+
+glm::vec3 Object3D::getRightVector() {
+    glm::vec4 temp = transformGlobal * glm::vec4 (rightVectorLocal,0);
+    return glm::normalize(glm::vec3 (temp.x,temp.y,temp.z));
+}
+
 
 //setter for transform
 
@@ -85,8 +91,8 @@ void Object3D::recalculateTransform() {
     transformLocal = glm::translate(transformLocal, position_);
 
     //apply rotation
-    transformLocal  = glm::rotate(transformLocal,rotation_.x,vecX);
     transformLocal  = glm::rotate(transformLocal,rotation_.y,vecY);
+    transformLocal  = glm::rotate(transformLocal,rotation_.x,vecX);
     transformLocal  = glm::rotate(transformLocal,rotation_.z,vecZ);
 
 

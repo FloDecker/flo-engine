@@ -3,7 +3,6 @@
 //
 #include "renderable.h"
 #include "Shader/ShaderProgram.h"
-#include "type_ptr.hpp"
 #include <glm.hpp>
 #include <vector>
 
@@ -19,15 +18,15 @@ struct Vertex {
 
 class VertexArray : public Renderable {
 private:
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
+    std::vector<Vertex> *vertices;
+    std::vector<unsigned int> *indices;
     unsigned int VBO = 0;
     unsigned int VAO = 0;
     unsigned int EBO = 0;
     bool loaded = false;
 
 public:
-    VertexArray(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+    VertexArray(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices);
     int load() override;
     int draw() override;
 

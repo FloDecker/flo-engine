@@ -4,8 +4,6 @@
 #include "vector"
 #include "../Renderer/RenderContext.h"
 #include <glm.hpp>
-#include <matrix_transform.hpp>
-#include <type_ptr.hpp>
 
 #ifndef ENGINE_OBJECT3D_H
 #define ENGINE_OBJECT3D_H

@@ -3,7 +3,8 @@
 //
 
 #include "Mesh3D.h"
-#include "gtx/string_cast.hpp"
+#include <glm.hpp>
+#include <gtc/type_ptr.hpp>
 
 
 Mesh3D::Mesh3D(Mesh *mesh) {
@@ -14,7 +15,6 @@ int Mesh3D::drawSelf() {
     for (int i = 0; i < mesh->vertexArrays.size(); ++i) {
         //TODO: segfaults when there is no material for that vertex array
         ShaderProgram *p = mesh->materials[i]->shaderProgram;
-
         //TODO: projection doesen't have to be set at runtime -> only on projection changes
         // set model view projection
         p->use();

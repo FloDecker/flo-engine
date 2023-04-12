@@ -6,8 +6,10 @@
 #ifndef ENGINE_RENDERCONTEXT_H
 #define ENGINE_RENDERCONTEXT_H
 
+#include "glm.hpp"
+
 #include "vec3.hpp"
-#include "matrix_float4x4.hpp"
+
 class Camera {
 public:
     Camera(float width, float height);
@@ -18,8 +20,8 @@ public:
     void setClippingPlanes(float near, float far);
     void recalculateProjection(); //has to be called when camera changes
     void calculateView(glm::mat4 cameraTransform); //has to be called when camera changes position
-
     glm::mat4 view;
+    
 private:
     float FOV_ = 90.0;
     float nearClippingPlane_ = 0.01;
