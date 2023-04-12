@@ -1,13 +1,17 @@
 #include <iostream>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-#include "Core/Renderer/Shader/ShaderProgram.h"
-#include "Core/Renderer/VertexArray.h"
-#include "Core/Scene/Object3D.h"
-#include "Core/Scene/Mesh3D.h"
-#include "Core/Renderer/RenderContext.h"
+#include "Source/Core/Renderer/Shader/ShaderProgram.h"
+#include "Source/Core/Renderer/VertexArray.h"
+#include "Source/Core/Scene/Object3D.h"
+#include "Source/Core/Scene/Mesh3D.h"
+#include "Source/Core/Renderer/RenderContext.h"
 #include "gtx/string_cast.hpp"
-#include "Core/Scene/Camera3D.h"
+#include "Source/Core/Scene/Camera3D.h"
+#include "Source/Util/AssetLoader.h"
+
+#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 1920
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -46,7 +50,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
 
-    GLFWwindow *window = glfwCreateWindow(600, 600, "test", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "test", nullptr, nullptr);
 
     if (window == nullptr) {
         std::cerr << "Couldnt create window" << std::endl;
@@ -87,7 +91,7 @@ int main() {
                                  "void main()\n"
                                  "{\n"
                                  "float c = posWS.y;\n"
-                                 "  FragColor = vec4(posWS, 1.0f);\n"
+                                 "  FragColor = vec4(posWS*0.1f, 1.0f);\n"
                                  "} ";
 
 
@@ -121,7 +125,10 @@ int main() {
             1, 3, 4,
             5, 1, 2
     };
-
+    const char *t = "EngineContent/cubeArray.fbx";
+    auto sphere = loadModel(t);
+    sphere->initializeVertexArrays();
+    
     for (int i = 0; i < cubeVerticesIndex.size(); ++i) {
         cubeVerticesIndex[i] = cubeVerticesIndex[i] - 1;
     }
@@ -142,16 +149,18 @@ int main() {
     m->vertexArrays.push_back(cubeVertexArray);
     m->materials.push_back(material);
 
+    sphere->materials.push_back(material);
+
     auto root = new Object3D();
 
 
     //random 3D objects 
-    auto m3D = new Mesh3D(m);
+    auto m3D = new Mesh3D(sphere);
     m3D->setPositionLocal(0, 0, 0);
     root->addChild(m3D);
 
     auto editorRenderContext = RenderContext{
-            *new Camera(600, 600)
+            *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
     };
 
     //register interaction callbacks

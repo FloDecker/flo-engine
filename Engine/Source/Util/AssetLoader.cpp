@@ -5,7 +5,7 @@
 #include "AssetLoader.h"
 
 
-Mesh *loadModel(char *path) {
+Mesh *loadModel(const char *path) {
     auto *importer = new Assimp::Importer();
     const aiScene *scene = importer->ReadFile(path,aiProcess_Triangulate | aiProcess_FlipUVs);
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -30,7 +30,7 @@ void processNode(aiNode *node, const aiScene *scene, Mesh *mesh) {
 }
 
 void processMesh(aiMesh *aimesh, const aiScene *scene, Mesh *mesh) {
-    auto *vertices = new std::vector<Vertex>;;
+    auto *vertices = new std::vector<Vertex>;
     Vertex vertex {};
 
     for (int i = 0; i < aimesh->mNumVertices; ++i) {

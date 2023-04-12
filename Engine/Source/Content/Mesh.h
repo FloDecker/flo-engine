@@ -17,5 +17,14 @@ public:
     };
     std::vector<VertexArray *> vertexArrays;
     std::vector<Material *> materials;
+    void initializeVertexArrays();
 };
+
+inline void Mesh::initializeVertexArrays()
+{
+    for (auto element : vertexArrays)
+    {
+        element->load();
+    }
+}
 #endif //ENGINE_MESH_H

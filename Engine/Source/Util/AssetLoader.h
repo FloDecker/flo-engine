@@ -10,7 +10,7 @@
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 
-Mesh *loadModel(char* path);
+Mesh *loadModel(const char* path);
 void processNode(aiNode *node, const aiScene *scene, Mesh *mesh);
 void processMesh(aiMesh *aimesh, const aiScene *scene, Mesh *mesh);
 #endif //ENGINE_ASSETLOADER_H

@@ -66,7 +66,3 @@ void ShaderProgram::setUniformMatrix4(const GLchar *name, const GLfloat *value) 
     GLint location = glGetUniformLocation(shaderProgram_, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
 }
-
-
-
-
