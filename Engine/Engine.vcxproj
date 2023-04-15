@@ -175,6 +175,7 @@
     <Content Include="EngineContent\coordinates.fbx" />
     <Content Include="EngineContent\coordinates2.fbx" />
     <Content Include="EngineContent\Cube.fbx" />
+    <Content Include="EngineContent\Cube.obj" />
     <Content Include="EngineContent\cubeArray.fbx" />
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Sphere.fbx" />

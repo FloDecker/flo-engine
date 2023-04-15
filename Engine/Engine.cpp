@@ -39,11 +39,15 @@ glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
 class Importer;
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+
+    //init glsl
+
     if (!glfwInit()) {
         std::cerr << "Couldnt init GLFW" << std::endl;
         return -1;
     }
+    
+    //create window 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -68,34 +72,8 @@ int main() {
         return -1;
     }
 
-    //test
-    const char *vertexShaderSource = "#version 330 core\n"
-                               "layout (location = 0) in vec3 aPos;\n"
-                               "layout (location = 1) in vec3 aNormal;\n"
-                               "layout (location = 2) in vec2 aUV;\n"
-                               "uniform mat4 mMatrix;\n"
-                               "uniform mat4 vMatrix;\n"
-                               "uniform mat4 pMatrix;\n"
-                               "out vec3 posWS;\n"
-                               "void main()\n"
-                               "{\n"
-                               "posWS =( mMatrix * vec4(aPos, 1.0)).xyz;\n"
-                               "vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);\n"
-                               "gl_Position = pMatrix * vertexCamSpace; \n"
-                               "}\0";
+    /////// TEST STUF ///////
 
-    const char *fragmentShaderSource = "#version 330 core\n"
-                                 "out vec4 FragColor;\n"
-                                 "in vec3 posWS;\n"
-                                 "\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "float c = posWS.y;\n"
-                                 "  FragColor = vec4(posWS*0.1f, 1.0f);\n"
-                                 "} ";
-
-
-    
     const char *t = "EngineContent/cubeArray.fbx";
     auto sphere = loadModel(t);
     sphere->initializeVertexArrays();
@@ -117,9 +95,14 @@ int main() {
 
 
     auto m3D = new Mesh3D(sphere);
-    m3D->setPositionLocal(0, 0, 0);
+    m3D->setPositionLocal(0, 0, -5);
     root->addChild(m3D);
 
+
+    ///////////////////////////////////////////////////////////////
+
+
+    
     auto editorRenderContext = RenderContext{
             *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
     };

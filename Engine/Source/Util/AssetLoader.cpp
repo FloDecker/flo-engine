@@ -7,7 +7,7 @@
 
 Mesh *loadModel(const char *path) {
     auto *importer = new Assimp::Importer();
-    const aiScene *scene = importer->ReadFile(path,aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene *scene = importer->ReadFile(path, aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices );
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         std::cout<< "ERROR::ASSIMdP::" << importer->GetErrorString() << std::endl;
@@ -28,7 +28,7 @@ void processNode(aiNode *node, const aiScene *scene, Mesh *mesh) {
         processNode(node->mChildren[i],scene,mesh);
     }
 }
-
+//TODO: apparently assimp creates vertices for every face, may have a look into avoiding that
 void processMesh(aiMesh *aimesh, const aiScene *scene, Mesh *mesh) {
     auto *vertices = new std::vector<Vertex>;
     Vertex vertex {};
