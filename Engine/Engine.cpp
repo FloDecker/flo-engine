@@ -95,66 +95,27 @@ int main() {
                                  "} ";
 
 
-    std::vector<glm::vec3> cube = {
-            {1.000000,  1.000000,  -1.000000},
-            {1.000000,  -1.000000, -1.000000},
-            {1.000000,  1.000000,  1.000000},
-            {1.000000,  -1.000000, 1.000000},
-            {-1.000000, 1.000000,  -1.000000},
-            {-1.000000, -1.000000, -1.000000},
-            {-1.000000, 1.000000,  1.000000},
-            {-1.000000, -1.000000, 1.000000}
-    };
-
-    std::vector<Vertex> cubeVertices;
-    for (glm::vec3 f: cube) {
-        cubeVertices.push_back({f, glm::vec3(0, 0, 1), glm::vec2()});
-    }
-
-    std::vector<unsigned int> cubeVerticesIndex = {
-            5, 3, 1,
-            3, 8, 4,
-            7, 6, 8,
-            2, 8, 6,
-            1, 4, 2,
-            5, 2, 6,
-            5, 7, 3,
-            3, 7, 8,
-            7, 5, 6,
-            2, 4, 8,
-            1, 3, 4,
-            5, 1, 2
-    };
+    
     const char *t = "EngineContent/cubeArray.fbx";
     auto sphere = loadModel(t);
     sphere->initializeVertexArrays();
     
-    for (int i = 0; i < cubeVerticesIndex.size(); ++i) {
-        cubeVerticesIndex[i] = cubeVerticesIndex[i] - 1;
-    }
-
-    auto cubeVertexArray = new VertexArray(&cubeVertices, &cubeVerticesIndex);
-    cubeVertexArray->load();
-
 
     auto *s = new ShaderProgram();
-    s->setShader(const_cast<char*>(fragmentShaderSource),
-                 const_cast<char*>(vertexShaderSource));
+    //s->setShader(const_cast<char*>(fragmentShaderSource),
+    //             const_cast<char*>(vertexShaderSource));
+
+    s->loadFromFile("EngineContent/Shader/test.glsl");
     s->compileShader();
 
     auto material = new Material;
     material->shaderProgram = s;
-
-    auto m = new Mesh;
-    m->vertexArrays.push_back(cubeVertexArray);
-    m->materials.push_back(material);
 
     sphere->materials.push_back(material);
 
     auto root = new Object3D();
 
 
-    //random 3D objects 
     auto m3D = new Mesh3D(sphere);
     m3D->setPositionLocal(0, 0, 0);
     root->addChild(m3D);

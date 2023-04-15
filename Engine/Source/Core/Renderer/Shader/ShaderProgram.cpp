@@ -7,6 +7,61 @@ const char* vertexShaderBase = "#version 330 core\n"
                                "layout (location = 0) in vec3 aPos;\n"
                                "uniform mat4 pMatrix;\n";
 
+const char* vertexShaderTag   = "[vertex]";
+const char* fragmentShaderTag = "[fragment]";
+
+void ShaderProgram::loadFromFile(std::string pathOfMaterial)
+{
+    //read shader 
+    std::ifstream materialFileStream;
+    materialFileStream.open(pathOfMaterial);
+    shaderType lastShaderTag = NONE;
+    std::string vertexShader;
+    std::string fragmentShader;
+    
+    if(!materialFileStream.is_open())
+    {
+        return;
+    }
+    std::string line;
+    while (materialFileStream.good()) {
+
+        std::getline(materialFileStream,line);
+        if (line == vertexShaderTag) {
+            lastShaderTag = VERTEX;
+            continue;
+        }
+        if (line==fragmentShaderTag) {
+            lastShaderTag = FRAGMENT;
+            continue;
+        }
+        switch (lastShaderTag) {
+            
+            case NONE:
+                break;
+            case VERTEX:
+                vertexShader.append(line);
+                vertexShader.append("\n");
+                break;
+            case FRAGMENT:
+                fragmentShader.append(line);
+                fragmentShader.append("\n");
+
+                break;
+        }
+    }
+
+    materialFileStream.close();
+
+    char* pFrag = static_cast<char*>(malloc(fragmentShader.size()));
+    memcpy_s(pFrag,fragmentShader.size()+1,fragmentShader.data(),fragmentShader.size()+1);
+    this->fragmentShader_ = pFrag;
+
+    char* pVertex = static_cast<char*>(malloc(vertexShader.size()));
+    memcpy_s(pVertex,vertexShader.size()+1,vertexShader.data(),vertexShader.size()+1);
+    this->vertexShader_ = pVertex;
+}       
+
 void ShaderProgram::setShader(char *fragmentShader, char *vertexShader) {
     this->fragmentShader_ = fragmentShader;
     this->vertexShader_ = vertexShader;
@@ -65,4 +120,5 @@ void ShaderProgram::use() const {
 void ShaderProgram::setUniformMatrix4(const GLchar *name, const GLfloat *value) {
     GLint location = glGetUniformLocation(shaderProgram_, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
+    
 }

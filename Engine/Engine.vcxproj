@@ -146,10 +146,12 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp" />
+    <ClCompile Include="Source\Core\Renderer\Texture.cpp" />
     <ClCompile Include="Source\Core\Renderer\VertexArray.cpp" />
     <ClCompile Include="Source\Core\Scene\Camera3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Mesh3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
+    <ClCompile Include="Source\External\stb_image.cpp" />
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,10 +160,12 @@
     <ClInclude Include="Source\Core\Renderer\renderable.h" />
     <ClInclude Include="Source\Core\Renderer\RenderContext.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h" />
+    <ClInclude Include="Source\Core\Renderer\Texture.h" />
     <ClInclude Include="Source\Core\Renderer\VertexArray.h" />
     <ClInclude Include="Source\Core\Scene\Camera3D.h" />
     <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
     <ClInclude Include="Source\Core\Scene\Object3D.h" />
+    <ClInclude Include="Source\External\stb_image.h" />
     <ClInclude Include="Source\Util\AssetLoader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +176,7 @@
     <Content Include="EngineContent\coordinates2.fbx" />
     <Content Include="EngineContent\Cube.fbx" />
     <Content Include="EngineContent\cubeArray.fbx" />
+    <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Sphere.fbx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

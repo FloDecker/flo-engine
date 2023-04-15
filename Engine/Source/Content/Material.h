@@ -4,7 +4,11 @@
 
 #ifndef ENGINE_MATERIAL_H
 #define ENGINE_MATERIAL_H
-struct Material{
+
+struct Material {
     ShaderProgram *shaderProgram;
+    
 };
+
+
 #endif //ENGINE_MATERIAL_H
