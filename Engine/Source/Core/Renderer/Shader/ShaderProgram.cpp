@@ -112,8 +112,17 @@ unsigned int ShaderProgram::getShaderProgram() {
     return this->shaderProgram_;
 }
 
-void ShaderProgram::use() const {
+void ShaderProgram::use() {
+    initTextureUnits();
     glUseProgram(shaderProgram_);
+}
+
+void ShaderProgram::initTextureUnits()
+{
+    for (unsigned int i = 0; i < textures.size(); ++i)
+    {
+        textures.at(i).use(i);
+    }
 }
 
 //set uniforms

@@ -9,10 +9,12 @@ uniform mat4 vMatrix;
 uniform mat4 pMatrix;
 out vec3 posWS;
 out vec3 normal;
+out vec2 texCoord;
 void main() {
+    texCoord = aUV;
     normal = aNormal;
     posWS =( mMatrix * vec4(aPos, 1.0)).xyz;
-    vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos + normal*0.1, 1.0);
+    vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
     gl_Position = pMatrix * vertexCamSpace; 
 }
 
@@ -22,8 +24,11 @@ void main() {
 out vec4 FragColor;
 in vec3 posWS;
 in vec3 normal;
+in vec2 texCoord;
+uniform sampler2D texture1;
+
 void main() {
-    float c = posWS.y;
-    FragColor = vec4(normal + abs(normal)*1.05, 1.0f);
-    //FragColor = vec4( 1.0);
+    //FragColor = vec4(normal + abs(normal)*1.05, 1.0f);
+    //FragColor = vec4(texCoord,0.0f, 1.0f);
+    FragColor = vec4(texture(texture1,texCoord).rgb,1.0);
 }

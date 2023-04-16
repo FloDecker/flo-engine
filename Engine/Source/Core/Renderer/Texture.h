@@ -15,7 +15,7 @@ private:
     int _channleAmount = 0;
 public:
     void initialize(unsigned char *data);
+    void use(unsigned int textureUnit);
     unsigned int getTexture();
-    void setImageDimension(unsigned width, unsigned height);
     void loadFromDisk(std::string* path);
 };

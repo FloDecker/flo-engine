@@ -10,8 +10,8 @@
 #include "Source/Core/Scene/Camera3D.h"
 #include "Source/Util/AssetLoader.h"
 
-#define WINDOW_HEIGHT 1080
-#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080/2
+#define WINDOW_WIDTH 1920/2
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -74,7 +74,14 @@ int main() {
 
     /////// TEST STUF ///////
 
-    const char *t = "EngineContent/cubeArray.fbx";
+
+    //load
+    auto texture = new Texture;
+    std::string pathTexture = "EngineContent/CanyonGroundRock_basecolor.png";
+    texture->loadFromDisk(&pathTexture);
+
+    
+    const char *t = "EngineContent/Plane.fbx";
     auto sphere = loadModel(t);
     sphere->initializeVertexArrays();
     
@@ -86,6 +93,8 @@ int main() {
     s->loadFromFile("EngineContent/Shader/test.glsl");
     s->compileShader();
 
+    s->textures.push_back(*texture);
+
     auto material = new Material;
     material->shaderProgram = s;
 
@@ -95,7 +104,7 @@ int main() {
 
 
     auto m3D = new Mesh3D(sphere);
-    m3D->setPositionLocal(0, 0, -5);
+    m3D->setPositionLocal(0, 0, 0);
     root->addChild(m3D);
 
 
@@ -122,7 +131,7 @@ int main() {
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
         processInput(editor3DCamera, window);
-
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 
         //std::cout<<glm::to_string(editor3DCamera->getForwardVector())<<std::endl;
