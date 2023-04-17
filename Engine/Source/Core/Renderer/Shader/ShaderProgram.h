@@ -8,6 +8,17 @@
 
 #include "../Texture.h"
 
+struct Sampler
+{
+    Sampler(Texture* texture, const GLchar *sampler_name)
+        : texture(texture),
+          samplerName(sampler_name)
+    {
+    }
+
+    Texture *texture;
+    const  GLchar *samplerName;
+};
 
 class ShaderProgram
 {
@@ -19,7 +30,7 @@ private:
     
 
 public:
-    std::vector<Texture> textures;
+    std::vector<Sampler> textures;
     enum shaderType { NONE, FRAGMENT, VERTEX };
     void loadFromFile(std::string pathOfMaterial);
     void setShader(char* fragmentShader, char* vertexShader);
@@ -27,10 +38,12 @@ public:
     unsigned int getShaderProgram();
     void use();
     void initTextureUnits();
+    void addTexture(Texture *texture, const GLchar *samplerName);
     
 
     //uniforms
     void setUniformMatrix4(const GLchar* name, const GLfloat* value);
+    void setInt(const GLchar *name, GLint value);
 };
 
 #endif //ENGINE_SHADERPROGRAM_H

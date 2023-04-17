@@ -76,9 +76,13 @@ int main() {
 
 
     //load
-    auto texture = new Texture;
-    std::string pathTexture = "EngineContent/CanyonGroundRock_basecolor.png";
-    texture->loadFromDisk(&pathTexture);
+    auto textureBase = new Texture;
+    std::string pathTexture = "EngineContent/grass_base.png";
+    textureBase->loadFromDisk(&pathTexture);
+    
+    auto textureNormal = new Texture;
+    std::string pathTextureNormal = "EngineContent/grass_normal.png";
+    textureNormal->loadFromDisk(&pathTextureNormal);
 
     
     const char *t = "EngineContent/Plane.fbx";
@@ -93,8 +97,9 @@ int main() {
     s->loadFromFile("EngineContent/Shader/test.glsl");
     s->compileShader();
 
-    s->textures.push_back(*texture);
-
+    s->addTexture(textureBase,"textureBase");
+    s->addTexture(textureNormal,"textureNormal");
+    
     auto material = new Material;
     material->shaderProgram = s;
 
@@ -104,7 +109,7 @@ int main() {
 
 
     auto m3D = new Mesh3D(sphere);
-    m3D->setPositionLocal(0, 0, 0);
+    m3D->setPositionLocal(0, 0, -4);
     root->addChild(m3D);
 
 

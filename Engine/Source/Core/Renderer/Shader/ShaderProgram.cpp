@@ -121,13 +121,37 @@ void ShaderProgram::initTextureUnits()
 {
     for (unsigned int i = 0; i < textures.size(); ++i)
     {
-        textures.at(i).use(i);
+        textures.at(i).texture->use(i);
+        
     }
+}
+
+//TODO: this can also be added before compilation
+void ShaderProgram::addTexture(Texture* texture, const GLchar *samplerName)
+{
+    use();
+    setInt(samplerName,textures.size());
+    textures.emplace_back(texture,samplerName);
 }
 
 //set uniforms
 void ShaderProgram::setUniformMatrix4(const GLchar *name, const GLfloat *value) {
+    if (!compiled)
+    {
+        std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+    }
     GLint location = glGetUniformLocation(shaderProgram_, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
-    
 }
+
+void ShaderProgram::setInt(const GLchar *name, GLint value)
+{
+    if (!compiled)
+    {
+        std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+    }
+    
+    GLint location = glGetUniformLocation(shaderProgram_, name);
+    glUniform1i(location, value);
+}
+

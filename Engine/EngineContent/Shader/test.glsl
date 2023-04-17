@@ -25,10 +25,13 @@ out vec4 FragColor;
 in vec3 posWS;
 in vec3 normal;
 in vec2 texCoord;
-uniform sampler2D texture1;
+uniform sampler2D textureBase;
+uniform sampler2D textureNormal;
 
 void main() {
     //FragColor = vec4(normal + abs(normal)*1.05, 1.0f);
     //FragColor = vec4(texCoord,0.0f, 1.0f);
-    FragColor = vec4(texture(texture1,texCoord).rgb,1.0);
+    vec3 c0 = texture(textureNormal,texCoord).rgb;
+    vec3 c1 = texture(textureBase,texCoord).rgb;
+    FragColor = vec4(mix(c0,c1,0.5),1.0);
 }
