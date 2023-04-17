@@ -51,6 +51,17 @@ void ShaderProgram::loadFromFile(std::string pathOfMaterial)
         }
     }
 
+    if (vertexShader.empty())
+    {
+        std::cerr << "couldn't read vertex shader from " << pathOfMaterial << std::endl; 
+    }
+
+    if (fragmentShader.empty())
+    {
+        std::cerr << "couldn't read vertex shader from " << pathOfMaterial << std::endl; 
+    }
+
+    
     materialFileStream.close();
 
     char* pFrag = static_cast<char*>(malloc(fragmentShader.size()));

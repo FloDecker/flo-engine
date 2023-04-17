@@ -75,7 +75,7 @@ int main() {
     /////// TEST STUF ///////
 
 
-    //load
+    //load textures 
     auto textureBase = new Texture;
     std::string pathTexture = "EngineContent/grass_base.png";
     textureBase->loadFromDisk(&pathTexture);
@@ -84,33 +84,39 @@ int main() {
     std::string pathTextureNormal = "EngineContent/grass_normal.png";
     textureNormal->loadFromDisk(&pathTextureNormal);
 
-    
-    const char *t = "EngineContent/Plane.fbx";
-    auto sphere = loadModel(t);
+
+    //load models 
+    auto plane = loadModel("EngineContent/Plane.fbx");
+    plane->initializeVertexArrays();
+
+    auto sphere = loadModel("EngineContent/Sphere.fbx");
     sphere->initializeVertexArrays();
+
+    //init shaders
+    auto *textureMaterial = new ShaderProgram();
+    textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
+    textureMaterial->compileShader();
+    textureMaterial->addTexture(textureBase,"textureBase");
+    textureMaterial->addTexture(textureNormal,"textureNormal");
     
+    auto *colorMaterial = new ShaderProgram();
+    colorMaterial->loadFromFile("EngineContent/Shader/test2.glsl");
+    colorMaterial->compileShader();
 
-    auto *s = new ShaderProgram();
-    //s->setShader(const_cast<char*>(fragmentShaderSource),
-    //             const_cast<char*>(vertexShaderSource));
-
-    s->loadFromFile("EngineContent/Shader/test.glsl");
-    s->compileShader();
-
-    s->addTexture(textureBase,"textureBase");
-    s->addTexture(textureNormal,"textureNormal");
+    plane->materials.push_back(textureMaterial);
+    sphere->materials.push_back(colorMaterial);
     
-    auto material = new Material;
-    material->shaderProgram = s;
-
-    sphere->materials.push_back(material);
-
+    //scene root
     auto root = new Object3D();
 
+    
+    auto mPlane1 = new Mesh3D(plane);
+    mPlane1->setPositionLocal(0, 0, -4);
+    root->addChild(mPlane1);
 
-    auto m3D = new Mesh3D(sphere);
-    m3D->setPositionLocal(0, 0, -4);
-    root->addChild(m3D);
+    auto mSphere1 = new Mesh3D(sphere);
+    mSphere1->setPositionLocal(0, 3, 0);
+    root->addChild(mSphere1);
 
 
     ///////////////////////////////////////////////////////////////

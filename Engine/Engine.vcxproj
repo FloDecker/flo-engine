@@ -178,6 +178,7 @@
     <Content Include="EngineContent\Cube.obj" />
     <Content Include="EngineContent\cubeArray.fbx" />
     <Content Include="EngineContent\Shader\test.glsl" />
+    <Content Include="EngineContent\Shader\test2.glsl" />
     <Content Include="EngineContent\Sphere.fbx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

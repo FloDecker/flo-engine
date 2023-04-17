@@ -16,7 +16,7 @@ public:
         materials = {};
     };
     std::vector<VertexArray *> vertexArrays;
-    std::vector<Material *> materials;
+    std::vector<ShaderProgram *> materials;
     void initializeVertexArrays();
 };
 
