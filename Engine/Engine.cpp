@@ -76,12 +76,15 @@ int main() {
 
 
     //load
-    auto texture = new Texture;
-    std::string pathTexture = "EngineContent/CanyonGroundRock_basecolor.png";
-    texture->loadFromDisk(&pathTexture);
-
+    auto textureBase = new Texture;
+    auto textureNormal = new Texture;
     
-    const char *t = "EngineContent/Plane.fbx";
+    std::string pathTexture = "C:/MyStuff/Code/Engine/flo-engine/Engine/EngineContent/Substance_graph_output.png";
+    std::string pathTextureNormal = "C:/MyStuff/Code/Engine/flo-engine/Engine/EngineContent/Substance_graph_normal.png";
+    textureBase->loadFromDisk(&pathTexture);
+    textureNormal->loadFromDisk(&pathTextureNormal);
+    
+    const char *t = "C:/MyStuff/Code/Engine/flo-engine/Engine/EngineContent/Sphere.fbx";
     auto sphere = loadModel(t);
     sphere->initializeVertexArrays();
     
@@ -90,10 +93,11 @@ int main() {
     //s->setShader(const_cast<char*>(fragmentShaderSource),
     //             const_cast<char*>(vertexShaderSource));
 
-    s->loadFromFile("EngineContent/Shader/test.glsl");
+    s->loadFromFile("C:/MyStuff/Code/Engine/flo-engine/Engine/EngineContent/Shader/test.glsl");
     s->compileShader();
 
-    s->textures.push_back(*texture);
+    s->textures.push_back(*textureBase);
+    s->textures.push_back(*textureNormal);
 
     auto material = new Material;
     material->shaderProgram = s;

@@ -8,14 +8,15 @@
 
 #include "../Texture.h"
 
-
 class ShaderProgram
 {
 private:
-    char* vertexShader_;
-    char* fragmentShader_;
+    std::string vertexShader_;
+    std::string fragmentShader_;
     unsigned int shaderProgram_; //ID of the shader programm
     bool compiled = false;
+    void createVertexShaderInstruction(std::string *strPointer) const;
+    void createFragmentShaderInstruction(std::string *strPointer) const;
     
 
 public:

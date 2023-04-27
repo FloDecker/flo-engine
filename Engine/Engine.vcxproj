@@ -159,6 +159,7 @@
     <ClInclude Include="Source\Content\Mesh.h" />
     <ClInclude Include="Source\Core\Renderer\renderable.h" />
     <ClInclude Include="Source\Core\Renderer\RenderContext.h" />
+    <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h" />
     <ClInclude Include="Source\Core\Renderer\Texture.h" />
     <ClInclude Include="Source\Core\Renderer\VertexArray.h" />
@@ -177,6 +178,7 @@
     <Content Include="EngineContent\Cube.fbx" />
     <Content Include="EngineContent\Cube.obj" />
     <Content Include="EngineContent\cubeArray.fbx" />
+    <Content Include="EngineContent\Shader\lightingTest.glsl" />
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Sphere.fbx" />
   </ItemGroup>

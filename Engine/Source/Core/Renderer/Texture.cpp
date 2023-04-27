@@ -20,6 +20,7 @@ void Texture::use(unsigned int textureUnit)
 {
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D,_texture);
+    glBindSampler(GL_TEXTURE0 + textureUnit,textureUnit );
 }
 
 unsigned Texture::getTexture()
