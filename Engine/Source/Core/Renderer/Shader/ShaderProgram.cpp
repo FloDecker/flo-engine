@@ -3,12 +3,25 @@
 //
 
 #include "ShaderProgram.h"
-const char* vertexShaderBase = "#version 330 core\n"
-                               "layout (location = 0) in vec3 aPos;\n"
-                               "uniform mat4 pMatrix;\n";
+#include "ShaderHeaders.h"
+
 
 const char* vertexShaderTag   = "[vertex]";
 const char* fragmentShaderTag = "[fragment]";
+
+void ShaderProgram::createVertexShaderInstruction(std::string* strPointer) const
+{
+    strPointer->append(VERTEX_SHADER_HEADER_BASE);
+    strPointer->append("\n");
+    strPointer->append(this->vertexShader_);
+}
+
+void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) const
+{
+    strPointer->append(FRAGMENT_SHADER_HEADER_BASE);
+    strPointer->append("\n");
+    strPointer->append(this->fragmentShader_);
+}
 
 void ShaderProgram::loadFromFile(std::string pathOfMaterial)
 {
@@ -51,26 +64,15 @@ void ShaderProgram::loadFromFile(std::string pathOfMaterial)
         }
     }
 
-    if (vertexShader.empty())
-    {
-        std::cerr << "couldn't read vertex shader from " << pathOfMaterial << std::endl; 
-    }
-
-    if (fragmentShader.empty())
-    {
-        std::cerr << "couldn't read vertex shader from " << pathOfMaterial << std::endl; 
-    }
-
-    
     materialFileStream.close();
 
-    char* pFrag = static_cast<char*>(malloc(fragmentShader.size()));
-    memcpy_s(pFrag,fragmentShader.size()+1,fragmentShader.data(),fragmentShader.size()+1);
-    this->fragmentShader_ = pFrag;
+    //char* pFrag = static_cast<char*>(malloc(fragmentShader.size()));
+    //memcpy_s(pFrag,fragmentShader.size()+1,fragmentShader.data(),fragmentShader.size()+1);
+    this->fragmentShader_ = fragmentShader;
 
-    char* pVertex = static_cast<char*>(malloc(vertexShader.size()));
-    memcpy_s(pVertex,vertexShader.size()+1,vertexShader.data(),vertexShader.size()+1);
-    this->vertexShader_ = pVertex;
+    //char* pVertex = static_cast<char*>(malloc(vertexShader.size()));
+    //memcpy_s(pVertex,vertexShader.size()+1,vertexShader.data(),vertexShader.size()+1);
+    this->vertexShader_ = vertexShader;
 }       
 
 void ShaderProgram::setShader(char *fragmentShader, char *vertexShader) {
@@ -80,10 +82,19 @@ void ShaderProgram::setShader(char *fragmentShader, char *vertexShader) {
 
 int ShaderProgram::compileShader() {
     if (compiled) return 0;
+
+    
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader,1,&this->vertexShader_,NULL);
+    
+    std::string vertexShaderComplete;
+    this->createVertexShaderInstruction(&vertexShaderComplete);
+    char* pVertex = (char*)(malloc(vertexShaderComplete.size() + 1));
+    memcpy_s(pVertex,vertexShaderComplete.size()+1,vertexShaderComplete.data(),vertexShaderComplete.size()+1);
+    glShaderSource(vertexShader,1,&pVertex,NULL);
     glCompileShader(vertexShader);
+
+    free(pVertex);
 
     int  success;
     char infoLog[512];
@@ -97,8 +108,15 @@ int ShaderProgram::compileShader() {
 
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader,1,&this->fragmentShader_,NULL);
+
+    std::string fragmentShaderComplete;
+    this->createFragmentShaderInstruction(&fragmentShaderComplete);
+    char* pFragment = static_cast<char*>(malloc(fragmentShaderComplete.size() + 1));
+    memcpy_s(pFragment,fragmentShaderComplete.size()+1,fragmentShaderComplete.data(),fragmentShaderComplete.size()+1);
+    glShaderSource(fragmentShader,1,&pFragment,NULL);
     glCompileShader(fragmentShader);
+
+    free(pFragment);
 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if(!success) {
@@ -133,7 +151,6 @@ void ShaderProgram::initTextureUnits()
     for (unsigned int i = 0; i < textures.size(); ++i)
     {
         textures.at(i).texture->use(i);
-        
     }
 }
 
