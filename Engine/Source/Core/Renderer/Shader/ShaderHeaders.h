@@ -7,7 +7,8 @@ const char* VERTEX_SHADER_HEADER_BASE =
 "layout (location = 2) in vec2 aUV;\n"
 "uniform mat4 mMatrix;\n"
 "uniform mat4 vMatrix;\n"
-"uniform mat4 pMatrix;\n";
+"uniform mat4 pMatrix;\n"
+"uniform vec3 cameraPosWS;\n";
 
 const char* FRAGMENT_SHADER_HEADER_BASE =
 "#version 330 core\n"

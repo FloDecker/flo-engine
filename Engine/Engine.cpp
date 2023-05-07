@@ -100,10 +100,10 @@ int main() {
     textureMaterial->addTexture(textureNormal,"textureNormal");
     
     auto *colorMaterial = new ShaderProgram();
-    colorMaterial->loadFromFile("EngineContent/Shader/test2.glsl");
+    colorMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
     colorMaterial->compileShader();
 
-    plane->materials.push_back(textureMaterial);
+    plane->materials.push_back(colorMaterial);
     sphere->materials.push_back(colorMaterial);
     
     //scene root
@@ -112,6 +112,7 @@ int main() {
     
     auto mPlane1 = new Mesh3D(plane);
     mPlane1->setPositionLocal(0, 0, -4);
+    mPlane1->setRotationLocal(90,0,0);
     root->addChild(mPlane1);
 
     auto mSphere1 = new Mesh3D(sphere);

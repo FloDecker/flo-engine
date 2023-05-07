@@ -5,6 +5,7 @@
 #include "Mesh3D.h"
 #include <glm.hpp>
 #include <gtc/type_ptr.hpp>
+#include <gtx/string_cast.hpp>
 
 
 Mesh3D::Mesh3D(Mesh *mesh) {
@@ -21,6 +22,7 @@ int Mesh3D::drawSelf() {
         p->setUniformMatrix4("mMatrix",glm::value_ptr(this->transformGlobal));
         p->setUniformMatrix4("vMatrix",glm::value_ptr(*this->renderContext->camera.getView()));
         p->setUniformMatrix4("pMatrix",glm::value_ptr(*this->renderContext->camera.getProjection()));
+        p->setUniformVec3F("cameraPosWS", glm::value_ptr(*this->renderContext->camera.getWorldPosition()));
         mesh->vertexArrays[i]->draw();
     }
     return 1;

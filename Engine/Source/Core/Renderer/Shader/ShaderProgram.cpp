@@ -3,6 +3,10 @@
 //
 
 #include "ShaderProgram.h"
+
+#include <vec2.hpp>
+#include <vec3.hpp>
+
 #include "ShaderHeaders.h"
 
 
@@ -93,9 +97,7 @@ int ShaderProgram::compileShader() {
     memcpy_s(pVertex,vertexShaderComplete.size()+1,vertexShaderComplete.data(),vertexShaderComplete.size()+1);
     glShaderSource(vertexShader,1,&pVertex,NULL);
     glCompileShader(vertexShader);
-
-    free(pVertex);
-
+    
     int  success;
     char infoLog[512];
 
@@ -103,8 +105,14 @@ int ShaderProgram::compileShader() {
     if(!success) {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cout << "Failed to compile vertex shader Log: " << infoLog << std::endl;
+        std::cout<< "FAILED VERTEX SHADER:" << std::endl;
+        std::cout<<pVertex<<std::endl;
+        free(pVertex);
         exit(-1);
     }
+
+    free(pVertex);
+
 
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -116,14 +124,19 @@ int ShaderProgram::compileShader() {
     glShaderSource(fragmentShader,1,&pFragment,NULL);
     glCompileShader(fragmentShader);
 
-    free(pFragment);
 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "Failed to compile vertex shader Log: " << infoLog << std::endl;
+        std::cout << "Failed to compile fragment shader Log: " << infoLog << std::endl;
+        std::cout<< "FAILED FRAGMENT SHADER:" << std::endl;
+        std::cout<<pFragment<<std::endl;
+        free(pFragment);
+
         exit(-1);
     }
+
+    free(pFragment);
 
     this->shaderProgram_ = glCreateProgram();
     glAttachShader(this->shaderProgram_,vertexShader);
@@ -162,7 +175,20 @@ void ShaderProgram::addTexture(Texture* texture, const GLchar *samplerName)
     textures.emplace_back(texture,samplerName);
 }
 
+
+
 //set uniforms
+
+void ShaderProgram::setUniformVec3F(const GLchar* name, const GLfloat value[3])
+{
+    if (!compiled)
+    {
+        std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+    }
+    GLint location = glGetUniformLocation(shaderProgram_, name);
+    glUniform3fv(location, 1, value);
+}
+
 void ShaderProgram::setUniformMatrix4(const GLchar *name, const GLfloat *value) {
     if (!compiled)
     {

@@ -37,7 +37,17 @@ glm::mat4 *Camera::getView() {
     return &view;
 }
 
-void Camera::calculateView(glm::mat4 cameraTransform) {
-    view = glm::inverse(cameraTransform);
+glm::vec3 *Camera::getWorldPosition()
+{
+    return &positionWS_;
 }
+
+
+
+void Camera::calculateView(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection) {
+    view = glm::inverse(cameraTransform);
+    positionWS_ = cameraPos;
+    viewDirection_ = cameraViewDirection;
+}
+
 

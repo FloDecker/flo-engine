@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vec3.hpp>
 #include <vector>
 
 #include "../Texture.h"
@@ -25,6 +26,7 @@ class ShaderProgram
 private:
     std::string vertexShader_;
     std::string fragmentShader_;
+    
     unsigned int shaderProgram_; //ID of the shader programm
     bool compiled = false;
     void createVertexShaderInstruction(std::string *strPointer) const;
@@ -32,8 +34,10 @@ private:
     
 
 public:
-    std::vector<Sampler> textures;
     enum shaderType { NONE, FRAGMENT, VERTEX };
+
+    
+    std::vector<Sampler> textures;
     void loadFromFile(std::string pathOfMaterial);
     void setShader(char* fragmentShader, char* vertexShader);
     int compileShader();
@@ -44,6 +48,7 @@ public:
     
 
     //uniforms
+    void setUniformVec3F(const GLchar* name, const GLfloat value[3]);
     void setUniformMatrix4(const GLchar* name, const GLfloat* value);
     void setInt(const GLchar *name, GLint value);
 };

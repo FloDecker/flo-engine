@@ -19,7 +19,8 @@ public:
     void setFOV(float FOV);
     void setClippingPlanes(float near, float far);
     void recalculateProjection(); //has to be called when camera changes
-    void calculateView(glm::mat4 cameraTransform); //has to be called when camera changes position
+    void calculateView(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection); //has to be called when camera changes position
+    glm::vec3 *getWorldPosition();
     glm::mat4 view;
     
 private:
@@ -29,8 +30,9 @@ private:
     float height_;
     float width_;
 
-    glm::vec3 pos;
-    glm::vec3 rot;
+    
+    glm::vec3 viewDirection_;
+    glm::vec3 positionWS_;
 
     glm::mat4 projection;
 
