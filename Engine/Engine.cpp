@@ -10,8 +10,8 @@
 #include "Source/Core/Scene/Camera3D.h"
 #include "Source/Util/AssetLoader.h"
 
-#define WINDOW_HEIGHT 1080/2
-#define WINDOW_WIDTH 1920/2
+#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 1920
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -112,7 +112,7 @@ int main() {
     
     auto mPlane1 = new Mesh3D(plane);
     mPlane1->setPositionLocal(0, 0, -4);
-    mPlane1->setRotationLocal(90,0,0);
+    mPlane1->setRotationLocal(-90,0,0);
     root->addChild(mPlane1);
 
     auto mSphere1 = new Mesh3D(sphere);
@@ -201,6 +201,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
+#define CAMERA_ROTATION_SPEED 0.01
 
 //TODO: generalize this especially mouse capture
 void processInput(Camera3D *camera3D, GLFWwindow *window) {
@@ -222,7 +223,7 @@ void processInput(Camera3D *camera3D, GLFWwindow *window) {
         cursorDelta = mousePos - mouseLockPos;
         glfwSetCursorPos(window, mouseLockPos.x, mouseLockPos.y);
         camera3D->setRotationLocal(
-                glm::vec3(glm::radians(cursorDelta.y), glm::radians(cursorDelta.x), 0) + camera3D->getLocalRotation());
+                glm::vec3(glm::radians(cursorDelta.y * CAMERA_ROTATION_SPEED), glm::radians(cursorDelta.x * CAMERA_ROTATION_SPEED), 0) + camera3D->getLocalRotation());
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);
