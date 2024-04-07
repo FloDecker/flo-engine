@@ -8,12 +8,15 @@
 
 #ifndef ENGINE_MESH3D_H
 #define ENGINE_MESH3D_H
+
+//represents a 3D mesh
+
 class Mesh3D: public Object3D {
 private :
     Mesh *mesh;
 protected:
     int drawSelf() override;
 public:
-    explicit Mesh3D(Mesh *mesh);
+    explicit Mesh3D(Mesh *mesh, GlobalContext *global_context);
 };
 #endif //ENGINE_MESH3D_H

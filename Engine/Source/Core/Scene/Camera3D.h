@@ -11,10 +11,11 @@
 class Camera3D : public Object3D {
 
 private:
+    
     RenderContext *renderContext_;
 
 public:
-    explicit Camera3D(RenderContext *renderContext);
+    explicit Camera3D(RenderContext *renderContext, GlobalContext *global_context);
     void setRenderContext(RenderContext *renderContext);
     RenderContext *getRenderContext();
     void calculateView();

@@ -1,7 +1,4 @@
 [vertex]
-
-const vec3 ligtPos = 30;
-
 out vec3 cameraPosWs;
 out vec3 vertexPosWs;
 out vec3 normalWS;
@@ -25,10 +22,10 @@ float _diffuseMaterialConstant = 0.3;
 float _specularMaterialConstant = 0.6;
 float _ambientMaterialConstant = 0.1;
 
-float _specularExponent = 5.0;
+float _specularExponent = 20.0;
 
 float _ambientLightIntensity = 0.4;
-float _lightIntensity = 7.0;
+float _lightIntensity = 40.0;
 
 vec3 _reflection_vector(vec3 lightDirection) {
     return 2.0 * dot(lightDirection,normalWS) * normalWS - lightDirection;
@@ -56,6 +53,10 @@ float _light_ambient_intensity() {
 
 void main() {
     //FragColor = vec4(distance(cameraPosWs,vertexPosWs)*0.1);
-    FragColor = vec4(vec3(_light_diffuse_intensity() + _light_specular_intensity() + _light_ambient_intensity()),1.0);
+    float in_light = float(dot(normalWS,_lightPos - vertexPosWs) > 0);
+    FragColor = vec4(vec3(
+    _light_diffuse_intensity() * in_light
+    + _light_specular_intensity() * in_light
+    + _light_ambient_intensity()),1.0);
     //FragColor = vec4(normalWS,1.0);
 }

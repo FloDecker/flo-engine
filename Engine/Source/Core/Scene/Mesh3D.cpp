@@ -3,12 +3,11 @@
 //
 
 #include "Mesh3D.h"
-#include <glm.hpp>
 #include <gtc/type_ptr.hpp>
-#include <gtx/string_cast.hpp>
 
 
-Mesh3D::Mesh3D(Mesh *mesh) {
+Mesh3D::Mesh3D(Mesh *mesh, GlobalContext *global_context) : Object3D(global_context){
+    
     this->mesh = mesh;
 }
 

@@ -7,7 +7,9 @@
 #include "Source/Core/Scene/Mesh3D.h"
 #include "Source/Core/Renderer/RenderContext.h"
 #include "gtx/string_cast.hpp"
+#include "Source/Core/Editor/GlobalContext.h"
 #include "Source/Core/Scene/Camera3D.h"
+#include "Source/Core/Scene/SceneContext.h"
 #include "Source/Util/AssetLoader.h"
 
 #define WINDOW_HEIGHT 1080
@@ -64,13 +66,26 @@ int main() {
 
     glfwMakeContextCurrent(window);
     glewExperimental = GLFW_TRUE;
-
+    glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    
     if (glewInit() != GLEW_OK) {
         std::cerr << "Window init failed" << std::endl;
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
     }
+
+    //Init Global Context
+    GlobalContext global_context = GlobalContext();
+    
+    //Inti Scene Context
+    
+    //scene root
+    auto root = new Object3D(&global_context);
+    
+    auto scene_context = SceneContext(&global_context, root);
 
     /////// TEST STUF ///////
 
@@ -86,7 +101,7 @@ int main() {
 
 
     //load models 
-    auto plane = loadModel("EngineContent/Plane.fbx");
+    auto plane = loadModel("EngineContent/cubeArray.fbx");
     plane->initializeVertexArrays();
 
     auto sphere = loadModel("EngineContent/Sphere.fbx");
@@ -106,26 +121,24 @@ int main() {
     plane->materials.push_back(colorMaterial);
     sphere->materials.push_back(colorMaterial);
     
-    //scene root
-    auto root = new Object3D();
-
     
-    auto mPlane1 = new Mesh3D(plane);
+    auto mPlane1 = new Mesh3D(plane, &global_context);
     mPlane1->setPositionLocal(0, 0, -4);
     mPlane1->setRotationLocal(-90,0,0);
     root->addChild(mPlane1);
 
-    auto mSphere1 = new Mesh3D(sphere);
+    auto mSphere1 = new Mesh3D(sphere, &global_context);
     mSphere1->setPositionLocal(0, 3, 0);
     root->addChild(mSphere1);
 
-
-    ///////////////////////////////////////////////////////////////
-
-
+    //ADD LIGHTS
+    auto light1 = new PointLight(&global_context);
     
+    ///////////////////////////////////////////////////////////////
+    
+    //initialize render context
     auto editorRenderContext = RenderContext{
-            *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+             *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
     };
 
     //register interaction callbacks
@@ -136,7 +149,7 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    auto editor3DCamera = new Camera3D(&editorRenderContext);
+    auto editor3DCamera = new Camera3D(&editorRenderContext, &global_context);
     std::cout << glm::to_string(*editorRenderContext.camera.getProjection()) << std::endl;
     double renderFrameStart;
     while (!glfwWindowShouldClose(window)) {
@@ -201,7 +214,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
-#define CAMERA_ROTATION_SPEED 0.01
+#define CAMERA_ROTATION_SPEED 0.5
 
 //TODO: generalize this especially mouse capture
 void processInput(Camera3D *camera3D, GLFWwindow *window) {

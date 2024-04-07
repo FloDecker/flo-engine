@@ -2,6 +2,11 @@
 #include "Object3D.h"
 #include "gtx/string_cast.hpp"
 
+Object3D::Object3D(GlobalContext* global_context)
+{
+    global_context_ = global_context;
+}
+
 int Object3D::draw_(struct RenderContext *parentRenderContext) {
 
     //set global  uniforms
@@ -52,6 +57,10 @@ glm::vec3 Object3D::getRightVector() {
     return glm::normalize(glm::vec3 (temp.x,temp.y,temp.z));
 }
 
+std::vector<Object3D*> &Object3D::get_children()
+{
+    return children;
+}
 
 //setter for transform
 
@@ -104,4 +113,16 @@ void Object3D::recalculateTransformGlobal() {
     for (auto child : this->children) {
         child->recalculateTransformGlobal();
     }
+}
+
+void Object3D::add_tag(std::string tag)
+{
+    auto tag_id = global_context_->tag_manager.get_id_of_tag(tag);
+    if (tag_id < 0)
+    {
+        std::cout << "tag: " << tag.c_str() << " cant be added since its not part of the Tagmanager";
+        return;
+    }
+
+    tags_.push_back(tag_id);
 }

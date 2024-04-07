@@ -21,7 +21,7 @@ int Camera3D::drawSelf() {
     return 0;
 }
 
-Camera3D::Camera3D(RenderContext *renderContext) {
+Camera3D::Camera3D(RenderContext *renderContext, GlobalContext *global_context) : Object3D(global_context) {
     this->renderContext_ = renderContext;
     forwardVectorLocal = glm::vec3 (0,0,-1);
 }

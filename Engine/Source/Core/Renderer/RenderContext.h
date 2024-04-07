@@ -10,6 +10,8 @@
 
 #include "vec3.hpp"
 
+//camera logic
+
 class Camera {
 public:
     Camera(float width, float height);
@@ -38,7 +40,7 @@ private:
 
 };
 
-
+//holds the information needed to render the current frame 
 struct RenderContext {
     Camera camera;
     double deltaTime = 0;
