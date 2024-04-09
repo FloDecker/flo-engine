@@ -40,6 +40,8 @@ private:
 public:
     Object3D(GlobalContext *global_context);
     void add_tag(std::string tag);
+    bool has_tag(unsigned int tag_id) const;
+    bool has_tag(const std::string& tag) const;
     
     void setPositionLocal(glm::vec3 pos);
     void setPositionLocal(float x, float y, float z);

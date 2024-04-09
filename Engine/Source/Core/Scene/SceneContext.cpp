@@ -1,26 +1,30 @@
 ﻿#include "SceneContext.h"
 
+#include <iostream>
+
 
 SceneContext::SceneContext(GlobalContext *global_context, Object3D *scene_root)
 {
     global_context_ = global_context;
     scene_root_ = scene_root;
+
+    //get ids of engine defined tags
+    engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
+    recalculate_from_root();
 }
 
 
 void SceneContext::recalculate_at(Object3D* parent)
 {
+    //sort objets by their tag
+    if (parent->has_tag(engine_light_point_id_))
+    {
+        this->scenePointLights.insert(dynamic_cast<PointLight*> (parent));
+    }
+    
     const auto children = parent->get_children();
     for (Object3D* child : children)
     {
-        // extract data from every scene object here
-        //TODO: can be optimized
-        
-        // if ()
-        // {
-        //     this->scenePointLights.insert(PointLight (*child));
-        // }
-        
         this->recalculate_at(child);
     }
 }

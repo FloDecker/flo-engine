@@ -115,6 +115,8 @@ void Object3D::recalculateTransformGlobal() {
     }
 }
 
+//tags
+
 void Object3D::add_tag(std::string tag)
 {
     auto tag_id = global_context_->tag_manager.get_id_of_tag(tag);
@@ -125,4 +127,27 @@ void Object3D::add_tag(std::string tag)
     }
 
     tags_.push_back(tag_id);
+}
+
+bool Object3D::has_tag(const unsigned tag_id) const
+{
+    for (const auto tag : tags_)
+    {
+        if (tag == tag_id)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Object3D::has_tag(const std::string& tag) const
+{
+    const auto id = global_context_->tag_manager.get_id_of_tag(tag);
+    if (id < 0)
+    {
+        return false;
+    }
+
+    return has_tag(id);
 }

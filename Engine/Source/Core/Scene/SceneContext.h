@@ -5,6 +5,8 @@
 #include "../Editor/GlobalContext.h"
 #include "Lighting/PointLight.h"
 
+
+//scene context is used to feed scene information to the material shaders 
 class SceneContext
 {
 public:
@@ -17,6 +19,9 @@ private:
     std::unordered_set<PointLight*> scenePointLights;
     GlobalContext *global_context_;
     Object3D *scene_root_;
+
+    //ids for engine defined tags
+    unsigned int engine_light_point_id_;
 
     
 };

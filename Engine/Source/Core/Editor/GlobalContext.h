@@ -8,14 +8,14 @@ class TagManager
 public:
     TagManager();
     int add_tag(std::string);    
-    int get_id_of_tag(std::string tag) const;
+    int get_id_of_tag(const std::string& tag) const;
     
 private:
     std::vector<std::string> tags_;
     const std::vector<const char*> ENGINE_TAGS{"ENGINE_LIGHT_POINT"};
 };
 
-
+//Global context holds information that is needed across levels, such as tags 
 struct GlobalContext
 {
     TagManager tag_manager;

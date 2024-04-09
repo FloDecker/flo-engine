@@ -18,5 +18,6 @@ protected:
     int drawSelf() override;
 public:
     explicit Mesh3D(Mesh *mesh, GlobalContext *global_context);
+    bool receive_light = true;
 };
 #endif //ENGINE_MESH3D_H

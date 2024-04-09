@@ -133,8 +133,12 @@ int main() {
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
+    root->addChild(light1);
     
     ///////////////////////////////////////////////////////////////
+
+    //TODO: this call should be automatically called when changing the scene
+    scene_context.recalculate_from_root();
     
     //initialize render context
     auto editorRenderContext = RenderContext{
