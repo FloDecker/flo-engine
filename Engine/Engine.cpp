@@ -9,11 +9,13 @@
 #include "gtx/string_cast.hpp"
 #include "Source/Core/Editor/GlobalContext.h"
 #include "Source/Core/Scene/Camera3D.h"
+#include "Source/Core/Scene/Collider.h"
+#include "Source/Core/Scene/RayCast.h"
 #include "Source/Core/Scene/SceneContext.h"
 #include "Source/Util/AssetLoader.h"
 
-#define WINDOW_HEIGHT 1080
-#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT (1080/2)
+#define WINDOW_WIDTH (1920/2)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -26,7 +28,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 
 
-void processInput(Camera3D *camera3D, GLFWwindow *window);
+void processInput(Camera3D *camera3D,  SceneContext *scene_context, GLFWwindow *window);
 
 bool keyPressed[KEY_AMOUNT];
 bool keyClicked[KEY_AMOUNT];
@@ -34,7 +36,13 @@ bool keyReleased[KEY_AMOUNT];
 bool mouseButtonsPressed[MOUSE_BUTTON_AMOUNT];
 bool mouseButtonsClicked[MOUSE_BUTTON_AMOUNT];
 bool mouseButtonsReleased[MOUSE_BUTTON_AMOUNT];
+
 glm::vec2 mousePos;
+glm::vec2 mouseNormalized;
+
+//TODO: REMOVE ME IM JUST HERE FOR TESTING
+glm::vec3 TEST_VEC_REMOVE_ME;
+
 bool mouseCaptured;
 glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
 
@@ -123,13 +131,20 @@ int main() {
     
     
     auto mPlane1 = new Mesh3D(plane, &global_context);
-    mPlane1->setPositionLocal(0, 0, -4);
-    mPlane1->setRotationLocal(-90,0,0);
-    root->addChild(mPlane1);
+    mPlane1->setPositionLocal(0, 0, 0);
+    mPlane1->setRotationLocal(0,0,0);
 
     auto mSphere1 = new Mesh3D(sphere, &global_context);
-    mSphere1->setPositionLocal(0, 3, 0);
+    mSphere1->setPositionLocal(0, 0, 0);
     root->addChild(mSphere1);
+
+    auto mSphere2 = new Mesh3D(sphere, &global_context);
+    mSphere2->setPositionLocal(0, 0, -51);
+    root->addChild(mSphere2);
+
+
+    new MeshCollider(&global_context, mSphere1);
+    
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -159,13 +174,16 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
-        processInput(editor3DCamera, window);
+        processInput(editor3DCamera, &scene_context, window);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 
-        //std::cout<<glm::to_string(editor3DCamera->getForwardVector())<<std::endl;
         editor3DCamera->calculateView();
         //draw scene elements
+
+        //TODO:FOR TEST DELETE --------------------------------------------------------------------- :O 
+        mSphere2->setPositionLocal(TEST_VEC_REMOVE_ME);
+        
         root->drawEntryPoint(&editorRenderContext);
         //swap front and back buffer
         glfwSwapBuffers(window);
@@ -215,13 +233,14 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     mousePos = {xpos, ypos};
+    mouseNormalized ={xpos/WINDOW_WIDTH, ypos/WINDOW_HEIGHT } ;
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
 #define CAMERA_ROTATION_SPEED 0.5
 
 //TODO: generalize this especially mouse capture
-void processInput(Camera3D *camera3D, GLFWwindow *window) {
+void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *window) {
 
 
     glm::vec2 cursorDelta;
@@ -236,11 +255,29 @@ void processInput(Camera3D *camera3D, GLFWwindow *window) {
         mouseCaptured = false;
     }
 
-    if (mouseCaptured) {
+    if (mouseCaptured)
+    {
         cursorDelta = mousePos - mouseLockPos;
         glfwSetCursorPos(window, mouseLockPos.x, mouseLockPos.y);
         camera3D->setRotationLocal(
-                glm::vec3(glm::radians(cursorDelta.y * CAMERA_ROTATION_SPEED), glm::radians(cursorDelta.x * CAMERA_ROTATION_SPEED), 0) + camera3D->getLocalRotation());
+            glm::vec3(glm::radians(cursorDelta.y * CAMERA_ROTATION_SPEED),
+                      glm::radians(cursorDelta.x * CAMERA_ROTATION_SPEED), 0) + camera3D->getLocalRotation());
+    }
+    else if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
+    {
+        auto inverse_projection = glm::inverse(*(camera3D->getRenderContext()->camera.getProjection()));
+        auto inverse_view = camera3D->getGlobalTransform();
+
+        auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x*2-1,-mouseNormalized.y*2+1,1.0,1.0);
+        ray_target.w = 0;
+        
+        auto ray_direction = inverse_view * glm::normalize(ray_target);
+        auto ray_origin = camera3D->getWorldPosition(); 
+
+        RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, TEST_VEC_REMOVE_ME, 300, false);
+        std::cout << a.hit;
+        
+        TEST_VEC_REMOVE_ME = glm::vec3(ray_direction) * glm::vec3(300.0);
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);

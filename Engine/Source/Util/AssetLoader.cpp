@@ -4,6 +4,8 @@
 
 #include "AssetLoader.h"
 
+#include <iostream>
+
 
 Mesh *loadModel(const char *path) {
     auto *importer = new Assimp::Importer();
@@ -30,21 +32,21 @@ void processNode(aiNode *node, const aiScene *scene, Mesh *mesh) {
 }
 //TODO: apparently assimp creates vertices for every face, may have a look into avoiding that
 void processMesh(aiMesh *aimesh, const aiScene *scene, Mesh *mesh) {
-    auto *vertices = new std::vector<Vertex>;
-    Vertex vertex {};
+    auto *vertices = new std::vector<vertex>;
+    vertex vertex {};
 
     for (int i = 0; i < aimesh->mNumVertices; ++i) {
         vertex = {};
-        vertex.Position.x = aimesh->mVertices[i].x;
-        vertex.Position.y = aimesh->mVertices[i].y;
-        vertex.Position.z = aimesh->mVertices[i].z;
+        vertex.position.x = aimesh->mVertices[i].x;
+        vertex.position.y = aimesh->mVertices[i].y;
+        vertex.position.z = aimesh->mVertices[i].z;
 
-        vertex.Normal.x = aimesh->mNormals[i].x;
-        vertex.Normal.y = aimesh->mNormals[i].y;
-        vertex.Normal.z = aimesh->mNormals[i].z;
+        vertex.normal.x = aimesh->mNormals[i].x;
+        vertex.normal.y = aimesh->mNormals[i].y;
+        vertex.normal.z = aimesh->mNormals[i].z;
 
-        vertex.TexCoords.x = aimesh->mTextureCoords[0][i].x;
-        vertex.TexCoords.y = aimesh->mTextureCoords[0][i].y;
+        vertex.tex_coords.x = aimesh->mTextureCoords[0][i].x;
+        vertex.tex_coords.y = aimesh->mTextureCoords[0][i].y;
 
         (*vertices).push_back(vertex);
     }

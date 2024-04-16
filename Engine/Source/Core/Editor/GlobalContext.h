@@ -12,7 +12,7 @@ public:
     
 private:
     std::vector<std::string> tags_;
-    const std::vector<const char*> ENGINE_TAGS{"ENGINE_LIGHT_POINT"};
+    const std::vector<const char*> ENGINE_TAGS{"ENGINE_LIGHT_POINT", "ENGINE_COLLIDER"};
 };
 
 //Global context holds information that is needed across levels, such as tags 

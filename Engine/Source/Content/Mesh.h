@@ -14,7 +14,7 @@ public:
     Mesh(){
         vertexArrays = {};
         materials = {};
-    };
+    }
     std::vector<VertexArray *> vertexArrays;
     std::vector<ShaderProgram *> materials;
     void initializeVertexArrays();

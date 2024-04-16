@@ -52,6 +52,7 @@ public:
     void setScale(float x, float y, float z);
     void setScale(glm::vec3 scale);
 
+    glm::mat4 getGlobalTransform();
     glm::vec3 getWorldPosition();
     glm::vec3 getLocalRotation();
 

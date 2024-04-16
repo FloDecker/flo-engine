@@ -14,6 +14,8 @@ public:
     std::vector<PointLight*> get_scene_point_lights();
     void recalculate_at(Object3D* parent);
     void recalculate_from_root();
+    Object3D* get_root() const;
+
     
 private:
     std::unordered_set<PointLight*> scenePointLights;
@@ -22,6 +24,7 @@ private:
 
     //ids for engine defined tags
     unsigned int engine_light_point_id_;
+    unsigned int engine_collider_id_;
 
     
 };

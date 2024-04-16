@@ -3,12 +3,17 @@
 //
 
 #include "Mesh3D.h"
-#include <gtc/type_ptr.hpp>
+
 
 
 Mesh3D::Mesh3D(Mesh *mesh, GlobalContext *global_context) : Object3D(global_context){
     
     this->mesh = mesh;
+}
+
+Mesh* Mesh3D::get_mesh() const
+{
+    return mesh;
 }
 
 int Mesh3D::drawSelf() {

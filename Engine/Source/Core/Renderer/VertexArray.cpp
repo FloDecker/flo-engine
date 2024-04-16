@@ -5,9 +5,9 @@
 #include "gtx/string_cast.hpp"
 
 
-VertexArray::VertexArray(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices) {
-    this->vertices = vertices;
-    this->indices = indices;
+VertexArray::VertexArray(std::vector<vertex> *vertices, std::vector<unsigned int> *indices) {
+    this->vertex_array_.vertices = vertices;
+    this->vertex_array_.indices = indices;
 
 }
 
@@ -24,15 +24,15 @@ int VertexArray::load() {
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, vertices->size() * sizeof(Vertex), vertices->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_array_.vertices->size() * sizeof(vertex), vertex_array_.vertices->data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size() * sizeof(int), indices->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_array_.indices->size() * sizeof(int), vertex_array_.indices->data(), GL_STATIC_DRAW);
 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);//position - vec 3
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) sizeof(glm::vec3));//normal   - vec 3
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) (sizeof(glm::vec3) * 2));//uv       - vec 2
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *) 0);//position - vec 3
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *) sizeof(glm::vec3));//normal   - vec 3
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *) (sizeof(glm::vec3) * 2));//uv       - vec 2
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -44,12 +44,17 @@ int VertexArray::load() {
 //draws object with currently used shader
 int VertexArray::draw() {
     if (!loaded) {
-        std::cerr << "Draw-call issued for vertex array that hasn't been loaded yet" << std::endl;
+        std::cerr << "Draw-call issued for vertex array that hasn't been loaded yet" << '\n';
         return -1;
     }
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, vertex_array_.indices->size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     return 1;
+}
+
+struct_vertex_array *VertexArray::get_vertex_array()
+{
+    return &vertex_array_;
 }

@@ -38,6 +38,12 @@ int Object3D::drawSelf() {
 
 //getter
 
+glm::mat4 Object3D::getGlobalTransform()
+{
+    return transformGlobal;
+}
+
+
 glm::vec3 Object3D::getWorldPosition() {
     glm::vec4 temp = transformGlobal * glm::vec4 (0,0,0,1);
     return {temp.x,temp.y,temp.z};
@@ -91,6 +97,7 @@ void Object3D::setScale(glm::vec3 scale) {
     scale_ = scale;
     recalculateTransform();
 }
+
 
 void Object3D::recalculateTransform() {
     //TODO: add scale
