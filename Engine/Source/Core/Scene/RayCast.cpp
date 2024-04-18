@@ -1,5 +1,7 @@
 ﻿#include "RayCast.h"
 
+#include <gtx/string_cast.hpp>
+
 #include "Collider.h"
 #include "Mesh3D.h"
 
@@ -49,10 +51,13 @@ void RayCast::geometry_ray_cast(
     double length, bool ignore_back_face)
 {
     auto global_inverse = glm::inverse(global_transform);
-
+    std::cout << glm::to_string(global_transform)<< "\n";
+    std::cout<< "raycast origin GLOBAL " << ray_cast_origin.x <<"."<<ray_cast_origin.y <<"."<<ray_cast_origin.z <<".\n";
     glm::vec4 ray_cast_origin_vec4_local = global_inverse * glm::vec4(ray_cast_origin, 1);
     glm::vec3 ray_cast_origin_vec3_local = glm::vec3(ray_cast_origin_vec4_local);
+    std::cout<< "raycast origin LOCAL " << ray_cast_origin_vec3_local.x <<"."<<ray_cast_origin_vec3_local.y <<"."<<ray_cast_origin_vec3_local.z <<".\n";
 
+    
     glm::vec4 ray_cast_direction_vec4_local = global_inverse * glm::vec4(ray_cast_direction_normalized, 0);
     glm::vec3 ray_cast_direction_vec3_local = glm::vec3(ray_cast_direction_vec4_local);
 

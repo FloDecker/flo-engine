@@ -14,8 +14,8 @@
 #include "Source/Core/Scene/SceneContext.h"
 #include "Source/Util/AssetLoader.h"
 
-#define WINDOW_HEIGHT (1080/2)
-#define WINDOW_WIDTH (1920/2)
+#define WINDOW_HEIGHT (1080)
+#define WINDOW_WIDTH (1920)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -109,11 +109,14 @@ int main() {
 
 
     //load models 
-    auto plane = loadModel("EngineContent/cubeArray.fbx");
+    auto plane = loadModel("EngineContent/Plane.fbx");
     plane->initializeVertexArrays();
 
     auto sphere = loadModel("EngineContent/Sphere.fbx");
     sphere->initializeVertexArrays();
+
+    auto test_scene = loadModel("EngineContent/testSpheres.fbx");
+    test_scene->initializeVertexArrays();
 
     //init shaders
     auto *textureMaterial = new ShaderProgram();
@@ -122,29 +125,38 @@ int main() {
     textureMaterial->addTexture(textureBase,"textureBase");
     textureMaterial->addTexture(textureNormal,"textureNormal");
     
-    auto *colorMaterial = new ShaderProgram();
-    colorMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
-    colorMaterial->compileShader();
+    auto *posMaterial = new ShaderProgram();
+    posMaterial->loadFromFile("EngineContent/Shader/test2.glsl");
+    posMaterial->compileShader();
 
-    plane->materials.push_back(colorMaterial);
-    sphere->materials.push_back(colorMaterial);
+    auto *lightTestMaterial = new ShaderProgram();
+    lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
+    lightTestMaterial->compileShader();
+    
+    plane->materials.push_back(posMaterial);
+    sphere->materials.push_back(lightTestMaterial);
+    test_scene->materials.push_back(posMaterial);
     
     
-    auto mPlane1 = new Mesh3D(plane, &global_context);
-    mPlane1->setPositionLocal(0, 0, 0);
-    mPlane1->setRotationLocal(0,0,0);
+    //auto mPlane1 = new Mesh3D(plane, &global_context);
+    //mPlane1->setPositionLocal(0, 5, 0);
+    //mPlane1->setRotationLocal(0,0,0);
+    //root->addChild(mPlane1);
 
-    auto mSphere1 = new Mesh3D(sphere, &global_context);
-    mSphere1->setPositionLocal(0, 0, 0);
-    root->addChild(mSphere1);
+    auto scene_test_model = new Mesh3D(test_scene, &global_context);
+
+    root->addChild(scene_test_model);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
     mSphere2->setPositionLocal(0, 0, -51);
     root->addChild(mSphere2);
 
 
-    new MeshCollider(&global_context, mSphere1);
-    
+    //TODO: right now you need to add the collider and then move the object so that the transformation of the mesh
+    //is also applied to the collider
+    new MeshCollider(&global_context, scene_test_model);
+    scene_test_model->setPositionLocal(-7, -7, -7);
+    scene_test_model->setRotationLocal(0,0,0);
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -237,7 +249,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
-#define CAMERA_ROTATION_SPEED 0.5
+#define CAMERA_ROTATION_SPEED 0.05
 
 //TODO: generalize this especially mouse capture
 void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *window) {
@@ -274,10 +286,10 @@ void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *w
         auto ray_direction = inverse_view * glm::normalize(ray_target);
         auto ray_origin = camera3D->getWorldPosition(); 
 
-        RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, TEST_VEC_REMOVE_ME, 300, false);
-        std::cout << a.hit;
+        RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, ray_direction, 300, false);
+        std::cout << a.hit<< "\n";
         
-        TEST_VEC_REMOVE_ME = glm::vec3(ray_direction) * glm::vec3(300.0);
+        TEST_VEC_REMOVE_ME = a.hit_world_space;
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);

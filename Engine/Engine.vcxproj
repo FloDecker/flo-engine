@@ -193,6 +193,7 @@
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Shader\test2.glsl" />
     <Content Include="EngineContent\Sphere.fbx" />
+    <Content Include="EngineContent\testSpheres.fbx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

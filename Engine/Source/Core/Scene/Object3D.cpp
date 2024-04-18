@@ -24,6 +24,7 @@ void Object3D::addChild(Object3D *child) {
         //TODO: allow reparenting
         return;
     }
+    
     this->children.push_back(child);
     child->parent = this;
 }
