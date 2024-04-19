@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <vector>
-
+#include "../Renderer/Shader/ShaderProgram.h"
 
 class TagManager
 {
@@ -19,4 +19,5 @@ private:
 struct GlobalContext
 {
     TagManager tag_manager;
+    ShaderProgram *default_shader;
 };

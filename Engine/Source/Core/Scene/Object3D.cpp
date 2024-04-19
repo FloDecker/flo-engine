@@ -85,6 +85,16 @@ void Object3D::setRotationLocal(float x, float y, float z) {
     setRotationLocal(glm::vec3(x, y, z));
 }
 
+void Object3D::setRotationLocalDegrees(glm::vec3 rotation)
+{
+    setRotationLocal(glm::radians(rotation));
+}
+
+void Object3D::setRotationLocalDegrees(float x, float y, float z)
+{
+    setRotationLocalDegrees(glm::vec3(x,y,z));
+}
+
 void Object3D::setRotationLocal(glm::vec3 rotation) {
     rotation_ = rotation;
     recalculateTransform();

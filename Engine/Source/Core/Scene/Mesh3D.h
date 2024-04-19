@@ -25,5 +25,6 @@ public:
     explicit Mesh3D(Mesh* mesh, GlobalContext* global_context);
     bool receive_light = true;
     Mesh* get_mesh() const;
+    std::vector<ShaderProgram *> materials;
 };
 #endif //ENGINE_MESH3D_H

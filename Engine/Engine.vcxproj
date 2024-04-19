@@ -189,9 +189,14 @@
     <Content Include="EngineContent\Cube.fbx" />
     <Content Include="EngineContent\Cube.obj" />
     <Content Include="EngineContent\cubeArray.fbx" />
+    <Content Include="EngineContent\Shader\DefaultShader.glsl" />
+    <Content Include="EngineContent\Shader\HandlerBlue.glsl" />
+    <Content Include="EngineContent\Shader\HandlerGreen.glsl" />
+    <Content Include="EngineContent\Shader\HandlerRed.glsl" />
     <Content Include="EngineContent\Shader\lightingTest.glsl" />
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Shader\test2.glsl" />
+    <Content Include="EngineContent\Shader\WorldPosition.glsl" />
     <Content Include="EngineContent\Sphere.fbx" />
     <Content Include="EngineContent\testSpheres.fbx" />
   </ItemGroup>

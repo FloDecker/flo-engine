@@ -31,7 +31,6 @@ private:
     
     std::vector<Object3D*> children;
     Object3D *parent = nullptr;
-    GlobalContext *global_context_;
 
     int draw_(struct RenderContext *parentRenderContext);
     void recalculateTransform(); //should be called after changing location / scale / rotation
@@ -49,6 +48,9 @@ public:
     void setRotationLocal(glm::vec3 rotation);
     void setRotationLocal(float x, float y, float z);
 
+    void setRotationLocalDegrees(glm::vec3 rotation);
+    void setRotationLocalDegrees(float x, float y, float z);
+    
     void setScale(float x, float y, float z);
     void setScale(glm::vec3 scale);
 
@@ -64,6 +66,9 @@ public:
     void drawEntryPoint(struct RenderContext *renderContext);
     std::vector<Object3D*> &get_children();
 protected:
+    GlobalContext *global_context_;
+
+    
     glm::mat4 transformLocal = glm::mat4(1.0f); //local transform
     glm::mat4 transformGlobal = glm::mat4(1.0f); //global transform is recalculated for each frame //TODO: may optimize
     struct RenderContext *renderContext;

@@ -87,16 +87,57 @@ int main() {
 
     //Init Global Context
     GlobalContext global_context = GlobalContext();
+
+    auto *default_shader = new ShaderProgram();
+    default_shader->loadFromFile("EngineContent/Shader/DefaultShader.glsl");
+    default_shader->compileShader();
+    global_context.default_shader = default_shader;
     
     //Inti Scene Context
     
     //scene root
     auto root = new Object3D(&global_context);
-    
+    //init scene context
     auto scene_context = SceneContext(&global_context, root);
 
-    /////// TEST STUF ///////
+    //load handler models
+    auto engine_handler_arrow_model = loadModel("EngineContent/Arrow.fbx");
+    engine_handler_arrow_model->initializeVertexArrays();
 
+    //load handler shader
+    auto *handler_red = new ShaderProgram();
+    handler_red->loadFromFile("EngineContent/Shader/HandlerRed.glsl");
+    handler_red->compileShader();
+
+    auto *handler_green = new ShaderProgram();
+    handler_green->loadFromFile("EngineContent/Shader/HandlerGreen.glsl");
+    handler_green->compileShader();
+
+    auto *handler_blue = new ShaderProgram();
+    handler_blue->loadFromFile("EngineContent/Shader/HandlerBlue.glsl");
+    handler_blue->compileShader();
+
+ 
+    
+    auto engine_handler_arrow_mesh_x = new Mesh3D(engine_handler_arrow_model, &global_context);
+    engine_handler_arrow_mesh_x->materials.push_back(handler_red);
+    engine_handler_arrow_mesh_x->setRotationLocalDegrees(0,90,0);
+    
+    auto engine_handler_arrow_mesh_y = new Mesh3D(engine_handler_arrow_model, &global_context);
+    engine_handler_arrow_mesh_y->materials.push_back(handler_green);
+    engine_handler_arrow_mesh_y->setRotationLocalDegrees(-90,0,0);
+    
+    auto engine_handler_arrow_mesh_z = new Mesh3D(engine_handler_arrow_model, &global_context);
+    engine_handler_arrow_mesh_z->materials.push_back(handler_blue);
+
+    auto handler_axis = new Object3D(&global_context);
+    handler_axis->addChild(engine_handler_arrow_mesh_x);
+    handler_axis->addChild(engine_handler_arrow_mesh_y);
+    handler_axis->addChild(engine_handler_arrow_mesh_z);
+
+    
+    /////// TEST STUF ///////
+    root->addChild(handler_axis);
 
     //load textures 
     auto textureBase = new Texture;
@@ -132,6 +173,11 @@ int main() {
     auto *lightTestMaterial = new ShaderProgram();
     lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
     lightTestMaterial->compileShader();
+
+    
+    auto *worldPosMat = new ShaderProgram();
+    worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
+    worldPosMat->compileShader();
     
     plane->materials.push_back(posMaterial);
     sphere->materials.push_back(lightTestMaterial);
@@ -143,8 +189,8 @@ int main() {
     //mPlane1->setRotationLocal(0,0,0);
     //root->addChild(mPlane1);
 
-    auto scene_test_model = new Mesh3D(test_scene, &global_context);
-
+    auto scene_test_model = new Mesh3D(sphere, &global_context);
+    scene_test_model->materials.push_back(worldPosMat);
     root->addChild(scene_test_model);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
