@@ -115,7 +115,7 @@ int main() {
     auto sphere = loadModel("EngineContent/Sphere.fbx");
     sphere->initializeVertexArrays();
 
-    auto test_scene = loadModel("EngineContent/testSpheres.fbx");
+    auto test_scene = loadModel("EngineContent/Landscape.fbx");
     test_scene->initializeVertexArrays();
 
     //init shaders
@@ -135,7 +135,7 @@ int main() {
     
     plane->materials.push_back(posMaterial);
     sphere->materials.push_back(lightTestMaterial);
-    test_scene->materials.push_back(posMaterial);
+    test_scene->materials.push_back(lightTestMaterial);
     
     
     //auto mPlane1 = new Mesh3D(plane, &global_context);
@@ -155,8 +155,8 @@ int main() {
     //TODO: right now you need to add the collider and then move the object so that the transformation of the mesh
     //is also applied to the collider
     new MeshCollider(&global_context, scene_test_model);
-    scene_test_model->setPositionLocal(23, 3, 3);
-    scene_test_model->setRotationLocal(10,80,120);
+    scene_test_model->setPositionLocal(0, 0, 0);
+    scene_test_model->setRotationLocal(0,0,0);
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -286,7 +286,7 @@ void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *w
         auto ray_direction = inverse_view * glm::normalize(ray_target);
         auto ray_origin = camera3D->getWorldPosition(); 
 
-        RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, ray_direction, 300, false);
+        RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, ray_direction, 300, true);
         std::cout << a.hit<< "\n";
         
         TEST_VEC_REMOVE_ME = a.hit_world_space;

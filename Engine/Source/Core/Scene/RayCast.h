@@ -8,7 +8,9 @@ struct RayCastHit
     double distance_from_origin;
     Object3D* object_3d; //the object that was hit
     glm::vec3 hit_world_space; //hit intersection in world space
-    glm::vec3 hit_normal; //normal of the hit
+    glm::vec3 hit_normal_world_space; //normal of the hit
+    glm::vec3 hit_local; //hit intersection in world space
+    glm::vec3 hit_normal_local; //normal of the hit
 };
 
 class RayCast

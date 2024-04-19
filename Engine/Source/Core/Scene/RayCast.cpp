@@ -1,5 +1,6 @@
 ﻿#include "RayCast.h"
 
+#include <chrono>
 #include <gtx/string_cast.hpp>
 
 #include "Collider.h"
@@ -10,6 +11,7 @@ RayCastHit RayCast::ray_cast(SceneContext* scene_context, glm::vec3 ray_cast_ori
                              float length,
                              bool ignore_back_face)
 {
+    auto start = std::chrono::system_clock::now();
     //TODO: this can and has to optimized a lot by stacking bounding boxes
     //also do this with bounding box objects and not with regular geometry
     RayCastHit ray_cast_hit = RayCastHit{
@@ -21,6 +23,9 @@ RayCastHit RayCast::ray_cast(SceneContext* scene_context, glm::vec3 ray_cast_ori
     };
     recurse_scene_model_ray_cast(&ray_cast_hit, scene_context->get_root(), ray_cast_origin,
                                  glm::normalize(ray_cast_direction), length, ignore_back_face);
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::cout << "raycast time total: " << elapsed_seconds.count() << "s\n";
     return ray_cast_hit;
 }
 
@@ -70,6 +75,8 @@ void RayCast::geometry_ray_cast(
 
             glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
 
+            if (ignore_back_face && glm::dot(face_normal, ray_cast_direction_vec3_local) > 0) continue;
+            
             float d = -glm::dot(face_normal, v0.position);
             float t =
                 -((glm::dot(face_normal, ray_cast_origin_vec3_local) + d )/
@@ -105,9 +112,11 @@ void RayCast::geometry_ray_cast(
                 ray_cast_hit->distance_from_origin = t;
                 ray_cast_hit->hit = true;
                 ray_cast_hit->distance_from_origin = t;
-                ray_cast_hit->hit_world_space = hit_point;
-                ray_cast_hit->hit_normal = face_normal;
+                ray_cast_hit->hit_local = hit_point;
+                ray_cast_hit->hit_normal_local = face_normal;
             }
         }
     }
+    ray_cast_hit->hit_world_space = global_transform * glm::vec4(ray_cast_hit->hit_local, 1);
+    ray_cast_hit->hit_normal_world_space = global_transform * glm::vec4(ray_cast_hit->hit_normal_local, 0);
 }
