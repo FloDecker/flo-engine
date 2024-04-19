@@ -14,8 +14,8 @@
 #include "Source/Core/Scene/SceneContext.h"
 #include "Source/Util/AssetLoader.h"
 
-#define WINDOW_HEIGHT (1080)
-#define WINDOW_WIDTH (1920)
+#define WINDOW_HEIGHT (1080/2)
+#define WINDOW_WIDTH (1920/2)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -155,8 +155,8 @@ int main() {
     //TODO: right now you need to add the collider and then move the object so that the transformation of the mesh
     //is also applied to the collider
     new MeshCollider(&global_context, scene_test_model);
-    scene_test_model->setPositionLocal(-7, -7, -7);
-    scene_test_model->setRotationLocal(0,0,0);
+    scene_test_model->setPositionLocal(23, 3, 3);
+    scene_test_model->setRotationLocal(10,80,120);
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);

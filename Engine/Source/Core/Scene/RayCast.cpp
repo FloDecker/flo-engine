@@ -51,11 +51,8 @@ void RayCast::geometry_ray_cast(
     double length, bool ignore_back_face)
 {
     auto global_inverse = glm::inverse(global_transform);
-    std::cout << glm::to_string(global_transform)<< "\n";
-    std::cout<< "raycast origin GLOBAL " << ray_cast_origin.x <<"."<<ray_cast_origin.y <<"."<<ray_cast_origin.z <<".\n";
     glm::vec4 ray_cast_origin_vec4_local = global_inverse * glm::vec4(ray_cast_origin, 1);
     glm::vec3 ray_cast_origin_vec3_local = glm::vec3(ray_cast_origin_vec4_local);
-    std::cout<< "raycast origin LOCAL " << ray_cast_origin_vec3_local.x <<"."<<ray_cast_origin_vec3_local.y <<"."<<ray_cast_origin_vec3_local.z <<".\n";
 
     
     glm::vec4 ray_cast_direction_vec4_local = global_inverse * glm::vec4(ray_cast_direction_normalized, 0);
@@ -75,12 +72,15 @@ void RayCast::geometry_ray_cast(
 
             float d = -glm::dot(face_normal, v0.position);
             float t =
-                -(glm::dot(face_normal, ray_cast_origin_vec3_local + d) /
+                -((glm::dot(face_normal, ray_cast_origin_vec3_local) + d )/
                     glm::dot(face_normal, ray_cast_direction_vec3_local));
 
             glm::vec3 hit_point = ray_cast_origin_vec3_local + t * ray_cast_direction_vec3_local;
             auto c = glm::vec3();
 
+            //if (!is_point_in_triangle(v0.position,v1.position,v2.position,hit_point)) continue;
+            
+          
             // Edge 0
             glm::vec3 edge0 = v1.position - v0.position;
             glm::vec3 vp0 = hit_point - v0.position;
@@ -98,7 +98,7 @@ void RayCast::geometry_ray_cast(
             glm::vec3 vp2 = hit_point - v2.position;
             c = glm::cross(edge2, vp2);
             if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
-
+            
             // This ray hits the triangle
             if (ray_cast_hit->distance_from_origin > t)
             {

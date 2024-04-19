@@ -18,10 +18,10 @@ public:
     static RayCastHit ray_cast(
         SceneContext* scene_context,
         glm::vec3 ray_cast_origin,
-        glm::vec3  ray_cast_direction,
+        glm::vec3 ray_cast_direction,
         float length,
         bool ignore_back_face = true
-    );
+        );
 
 private:
     //ray cast within an object
@@ -33,7 +33,7 @@ private:
         glm::vec3 ray_cast_direction_normalized,
         double length,
         bool ignore_back_face = true
-    );
+        );
 
     static void recurse_scene_model_ray_cast(
         RayCastHit* ray_cast_hit,
@@ -42,5 +42,6 @@ private:
         glm::vec3 ray_cast_direction_normalized,
         double length,
         bool ignore_back_face = true
-    );
+        );
+    
 };
