@@ -5,7 +5,8 @@
 Mesh3D::Mesh3D(Mesh* mesh, GlobalContext* global_context) : Object3D(global_context)
 {
     this->mesh = mesh;
-    this->editor_collider_ = new MeshCollider(global_context, this);
+    auto m = new MeshCollider(global_context, this);
+    m->add_tag("ENGINE_COLLIDER");
 }
 
 Mesh* Mesh3D::get_mesh() const

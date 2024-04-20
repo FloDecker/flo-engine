@@ -7,7 +7,8 @@
 #include "Mesh3D.h"
 
 
-RayCastHit RayCast::ray_cast(SceneContext* scene_context, glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction,
+RayCastHit RayCast::ray_cast(SceneContext* scene_context, std::string* collision_tag, glm::vec3 ray_cast_origin,
+                             glm::vec3 ray_cast_direction,
                              float length,
                              bool ignore_back_face)
 {
@@ -21,27 +22,51 @@ RayCastHit RayCast::ray_cast(SceneContext* scene_context, glm::vec3 ray_cast_ori
         glm::vec3(),
         glm::vec3()
     };
-    recurse_scene_model_ray_cast(&ray_cast_hit, scene_context->get_root(), ray_cast_origin,
+    recurse_scene_model_ray_cast(&ray_cast_hit, collision_tag, scene_context->get_root(), ray_cast_origin,
                                  glm::normalize(ray_cast_direction), length, ignore_back_face);
     auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::chrono::duration<double> elapsed_seconds = end - start;
     std::cout << "raycast time total: " << elapsed_seconds.count() << "s\n";
     return ray_cast_hit;
 }
 
-void RayCast::recurse_scene_model_ray_cast(RayCastHit* ray_cast_hit, Object3D* object,
+
+void RayCast::recurse_scene_model_ray_cast(RayCastHit* ray_cast_hit, std::string* collision_tag, Object3D* object,
                                            glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction_normalized,
                                            double length, bool ignore_back_face)
 {
-    if (object->has_tag("ENGINE_COLLIDER") && object->visible)
+    if (object->has_tag(*collision_tag) && object->visible)
     {
         auto mesh_collider = dynamic_cast<Collider*>(object);
-        mesh_collider->check_collision(ray_cast_origin,ray_cast_direction_normalized,length,ignore_back_face,ray_cast_hit);
+        mesh_collider->check_collision(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
+                                       ray_cast_hit);
     }
     for (auto child : object->get_children())
     {
-        recurse_scene_model_ray_cast(ray_cast_hit, child, ray_cast_origin, ray_cast_direction_normalized, length,
+        recurse_scene_model_ray_cast(ray_cast_hit, collision_tag, child, ray_cast_origin, ray_cast_direction_normalized,
+                                     length,
                                      ignore_back_face);
     }
 }
 
+//EDITOR ONLY RAY CAST FOR OBJECT SELECTION 
+
+RayCastHit RayCast::ray_cast_editor(SceneContext* scene_context,
+                                    glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction)
+{
+    RayCastHit ray_cast_hit = RayCastHit{
+        false,
+        100001.0f,
+        nullptr,
+        glm::vec3(),
+        glm::vec3(),
+        glm::vec3(),
+        glm::vec3()
+    };
+
+    std::string tag = "ENGINE_COLLIDER";
+    recurse_scene_model_ray_cast(&ray_cast_hit, &tag, scene_context->get_root(), ray_cast_origin,
+                                 glm::normalize(ray_cast_direction), 100000.0, true);
+    
+    return ray_cast_hit;
+}

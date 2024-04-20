@@ -30,6 +30,11 @@ void Object3D::addChild(Object3D *child) {
     child->parent = this;
 }
 
+Object3D* Object3D::get_parent() const
+{
+    return parent;
+}
+
 void Object3D::drawEntryPoint(RenderContext *renderContext) {
     draw_(renderContext);
 }

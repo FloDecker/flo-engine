@@ -15,7 +15,7 @@ public:
     void recalculate_at(Object3D* parent);
     void recalculate_from_root();
     Object3D* get_root() const;
-
+    GlobalContext * get_global_context() const;
     
 private:
     std::unordered_set<PointLight*> scenePointLights;

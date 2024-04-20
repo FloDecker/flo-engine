@@ -41,9 +41,6 @@ bool mouseButtonsReleased[MOUSE_BUTTON_AMOUNT];
 glm::vec2 mousePos;
 glm::vec2 mouseNormalized;
 
-//TODO: REMOVE ME IM JUST HERE FOR TESTING
-glm::vec3 TEST_VEC_REMOVE_ME;
-
 bool mouseCaptured;
 glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
 
@@ -161,13 +158,13 @@ int main() {
     root->addChild(scene_test_model);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
-    mSphere2->setPositionLocal(0, 0, -51);
-    
+    mSphere2->setPositionLocal(0, 0, -10);
     root->addChild(mSphere2);
 
-
-    //TODO: right now you need to add the collider and then move the object so that the transformation of the mesh
-    //is also applied to the collider
+    auto plane1 = new Mesh3D(plane, &global_context);
+    plane1->setPositionLocal(0, 1, 5);
+    plane1->setRotationLocalDegrees(45,180,0);
+    root->addChild(plane1);
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -204,10 +201,6 @@ int main() {
         editor3DCamera->calculateView();
         //draw scene elements
 
-        //TODO:FOR TEST DELETE --------------------------------------------------------------------- :O 
-        mSphere2->setPositionLocal(TEST_VEC_REMOVE_ME);
-        
-        
         root->drawEntryPoint(&editorRenderContext);
         //swap front and back buffer
         glfwSwapBuffers(window);
@@ -298,9 +291,15 @@ void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *w
         auto ray_direction = inverse_view * glm::normalize(ray_target);
         auto ray_origin = camera3D->getWorldPosition(); 
 
-        RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, ray_direction, 300, true);
-        
-        TEST_VEC_REMOVE_ME = a.hit_world_space;
+        RayCastHit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+        auto handle = scene_context->get_global_context()->handle;
+        if (a.hit)
+        {
+            handle->attach_to_object(a.object_3d);
+        } else
+        {
+            handle->detach();
+        }
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);

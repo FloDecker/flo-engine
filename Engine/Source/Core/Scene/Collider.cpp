@@ -2,7 +2,7 @@
 
 Collider::Collider(GlobalContext* global_context): Object3D(global_context)
 {
-    add_tag("ENGINE_COLLIDER");
+    
 }
 
 void Collider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length,
@@ -98,6 +98,7 @@ void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direct
                 ray_cast_hit->hit_normal_local = face_normal;
                 ray_cast_hit->hit_world_space = this->transformGlobal * glm::vec4(ray_cast_hit->hit_local, 1);
                 ray_cast_hit->hit_normal_world_space = this->transformGlobal * glm::vec4(ray_cast_hit->hit_normal_local, 0);
+                ray_cast_hit->object_3d = get_parent();
             }
         }
     }
