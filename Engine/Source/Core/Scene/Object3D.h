@@ -1,28 +1,23 @@
-//
-// Created by flode on 28/02/2023.
-//
 #pragma once
 #include <glm.hpp>
 
 #include <string>
+
 #include "vector"
 #include "../Editor/GlobalContext.h"
 #include "../Renderer/RenderContext.h"
 
-#ifndef ENGINE_OBJECT3D_H
-#define ENGINE_OBJECT3D_H
-
-
 const glm::vec3 vecX = glm::vec3 (1,0,0);
 const glm::vec3 vecY = glm::vec3 (0,1,0);
 const glm::vec3 vecZ = glm::vec3 (0,0,1);
+
+class Collider;
 
 //an object that can be in the 3D scene
 
 class Object3D {
 private:
     
-    char *name;
     std::vector<unsigned int> tags_;
     
     glm::vec3 rotation_;
@@ -38,10 +33,15 @@ private:
 
 public:
     Object3D(GlobalContext *global_context);
+    bool visible = true;
+    std::string name;
+
+    //TAGS
     void add_tag(std::string tag);
     bool has_tag(unsigned int tag_id) const;
     bool has_tag(const std::string& tag) const;
-    
+
+    // transform //
     void setPositionLocal(glm::vec3 pos);
     void setPositionLocal(float x, float y, float z);
 
@@ -62,12 +62,17 @@ public:
     glm::vec3 getUpVector(); //TODO
     glm::vec3 getRightVector(); //TODO
 
-    void addChild(Object3D *child);
+    ////////////
     void drawEntryPoint(struct RenderContext *renderContext);
+    void addChild(Object3D *child);
+    
     std::vector<Object3D*> &get_children();
+    
 protected:
     GlobalContext *global_context_;
 
+    //editor collider
+    Collider *editor_collider_ = nullptr;
     
     glm::mat4 transformLocal = glm::mat4(1.0f); //local transform
     glm::mat4 transformGlobal = glm::mat4(1.0f); //global transform is recalculated for each frame //TODO: may optimize
@@ -79,7 +84,3 @@ protected:
     virtual int drawSelf();
 
 };
-
-
-
-#endif //ENGINE_OBJECT3D_H

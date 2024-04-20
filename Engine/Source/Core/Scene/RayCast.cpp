@@ -33,7 +33,7 @@ void RayCast::recurse_scene_model_ray_cast(RayCastHit* ray_cast_hit, Object3D* o
                                            glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction_normalized,
                                            double length, bool ignore_back_face)
 {
-    if (object->has_tag("ENGINE_COLLIDER"))
+    if (object->has_tag("ENGINE_COLLIDER") && object->visible)
     {
         auto mesh_collider = dynamic_cast<MeshCollider*>(object);
         geometry_ray_cast(ray_cast_hit, mesh_collider->get_vertex_arrays(), mesh_collider->getGlobalTransform(), ray_cast_origin,
@@ -114,9 +114,10 @@ void RayCast::geometry_ray_cast(
                 ray_cast_hit->distance_from_origin = t;
                 ray_cast_hit->hit_local = hit_point;
                 ray_cast_hit->hit_normal_local = face_normal;
+                ray_cast_hit->hit_world_space = global_transform * glm::vec4(ray_cast_hit->hit_local, 1);
+                ray_cast_hit->hit_normal_world_space = global_transform * glm::vec4(ray_cast_hit->hit_normal_local, 0);
             }
         }
     }
-    ray_cast_hit->hit_world_space = global_transform * glm::vec4(ray_cast_hit->hit_local, 1);
-    ray_cast_hit->hit_normal_world_space = global_transform * glm::vec4(ray_cast_hit->hit_normal_local, 0);
+
 }

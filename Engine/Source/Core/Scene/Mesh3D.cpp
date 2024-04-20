@@ -1,13 +1,11 @@
-//
-// Created by flode on 28/02/2023.
-//
-
 #include "Mesh3D.h"
 
+#include "Collider.h"
 
 Mesh3D::Mesh3D(Mesh* mesh, GlobalContext* global_context) : Object3D(global_context)
 {
     this->mesh = mesh;
+    this->editor_collider_ = new MeshCollider(global_context, this);
 }
 
 Mesh* Mesh3D::get_mesh() const

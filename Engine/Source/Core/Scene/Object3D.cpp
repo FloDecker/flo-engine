@@ -11,11 +11,12 @@ int Object3D::draw_(struct RenderContext *parentRenderContext) {
 
     //set global  uniforms
     renderContext = parentRenderContext;
+    if (!visible) return 0;
     this->drawSelf();
     for (auto & child : children) {
         child->draw_(parentRenderContext);
     }
-    return 0;
+    return 1;
 }
 
 void Object3D::addChild(Object3D *child) {

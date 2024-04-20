@@ -10,6 +10,7 @@
 #include "Source/Core/Editor/GlobalContext.h"
 #include "Source/Core/Scene/Camera3D.h"
 #include "Source/Core/Scene/Collider.h"
+#include "Source/Core/Scene/Handle.h"
 #include "Source/Core/Scene/RayCast.h"
 #include "Source/Core/Scene/SceneContext.h"
 #include "Source/Util/AssetLoader.h"
@@ -99,45 +100,11 @@ int main() {
     auto root = new Object3D(&global_context);
     //init scene context
     auto scene_context = SceneContext(&global_context, root);
-
-    //load handler models
-    auto engine_handler_arrow_model = loadModel("EngineContent/Arrow.fbx");
-    engine_handler_arrow_model->initializeVertexArrays();
-
-    //load handler shader
-    auto *handler_red = new ShaderProgram();
-    handler_red->loadFromFile("EngineContent/Shader/HandlerRed.glsl");
-    handler_red->compileShader();
-
-    auto *handler_green = new ShaderProgram();
-    handler_green->loadFromFile("EngineContent/Shader/HandlerGreen.glsl");
-    handler_green->compileShader();
-
-    auto *handler_blue = new ShaderProgram();
-    handler_blue->loadFromFile("EngineContent/Shader/HandlerBlue.glsl");
-    handler_blue->compileShader();
-
- 
-    
-    auto engine_handler_arrow_mesh_x = new Mesh3D(engine_handler_arrow_model, &global_context);
-    engine_handler_arrow_mesh_x->materials.push_back(handler_red);
-    engine_handler_arrow_mesh_x->setRotationLocalDegrees(0,90,0);
-    
-    auto engine_handler_arrow_mesh_y = new Mesh3D(engine_handler_arrow_model, &global_context);
-    engine_handler_arrow_mesh_y->materials.push_back(handler_green);
-    engine_handler_arrow_mesh_y->setRotationLocalDegrees(-90,0,0);
-    
-    auto engine_handler_arrow_mesh_z = new Mesh3D(engine_handler_arrow_model, &global_context);
-    engine_handler_arrow_mesh_z->materials.push_back(handler_blue);
-
-    auto handler_axis = new Object3D(&global_context);
-    handler_axis->addChild(engine_handler_arrow_mesh_x);
-    handler_axis->addChild(engine_handler_arrow_mesh_y);
-    handler_axis->addChild(engine_handler_arrow_mesh_z);
-
+    auto handle = new Handle(&global_context,root);
+    global_context.handle = handle;
     
     /////// TEST STUF ///////
-    root->addChild(handler_axis);
+    root->addChild(handle);
 
     //load textures 
     auto textureBase = new Texture;
@@ -156,7 +123,7 @@ int main() {
     auto sphere = loadModel("EngineContent/Sphere.fbx");
     sphere->initializeVertexArrays();
 
-    auto test_scene = loadModel("EngineContent/Landscape.fbx");
+    auto test_scene = loadModel("EngineContent/Cube.fbx");
     test_scene->initializeVertexArrays();
 
     //init shaders
@@ -195,14 +162,12 @@ int main() {
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
     mSphere2->setPositionLocal(0, 0, -51);
+    
     root->addChild(mSphere2);
 
 
     //TODO: right now you need to add the collider and then move the object so that the transformation of the mesh
     //is also applied to the collider
-    new MeshCollider(&global_context, scene_test_model);
-    scene_test_model->setPositionLocal(0, 0, 0);
-    scene_test_model->setRotationLocal(0,0,0);
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -241,6 +206,7 @@ int main() {
 
         //TODO:FOR TEST DELETE --------------------------------------------------------------------- :O 
         mSphere2->setPositionLocal(TEST_VEC_REMOVE_ME);
+        
         
         root->drawEntryPoint(&editorRenderContext);
         //swap front and back buffer
@@ -333,7 +299,6 @@ void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *w
         auto ray_origin = camera3D->getWorldPosition(); 
 
         RayCastHit a = RayCast::ray_cast(scene_context, ray_origin, ray_direction, 300, true);
-        std::cout << a.hit<< "\n";
         
         TEST_VEC_REMOVE_ME = a.hit_world_space;
     }
