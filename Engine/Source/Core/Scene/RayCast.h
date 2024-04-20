@@ -26,16 +26,6 @@ public:
         );
 
 private:
-    //ray cast within an object
-    static void geometry_ray_cast(
-        RayCastHit* ray_cast_hit,
-        std::vector<struct_vertex_array*>* vertex_arrays_of_geometry,
-        glm::mat4 global_transform,
-        glm::vec3 ray_cast_origin,
-        glm::vec3 ray_cast_direction_normalized,
-        double length,
-        bool ignore_back_face = true
-        );
 
     static void recurse_scene_model_ray_cast(
         RayCastHit* ray_cast_hit,
