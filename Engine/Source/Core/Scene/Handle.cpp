@@ -124,8 +124,8 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         {
             auto current_object_pos = attached_object_3d_->getWorldPosition();
             current_object_pos.x = intersection->intersection_point.x;
-            attached_object_3d_->setPositionLocal(current_object_pos);
-            this->setPositionLocal(current_object_pos);
+            attached_object_3d_->set_position_global(current_object_pos);
+            this->set_position_global(current_object_pos);
         }
         return;
     case move_global_y:
@@ -134,8 +134,8 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         {
             auto current_object_pos = attached_object_3d_->getWorldPosition();
             current_object_pos.y = intersection->intersection_point.y;
-            attached_object_3d_->setPositionLocal(current_object_pos);
-            this->setPositionLocal(current_object_pos);
+            attached_object_3d_->set_position_global(current_object_pos);
+            this->set_position_global(current_object_pos);
 
         }
         return;
@@ -145,8 +145,8 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         {
             auto current_object_pos = attached_object_3d_->getWorldPosition();
             current_object_pos.z = intersection->intersection_point.z;
-            attached_object_3d_->setPositionLocal(current_object_pos);
-            this->setPositionLocal(current_object_pos);
+            attached_object_3d_->set_position_global(current_object_pos);
+            this->set_position_global(current_object_pos);
 
         }
         return;

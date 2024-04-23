@@ -42,7 +42,7 @@ public:
     bool has_tag(unsigned int tag_id) const;
     bool has_tag(const std::string& tag) const;
 
-    // transform //
+    // transform local //
     void setPositionLocal(glm::vec3 pos);
     void setPositionLocal(float x, float y, float z);
 
@@ -55,6 +55,11 @@ public:
     void setScale(float x, float y, float z);
     void setScale(glm::vec3 scale);
 
+    //transform global
+    void set_position_global(const glm::vec3& pos);
+    void set_position_global(float x, float y, float z);
+
+    
     glm::mat4 getGlobalTransform();
     glm::vec3 getWorldPosition();
     glm::vec3 getLocalRotation();

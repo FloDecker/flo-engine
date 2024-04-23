@@ -150,23 +150,28 @@ int main()
     sphere->materials.push_back(lightTestMaterial);
 
 
-    auto scene_test_model = new Mesh3D(sphere, &global_context);
-    scene_test_model->materials.push_back(worldPosMat);
-    root->addChild(scene_test_model);
+    auto mSphere1 = new Mesh3D(sphere, &global_context);
+    mSphere1->materials.push_back(worldPosMat);
+    mSphere1->setPositionLocal(10,0,0);
+    mSphere1->setRotationLocalDegrees(0,0,0);
+    root->addChild(mSphere1);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
-    mSphere2->setPositionLocal(0, 0, -10);
-    root->addChild(mSphere2);
+    mSphere2->setPositionLocal(0, 0, 0);
+    mSphere1->addChild(mSphere2);
 
     auto plane1 = new Mesh3D(plane, &global_context);
-    plane1->setPositionLocal(0, 1, 5);
-    plane1->setRotationLocalDegrees(45, 180, 0);
+    plane1->setPositionLocal(0, 0, 0);
+    plane1->setRotationLocalDegrees(0, 0, 0);
     root->addChild(plane1);
 
 
     auto cube1 = new Mesh3D(cube, &global_context);
-    cube1->setPositionLocal(-10, -5, 0);
-    root->addChild(cube1);
+    mSphere1->addChild(cube1);
+    cube1->set_position_global(0, 10, 0);
+
+    
+
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -200,10 +205,11 @@ int main()
         processInput(editor3DCamera, &scene_context, window);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
-
+        
+        
         editor3DCamera->calculateView();
         //draw scene elements
-
+        
         root->drawEntryPoint(&editorRenderContext);
         //swap front and back buffer
         glfwSwapBuffers(window);

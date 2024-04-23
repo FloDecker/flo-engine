@@ -124,6 +124,18 @@ void Object3D::setScale(glm::vec3 scale) {
     recalculateTransform();
 }
 
+void Object3D::set_position_global(const glm::vec3& pos)
+{
+    const auto transform_inverse = inverse(parent->getGlobalTransform());
+    const auto pos_new = transform_inverse * glm::vec4(pos, 1);
+    setPositionLocal(glm::vec3(pos_new));
+}
+
+void Object3D::set_position_global(float x, float y, float z)
+{
+    set_position_global(glm::vec3(x,y,z));
+}
+
 
 void Object3D::recalculateTransform() {
     //TODO: add scale
