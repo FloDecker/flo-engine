@@ -8,7 +8,7 @@ void main() {
 [fragment]
 in vec4 gl_FragCoord;
 void main() {
-    vec3 col = vec3(float(mod(gl_FragCoord.y, 2) < 1) * float(mod(gl_FragCoord.x, 2) < 1) );
+    vec3 col = vec3(float(mod(gl_FragCoord.y*0.5, 2) < 1) * float(mod(gl_FragCoord.x*0.5, 2) < 1) );
     
     FragColor = vec4(col*vec3(255,0,220),1.0);
 }

@@ -22,14 +22,14 @@
 #define MOUSE_BUTTON_AMOUNT 8
 
 //input callbacks
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 
-void processInput(Camera3D *camera3D,  SceneContext *scene_context, GLFWwindow *window);
+void processInput(Camera3D* camera3D, SceneContext* scene_context, GLFWwindow* window);
 
 bool keyPressed[KEY_AMOUNT];
 bool keyClicked[KEY_AMOUNT];
@@ -46,15 +46,16 @@ glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
 
 class Importer;
 
-int main() {
-
+int main()
+{
     //init glsl
 
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         std::cerr << "Couldnt init GLFW" << std::endl;
         return -1;
     }
-    
+
     //create window 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -62,9 +63,10 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
 
-    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "test", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "test", nullptr, nullptr);
 
-    if (window == nullptr) {
+    if (window == nullptr)
+    {
         std::cerr << "Couldnt create window" << std::endl;
         glfwTerminate();
         return -1;
@@ -75,8 +77,9 @@ int main() {
     glFrontFace(GL_CW);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
-    
-    if (glewInit() != GLEW_OK) {
+
+    if (glewInit() != GLEW_OK)
+    {
         std::cerr << "Window init failed" << std::endl;
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -86,20 +89,20 @@ int main() {
     //Init Global Context
     GlobalContext global_context = GlobalContext();
 
-    auto *default_shader = new ShaderProgram();
+    auto* default_shader = new ShaderProgram();
     default_shader->loadFromFile("EngineContent/Shader/DefaultShader.glsl");
     default_shader->compileShader();
     global_context.default_shader = default_shader;
-    
+
     //Inti Scene Context
-    
+
     //scene root
     auto root = new Object3D(&global_context);
     //init scene context
     auto scene_context = SceneContext(&global_context, root);
-    auto handle = new Handle(&global_context,root);
+    auto handle = new Handle(&global_context, root);
     global_context.handle = handle;
-    
+
     /////// TEST STUF ///////
     root->addChild(handle);
 
@@ -107,7 +110,7 @@ int main() {
     auto textureBase = new Texture;
     std::string pathTexture = "EngineContent/grass_base.png";
     textureBase->loadFromDisk(&pathTexture);
-    
+
     auto textureNormal = new Texture;
     std::string pathTextureNormal = "EngineContent/grass_normal.png";
     textureNormal->loadFromDisk(&pathTextureNormal);
@@ -120,38 +123,32 @@ int main() {
     auto sphere = loadModel("EngineContent/Sphere.fbx");
     sphere->initializeVertexArrays();
 
-    auto test_scene = loadModel("EngineContent/Cube.fbx");
-    test_scene->initializeVertexArrays();
+    auto cube = loadModel("EngineContent/Cube.fbx");
+    cube->initializeVertexArrays();
 
     //init shaders
-    auto *textureMaterial = new ShaderProgram();
+    auto* textureMaterial = new ShaderProgram();
     textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
     textureMaterial->compileShader();
-    textureMaterial->addTexture(textureBase,"textureBase");
-    textureMaterial->addTexture(textureNormal,"textureNormal");
-    
-    auto *posMaterial = new ShaderProgram();
+    textureMaterial->addTexture(textureBase, "textureBase");
+    textureMaterial->addTexture(textureNormal, "textureNormal");
+
+    auto* posMaterial = new ShaderProgram();
     posMaterial->loadFromFile("EngineContent/Shader/test2.glsl");
     posMaterial->compileShader();
 
-    auto *lightTestMaterial = new ShaderProgram();
+    auto* lightTestMaterial = new ShaderProgram();
     lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
     lightTestMaterial->compileShader();
 
-    
-    auto *worldPosMat = new ShaderProgram();
+
+    auto* worldPosMat = new ShaderProgram();
     worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
     worldPosMat->compileShader();
-    
+
     plane->materials.push_back(posMaterial);
     sphere->materials.push_back(lightTestMaterial);
-    test_scene->materials.push_back(lightTestMaterial);
-    
-    
-    //auto mPlane1 = new Mesh3D(plane, &global_context);
-    //mPlane1->setPositionLocal(0, 5, 0);
-    //mPlane1->setRotationLocal(0,0,0);
-    //root->addChild(mPlane1);
+
 
     auto scene_test_model = new Mesh3D(sphere, &global_context);
     scene_test_model->materials.push_back(worldPosMat);
@@ -163,21 +160,26 @@ int main() {
 
     auto plane1 = new Mesh3D(plane, &global_context);
     plane1->setPositionLocal(0, 1, 5);
-    plane1->setRotationLocalDegrees(45,180,0);
+    plane1->setRotationLocalDegrees(45, 180, 0);
     root->addChild(plane1);
+
+
+    auto cube1 = new Mesh3D(cube, &global_context);
+    cube1->setPositionLocal(-10, -5, 0);
+    root->addChild(cube1);
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
     root->addChild(light1);
-    
+
     ///////////////////////////////////////////////////////////////
 
     //TODO: this call should be automatically called when changing the scene
     scene_context.recalculate_from_root();
-    
+
     //initialize render context
     auto editorRenderContext = RenderContext{
-             *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+        *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
     };
 
     //register interaction callbacks
@@ -191,11 +193,12 @@ int main() {
     auto editor3DCamera = new Camera3D(&editorRenderContext, &global_context);
     std::cout << glm::to_string(*editorRenderContext.camera.getProjection()) << std::endl;
     double renderFrameStart;
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
         processInput(editor3DCamera, &scene_context, window);
-        
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 
         editor3DCamera->calculateView();
@@ -218,56 +221,62 @@ int main() {
     return 0;
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    switch (action) {
-        case GLFW_RELEASE:
-            keyPressed[key] = false;
-            keyReleased[key] = true;
-            break;
-        case GLFW_PRESS:
-            keyPressed[key] = true;
-            keyClicked[key] = true;
-            break;
-        default:
-            break;
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    switch (action)
+    {
+    case GLFW_RELEASE:
+        keyPressed[key] = false;
+        keyReleased[key] = true;
+        break;
+    case GLFW_PRESS:
+        keyPressed[key] = true;
+        keyClicked[key] = true;
+        break;
+    default:
+        break;
     }
 }
 
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-    switch (action) {
-        case GLFW_RELEASE:
-            mouseButtonsPressed[button] = false;
-            mouseButtonsReleased[button] = true;
-            break;
-        case GLFW_PRESS:
-            mouseButtonsPressed[button] = true;
-            mouseButtonsClicked[button] = true;
-            break;
-        default:
-            break;
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    switch (action)
+    {
+    case GLFW_RELEASE:
+        mouseButtonsPressed[button] = false;
+        mouseButtonsReleased[button] = true;
+        break;
+    case GLFW_PRESS:
+        mouseButtonsPressed[button] = true;
+        mouseButtonsClicked[button] = true;
+        break;
+    default:
+        break;
     }
 }
 
-void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
     mousePos = {xpos, ypos};
-    mouseNormalized ={xpos/WINDOW_WIDTH, ypos/WINDOW_HEIGHT } ;
+    mouseNormalized = {xpos / WINDOW_WIDTH, ypos / WINDOW_HEIGHT};
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
 #define CAMERA_ROTATION_SPEED 0.05
 
 //TODO: generalize this especially mouse capture
-void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *window) {
-
-
+void processInput(Camera3D* camera3D, SceneContext* scene_context, GLFWwindow* window)
+{
     glm::vec2 cursorDelta;
     //capture mouse when right-clicking in window
-    if (mouseButtonsClicked[GLFW_MOUSE_BUTTON_RIGHT]) {
+    if (mouseButtonsClicked[GLFW_MOUSE_BUTTON_RIGHT])
+    {
         mouseLockPos = mousePos;
         mouseCaptured = true;
     }
 
-    if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_RIGHT]) {
+    if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_RIGHT])
+    {
         mouseLockPos = {0, 0};
         mouseCaptured = false;
     }
@@ -280,25 +289,52 @@ void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *w
             glm::vec3(glm::radians(cursorDelta.y * CAMERA_ROTATION_SPEED),
                       glm::radians(cursorDelta.x * CAMERA_ROTATION_SPEED), 0) + camera3D->getLocalRotation());
     }
-    else if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
+    else
     {
         auto inverse_projection = glm::inverse(*(camera3D->getRenderContext()->camera.getProjection()));
         auto inverse_view = camera3D->getGlobalTransform();
 
-        auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x*2-1,-mouseNormalized.y*2+1,1.0,1.0);
+        auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x * 2 - 1, -mouseNormalized.y * 2 + 1, 1.0,
+                                                         1.0);
         ray_target.w = 0;
-        
-        auto ray_direction = inverse_view * glm::normalize(ray_target);
-        auto ray_origin = camera3D->getWorldPosition(); 
 
-        RayCastHit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+        auto ray_direction = inverse_view * glm::normalize(ray_target);
+        auto ray_origin = camera3D->getWorldPosition();
         auto handle = scene_context->get_global_context()->handle;
-        if (a.hit)
+
+        if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
         {
-            handle->attach_to_object(a.object_3d);
-        } else
+            if (handle->is_moving_coord())
+            {
+                handle->editor_release_handle();
+            }
+            else
+            {
+                //if handle is active check first intersection with handle
+                RayCastHit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+                if (a.hit)
+                {
+                    handle->attach_to_object(a.object_3d);
+                }
+                else
+                {
+                    handle->detach();
+                }
+            }
+        }
+        else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_LEFT])
         {
-            handle->detach();
+            if (handle->is_attached())
+            {
+                if (handle->is_moving_coord())
+                {
+                    handle->editor_move_handle(ray_origin, ray_direction);
+                }
+                else
+                {
+                    handle->editor_click_handle(ray_origin, ray_direction);
+                }
+            }
         }
     }
 
@@ -312,13 +348,11 @@ void processInput(Camera3D *camera3D, SceneContext *scene_context, GLFWwindow *w
 
     camera3D->setPositionLocal(
 
-            camera3D->getForwardVector() *
-            static_cast<float >(cameraInput.x * camera3D->getRenderContext()->deltaTime *
-                                CAMERA_SPEED) +
-            camera3D->getRightVector() *
-            static_cast<float >(cameraInput.y * camera3D->getRenderContext()->deltaTime *
-                                CAMERA_SPEED) +
-            camera3D->getWorldPosition());
-
+        camera3D->getForwardVector() *
+        static_cast<float>(cameraInput.x * camera3D->getRenderContext()->deltaTime *
+            CAMERA_SPEED) +
+        camera3D->getRightVector() *
+        static_cast<float>(cameraInput.y * camera3D->getRenderContext()->deltaTime *
+            CAMERA_SPEED) +
+        camera3D->getWorldPosition());
 }
-

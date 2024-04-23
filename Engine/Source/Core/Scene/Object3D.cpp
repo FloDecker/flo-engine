@@ -75,6 +75,15 @@ std::vector<Object3D*> &Object3D::get_children()
     return children;
 }
 
+Object3D* Object3D::get_child_by_tag(std::string* tag)
+{
+    for (auto child : children)
+    {
+        if (child->has_tag(*tag)) return child;
+    }
+    return nullptr;
+}
+
 //setter for transform
 
 

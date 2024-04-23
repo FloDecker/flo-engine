@@ -4,7 +4,7 @@
 
 struct RayCastHit
 {
-    bool hit; //if the raycast hit something
+    bool hit = false; //if the raycast hit something
     double distance_from_origin;
     Object3D* object_3d; //the object that was hit
     glm::vec3 hit_world_space; //hit intersection in world space

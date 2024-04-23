@@ -36,6 +36,7 @@ public:
     bool visible = true;
     std::string name;
 
+    
     //TAGS
     void add_tag(std::string tag);
     bool has_tag(unsigned int tag_id) const;
@@ -67,7 +68,7 @@ public:
     void addChild(Object3D* child);
     Object3D* get_parent() const;
     std::vector<Object3D*>& get_children();
-
+    Object3D* get_child_by_tag(std::string* tag);
 protected:
     GlobalContext* global_context_;
 

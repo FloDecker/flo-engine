@@ -159,6 +159,7 @@
     <ClCompile Include="Source\Core\Scene\SceneContext.cpp" />
     <ClCompile Include="Source\External\stb_image.cpp" />
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
+    <ClCompile Include="Source\Util\RayIntersectionHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Content\Material.h" />
@@ -180,9 +181,7 @@
     <ClInclude Include="Source\Core\Scene\RayCast.h" />
     <ClInclude Include="Source\Core\Scene\SceneContext.h" />
     <ClInclude Include="Source\Util\AssetLoader.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Source\" />
+    <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="EngineContent\CanyonGroundRock_basecolor.png" />
