@@ -25,9 +25,12 @@ void Object3D::addChild(Object3D *child) {
         //TODO: allow reparenting
         return;
     }
-    
+
+    //TODO : maybe there is a more elegant solution for this
+    auto pos_global = child->getWorldPosition();
     this->children.push_back(child);
     child->parent = this;
+    child->set_position_global(pos_global);
 }
 
 Object3D* Object3D::get_parent() const
@@ -141,6 +144,9 @@ void Object3D::recalculateTransform() {
     //TODO: add scale
     transformLocal = glm::mat4 (1.0f);
 
+    //apply scale
+    transformLocal = glm::scale(transformLocal, scale_);
+
     //apply transform
     transformLocal = glm::translate(transformLocal, position_);
 
@@ -148,7 +154,6 @@ void Object3D::recalculateTransform() {
     transformLocal  = glm::rotate(transformLocal,rotation_.y,vecY);
     transformLocal  = glm::rotate(transformLocal,rotation_.x,vecX);
     transformLocal  = glm::rotate(transformLocal,rotation_.z,vecZ);
-
 
     this->recalculateTransformGlobal();
 }

@@ -184,6 +184,7 @@
     <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="EngineContent\Arrow.fbx" />
     <Content Include="EngineContent\CanyonGroundRock_basecolor.png" />
     <Content Include="EngineContent\coordinates.fbx" />
     <Content Include="EngineContent\coordinates2.fbx" />
@@ -195,6 +196,7 @@
     <Content Include="EngineContent\Shader\HandlerGreen.glsl" />
     <Content Include="EngineContent\Shader\HandlerRed.glsl" />
     <Content Include="EngineContent\Shader\lightingTest.glsl" />
+    <Content Include="EngineContent\Shader\SkySphere.glsl" />
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Shader\test2.glsl" />
     <Content Include="EngineContent\Shader\WorldPosition.glsl" />

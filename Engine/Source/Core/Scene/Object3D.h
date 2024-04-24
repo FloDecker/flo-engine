@@ -22,7 +22,7 @@ private:
 
     glm::vec3 rotation_;
     glm::vec3 position_;
-    glm::vec3 scale_;
+    glm::vec3 scale_ = {1.0,1.0,1.0};
 
     std::vector<Object3D*> children;
     Object3D* parent = nullptr;
