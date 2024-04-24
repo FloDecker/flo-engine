@@ -126,6 +126,9 @@ int main()
     auto cube = loadModel("EngineContent/Cube.fbx");
     cube->initializeVertexArrays();
 
+    auto me_sky_sphere = loadModel("EngineContent/SkySphere.fbx");
+    me_sky_sphere->initializeVertexArrays();
+
     //init shaders
     auto* textureMaterial = new ShaderProgram();
     textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
@@ -146,6 +149,12 @@ int main()
     worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
     worldPosMat->compileShader();
 
+    
+    auto* m_sky_sphere = new ShaderProgram();
+    m_sky_sphere->loadFromFile("EngineContent/Shader/SkySphere.glsl");
+    m_sky_sphere->compileShader();
+
+
     plane->materials.push_back(posMaterial);
     sphere->materials.push_back(lightTestMaterial);
 
@@ -154,6 +163,7 @@ int main()
     mSphere1->materials.push_back(worldPosMat);
     mSphere1->setPositionLocal(10,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
+    mSphere1->setScale(2,0.5,1);
     root->addChild(mSphere1);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
@@ -170,7 +180,10 @@ int main()
     mSphere1->addChild(cube1);
     cube1->set_position_global(0, 10, 0);
 
-    
+    auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
+    o_sky_sphere->materials.push_back(m_sky_sphere);
+    o_sky_sphere->setScale(512,512,512);
+    root->addChild(o_sky_sphere);
 
 
     //ADD LIGHTS

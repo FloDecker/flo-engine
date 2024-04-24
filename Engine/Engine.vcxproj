@@ -200,6 +200,7 @@
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Shader\test2.glsl" />
     <Content Include="EngineContent\Shader\WorldPosition.glsl" />
+    <Content Include="EngineContent\SkySphere.fbx" />
     <Content Include="EngineContent\Sphere.fbx" />
     <Content Include="EngineContent\testSpheres.fbx" />
   </ItemGroup>
