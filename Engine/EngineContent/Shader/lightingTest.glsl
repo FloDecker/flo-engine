@@ -44,7 +44,9 @@ void main() {
     //specular
     vec3 halfDir = normalize(lightDir + viewDir);
     float specAngle = max(dot(halfDir, normalWS), 0.0);
-    float specIntensity  = pow(specAngle, _specularExponent); 
+
+    float diffEase = 1 - pow(1 - _light_diffuse_intensity, 3);
+    float specIntensity  = pow(specAngle, _specularExponent)*diffEase; 
 
 
     float in_light = float(dot(normalWS,_lightPos - vertexPosWs) > 0);
