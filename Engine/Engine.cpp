@@ -155,7 +155,7 @@ int main()
     m_sky_sphere->compileShader();
 
 
-    plane->materials.push_back(posMaterial);
+    plane->materials.push_back(lightTestMaterial);
     sphere->materials.push_back(lightTestMaterial);
 
 
@@ -163,7 +163,7 @@ int main()
     mSphere1->materials.push_back(worldPosMat);
     mSphere1->setPositionLocal(10,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
-    mSphere1->setScale(2,0.5,1);
+    //mSphere1->setScale(2,0.5,1);
     root->addChild(mSphere1);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
@@ -171,8 +171,9 @@ int main()
     mSphere1->addChild(mSphere2);
 
     auto plane1 = new Mesh3D(plane, &global_context);
+    plane1->setScale(10,10,10);
     plane1->setPositionLocal(0, 0, 0);
-    plane1->setRotationLocalDegrees(0, 0, 0);
+    plane1->setRotationLocalDegrees(-90, 0, 0);
     root->addChild(plane1);
 
 

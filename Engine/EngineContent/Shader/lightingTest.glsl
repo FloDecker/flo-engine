@@ -17,46 +17,39 @@ in vec3 vertexPosWs;
 in vec3 normalWS;
 
 //static for testing
-vec3 _lightPos = vec3(0.0, 0.1, -4.0);
+vec3 _lightPos = vec3(0.0, 0.5, -4.0);
 float _diffuseMaterialConstant = 0.3;
 float _specularMaterialConstant = 0.6;
 float _ambientMaterialConstant = 0.1;
 
-float _specularExponent = 20.0;
+float _specularExponent = 16;
 
 float _ambientLightIntensity = 0.4;
-float _lightIntensity = 40.0;
+float _lightIntensity = 20.0;
 
 vec3 _reflection_vector(vec3 lightDirection) {
     return 2.0 * dot(lightDirection,normalWS) * normalWS - lightDirection;
 }
 
-float _light_intensity(vec3 lightPos) {
-    return _lightIntensity/pow(distance(vertexPosWs,lightPos),2);
-}
-
-float _light_diffuse_intensity() {
-    return _diffuseMaterialConstant * abs(dot(normalWS,normalize(_lightPos - vertexPosWs))) * _light_intensity(_lightPos);
-}
-
-float _light_specular_intensity() {
-    return _specularMaterialConstant * 
-    pow(abs(dot(
-    normalize(cameraPosWs-vertexPosWs) ,
-    _reflection_vector(normalize(_lightPos - vertexPosWs)))),_specularExponent)
-     * _light_intensity(_lightPos);
-}
-
-float _light_ambient_intensity() {
-    return _ambientLightIntensity * _ambientMaterialConstant;
-}
-
 void main() {
-    //FragColor = vec4(distance(cameraPosWs,vertexPosWs)*0.1);
+    vec3 lightDir = normalize(_lightPos-vertexPosWs);
+    vec3 viewDir = normalize(cameraPosWs-vertexPosWs);
+
+    //light intensity
+    float intensity = _lightIntensity/pow(distance(vertexPosWs,_lightPos),2);
+
+    //diffuse
+    float _light_diffuse_intensity = _diffuseMaterialConstant * max(dot(normalWS,lightDir),0.0) * intensity;
+    
+    //specular
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float specAngle = max(dot(halfDir, normalWS), 0.0);
+    float specIntensity  = pow(specAngle, _specularExponent); 
+
+
     float in_light = float(dot(normalWS,_lightPos - vertexPosWs) > 0);
     FragColor = vec4(vec3(
-    _light_diffuse_intensity() * in_light
-    + _light_specular_intensity() * in_light
-    + _light_ambient_intensity()),1.0);
-    //FragColor = vec4(normalWS,1.0);
+    _light_diffuse_intensity * in_light
+    + specIntensity * in_light
+    + _ambientLightIntensity * _ambientMaterialConstant),1.0);
 }
