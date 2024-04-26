@@ -157,6 +157,7 @@
     <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
     <ClCompile Include="Source\Core\Scene\RayCast.cpp" />
     <ClCompile Include="Source\Core\Scene\SceneContext.cpp" />
+    <ClCompile Include="Source\Core\Scene\SceneTools\Voxelizer.cpp" />
     <ClCompile Include="Source\External\stb_image.cpp" />
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
     <ClCompile Include="Source\Util\RayIntersectionHelper.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Source\Core\Scene\Object3D.h" />
     <ClInclude Include="Source\Core\Scene\RayCast.h" />
     <ClInclude Include="Source\Core\Scene\SceneContext.h" />
+    <ClInclude Include="Source\Core\Scene\SceneTools\Voxelizer.h" />
     <ClInclude Include="Source\Util\AssetLoader.h" />
     <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
   </ItemGroup>

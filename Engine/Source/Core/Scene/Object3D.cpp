@@ -131,7 +131,9 @@ void Object3D::set_position_global(const glm::vec3& pos)
 {
     const auto transform_inverse = inverse(parent->getGlobalTransform());
     const auto pos_new = transform_inverse * glm::vec4(pos, 1);
-    setPositionLocal(glm::vec3(pos_new));
+    auto scale_inverse = new glm::mat4(1.0); 
+    setPositionLocal(glm::vec3(pos_new * glm::scale(*scale_inverse, glm::vec3(1,1,1) / scale_)));
+    free(scale_inverse);
 }
 
 void Object3D::set_position_global(float x, float y, float z)
@@ -141,7 +143,6 @@ void Object3D::set_position_global(float x, float y, float z)
 
 
 void Object3D::recalculateTransform() {
-    //TODO: add scale
     transformLocal = glm::mat4 (1.0f);
 
     //apply scale
