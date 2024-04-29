@@ -13,6 +13,9 @@
 #include "Source/Core/Scene/Handle.h"
 #include "Source/Core/Scene/RayCast.h"
 #include "Source/Core/Scene/SceneContext.h"
+#include "Source/Core/Scene/DebugPrimitives/Cube3D.h"
+#include "Source/Core/Scene/DebugPrimitives/Line3D.h"
+#include "Source/Core/Scene/SceneTools/Voxelizer.h"
 #include "Source/Util/AssetLoader.h"
 
 #define WINDOW_HEIGHT (1080/2)
@@ -94,6 +97,11 @@ int main()
     default_shader->compileShader();
     global_context.default_shader = default_shader;
 
+
+    auto* default_color_shader = new ShaderProgram();
+    default_color_shader->loadFromFile("EngineContent/Shader/DebugColorChangable.glsl");
+    default_color_shader->compileShader();
+    global_context.default_color_debug_shader = default_color_shader;
     //Inti Scene Context
 
     //scene root
@@ -191,6 +199,21 @@ int main()
     auto light1 = new PointLight(&global_context);
     root->addChild(light1);
 
+    //TEST LINE
+    auto line_test = new Line3D(root,glm::vec3(0,0,0),glm::vec3(0,0,-3), &global_context);
+
+    //TEST CUBE
+    auto cube_test = new Cube3D(&global_context);
+    root->addChild(cube_test);
+    cube_test->set_position_global(0,0,-10);
+
+    //TEST VOXELIZER
+    //auto vox = new Voxelizer(&global_context, &scene_context);
+    //vox->setScale(1,1,1);
+    //vox->voxel_precision = 3;
+    //vox->recalculate();
+    //root->addChild(vox);
+    
     ///////////////////////////////////////////////////////////////
 
     //TODO: this call should be automatically called when changing the scene

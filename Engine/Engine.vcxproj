@@ -145,12 +145,16 @@
   <ItemGroup>
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Source\Core\Editor\GlobalContext.cpp" />
+    <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp" />
+    <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp" />
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp" />
     <ClCompile Include="Source\Core\Renderer\Texture.cpp" />
     <ClCompile Include="Source\Core\Renderer\VertexArray.cpp" />
     <ClCompile Include="Source\Core\Scene\Camera3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Collider.cpp" />
+    <ClCompile Include="Source\Core\Scene\DebugPrimitives\Cube3D.cpp" />
+    <ClCompile Include="Source\Core\Scene\DebugPrimitives\Line3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Handle.cpp" />
     <ClCompile Include="Source\Core\Scene\Lighting\PointLight.cpp" />
     <ClCompile Include="Source\Core\Scene\Mesh3D.cpp" />
@@ -167,6 +171,8 @@
     <ClInclude Include="Source\Content\Mesh.h" />
     <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h" />
     <ClInclude Include="Source\Core\Editor\GlobalContext.h" />
+    <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h" />
+    <ClInclude Include="Source\Core\Renderer\Primitives\Line.h" />
     <ClInclude Include="Source\Core\Renderer\renderable.h" />
     <ClInclude Include="Source\Core\Renderer\RenderContext.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h" />
@@ -175,6 +181,8 @@
     <ClInclude Include="Source\Core\Renderer\VertexArray.h" />
     <ClInclude Include="Source\Core\Scene\Camera3D.h" />
     <ClInclude Include="Source\Core\Scene\Collider.h" />
+    <ClInclude Include="Source\Core\Scene\DebugPrimitives\Cube3D.h" />
+    <ClInclude Include="Source\Core\Scene\DebugPrimitives\Line3D.h" />
     <ClInclude Include="Source\Core\Scene\Handle.h" />
     <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h" />
     <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
@@ -193,6 +201,7 @@
     <Content Include="EngineContent\Cube.fbx" />
     <Content Include="EngineContent\Cube.obj" />
     <Content Include="EngineContent\cubeArray.fbx" />
+    <Content Include="EngineContent\Shader\DebugColorChangable.glsl" />
     <Content Include="EngineContent\Shader\DefaultShader.glsl" />
     <Content Include="EngineContent\Shader\HandlerBlue.glsl" />
     <Content Include="EngineContent\Shader\HandlerGreen.glsl" />

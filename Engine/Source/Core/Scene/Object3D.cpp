@@ -118,6 +118,11 @@ void Object3D::setRotationLocal(glm::vec3 rotation) {
     recalculateTransform();
 }
 
+void Object3D::setScale(float scale)
+{
+    setScale(glm::vec3(scale));
+}
+
 void Object3D::setScale(float x, float y, float z) {
     setScale(glm::vec3(x,y,z));
 }
