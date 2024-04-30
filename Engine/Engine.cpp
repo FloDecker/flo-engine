@@ -200,7 +200,7 @@ int main()
     root->addChild(light1);
 
     //TEST LINE
-    auto line_test = new Line3D(root,glm::vec3(0,0,0),glm::vec3(0,0,-3), &global_context);
+    auto line_test = new Line3D(root,glm::vec3(0,0,0),glm::vec3(3,3,-3), &global_context);
 
     //TEST CUBE
     auto cube_test = new Cube3D(&global_context);
@@ -246,6 +246,10 @@ int main()
         
         editor3DCamera->calculateView();
         //draw scene elements
+
+        auto p = cube1->getWorldPosition();
+        line_test->set_positions(mSphere1->getWorldPosition(),p);
+
         
         root->drawEntryPoint(&editorRenderContext);
         //swap front and back buffer

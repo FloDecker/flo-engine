@@ -10,6 +10,7 @@ public:
     glm::vec3 pos_0;
     glm::vec3 pos_1;
     glm::vec3 color = {1,0,0};
+    void set_positions( glm::vec3 pos_0, glm::vec3 pos_1);
 private:
     Line *line_; 
 };
