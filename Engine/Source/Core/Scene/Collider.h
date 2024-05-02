@@ -10,6 +10,7 @@ public:
     Collider(GlobalContext* global_context);
     virtual void check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length,
                                  bool ignore_back_face, RayCastHit* ray_cast_hit);
+    virtual bool is_in_proximity(glm::vec3 center_ws, float radius);
 };
 
 class MeshCollider : public Collider
@@ -20,7 +21,7 @@ public:
     std::vector<struct_vertex_array*>* get_vertex_arrays();
     void check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length, bool ignore_back_face,
                          RayCastHit* ray_cast_hit) override;
-
+    virtual bool is_in_proximity(glm::vec3 center_ws, float radius);
 private:
     std::vector<struct_vertex_array*> vertex_arrays_;
 };

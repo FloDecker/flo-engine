@@ -49,10 +49,31 @@ void RayCast::recurse_scene_model_ray_cast(RayCastHit* ray_cast_hit, std::string
     }
 }
 
+bool RayCast::recurse_proximity_check(Object3D* object, std::string* collision_tag, glm::vec3 proximity_center,
+                                      float radius)
+{
+    if (object->has_tag(*collision_tag) && object->visible)
+    {
+        auto mesh_collider = dynamic_cast<Collider*>(object);
+        if (mesh_collider->is_in_proximity(proximity_center,radius))
+        {
+            return true;
+        }
+    }
+    for (auto child : object->get_children())
+    {
+        if (recurse_proximity_check(child, collision_tag , proximity_center, radius))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 //EDITOR ONLY RAY CAST FOR OBJECT SELECTION 
 
 RayCastHit RayCast::ray_cast_editor(SceneContext* scene_context,
-                                    glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction)
+                                    glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction, bool ignore_back_face)
 {
     RayCastHit ray_cast_hit = RayCastHit{
         false,
@@ -66,7 +87,16 @@ RayCastHit RayCast::ray_cast_editor(SceneContext* scene_context,
 
     std::string tag = "ENGINE_COLLIDER";
     recurse_scene_model_ray_cast(&ray_cast_hit, &tag, scene_context->get_root(), ray_cast_origin,
-                                 glm::normalize(ray_cast_direction), 100000.0, true);
-    
+                                 glm::normalize(ray_cast_direction), 100000.0, ignore_back_face);
+
     return ray_cast_hit;
+}
+
+bool RayCast::scene_geometry_proximity_check(const SceneContext* scene_context, const glm::vec3& proximity_center, float radius)
+{
+    
+    std::string tag = "ENGINE_COLLIDER";
+    bool result = recurse_proximity_check(scene_context->get_root(),&tag,proximity_center,radius);
+
+    return result;
 }

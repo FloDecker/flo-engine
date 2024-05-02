@@ -73,6 +73,11 @@ glm::vec3 Object3D::getRightVector() {
     return glm::normalize(glm::vec3 (temp.x,temp.y,temp.z));
 }
 
+glm::vec3 Object3D::get_scale()
+{
+    return scale_;
+}
+
 std::vector<Object3D*> &Object3D::get_children()
 {
     return children;

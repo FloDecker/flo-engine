@@ -16,6 +16,7 @@ public:
 private:
     std::vector<glm::vec3> voxel_positions_;
     SceneContext *scene_context_;
+    bool proble_single_chunc(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left, float overlap_percentage = 0.1f);
 protected:
     
 };

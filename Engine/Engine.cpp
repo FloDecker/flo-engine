@@ -208,11 +208,11 @@ int main()
     cube_test->set_position_global(0,0,-10);
 
     //TEST VOXELIZER
-    //auto vox = new Voxelizer(&global_context, &scene_context);
-    //vox->setScale(1,1,1);
-    //vox->voxel_precision = 3;
-    //vox->recalculate();
-    //root->addChild(vox);
+    auto vox = new Voxelizer(&global_context, &scene_context);
+    vox->setScale(1,2,2);
+    vox->voxel_precision = 4;
+    vox->recalculate();
+    root->addChild(vox);
     
     ///////////////////////////////////////////////////////////////
 

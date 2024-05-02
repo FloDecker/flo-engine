@@ -69,6 +69,8 @@ public:
     glm::vec3 getUpVector(); //TODO
     glm::vec3 getRightVector(); //TODO
 
+    glm::vec3 get_scale();
+
     ////////////
     void drawEntryPoint(struct RenderContext* renderContext);
     void addChild(Object3D* child);

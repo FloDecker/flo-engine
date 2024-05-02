@@ -11,6 +11,11 @@ void Collider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_
 {
 }
 
+bool Collider::is_in_proximity(glm::vec3 center_ws, float radius)
+{
+    return false;
+}
+
 
 //Mesh Collider
 MeshCollider::MeshCollider(GlobalContext* global_context,
@@ -88,18 +93,74 @@ void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direct
             c = glm::cross(edge2, vp2);
             if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
 
+            auto hit_ws = glm::vec3(this->getGlobalTransform() * glm::vec4(hit_point, 1));
+            auto distance = glm::distance(hit_ws, ray_origin_ws);
             // This ray hits the triangle
-            if (ray_cast_hit->distance_from_origin > t)
+            if (ray_cast_hit->distance_from_origin > distance)
             {
-                ray_cast_hit->distance_from_origin = t;
+                ray_cast_hit->distance_from_origin = distance;
                 ray_cast_hit->hit = true;
-                ray_cast_hit->distance_from_origin = t;
                 ray_cast_hit->hit_local = hit_point;
                 ray_cast_hit->hit_normal_local = face_normal;
-                ray_cast_hit->hit_world_space = this->transformGlobal * glm::vec4(ray_cast_hit->hit_local, 1);
-                ray_cast_hit->hit_normal_world_space = this->transformGlobal * glm::vec4(ray_cast_hit->hit_normal_local, 0);
+                ray_cast_hit->hit_world_space = hit_ws;
+                ray_cast_hit->hit_normal_world_space = this->getGlobalTransform() * glm::vec4(ray_cast_hit->hit_normal_local, 0);
                 ray_cast_hit->object_3d = get_parent();
             }
         }
     }
+}
+
+bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)
+{
+    auto global_inverse = glm::inverse(this->transformGlobal);
+    
+    glm::vec3 proximity_center_local = global_inverse * glm::vec4(center_ws, 1);
+    std::vector<struct_vertex_array*>* vertex_arrays_of_geometry = this->get_vertex_arrays();
+
+    for (unsigned int a = 0; a < vertex_arrays_of_geometry->size(); a++)
+    {
+        struct_vertex_array* vertex_array = vertex_arrays_of_geometry->at(a);
+        for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3)
+        {
+            vertex v0 = vertex_array->vertices->at(vertex_array->indices->at(i));
+            vertex v1 = vertex_array->vertices->at(vertex_array->indices->at(i + 1));
+            vertex v2 = vertex_array->vertices->at(vertex_array->indices->at(i + 2));
+
+
+            glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
+
+
+            float d = -glm::dot(face_normal, v0.position);
+            float t =
+                -(glm::dot(face_normal, proximity_center_local) + d);
+
+            glm::vec3 hit_point = proximity_center_local + t * face_normal;
+            auto vec_to_center_global = this->transformGlobal * glm::vec4(hit_point-proximity_center_local,0.0);
+            
+            if (glm::length(vec_to_center_global) > radius) continue;
+                
+            auto c = glm::vec3();
+
+            // Edge 0
+            glm::vec3 edge0 = v1.position - v0.position;
+            glm::vec3 vp0 = hit_point - v0.position;
+            c = glm::cross(edge0, vp0);
+            if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
+
+            // Edge 1
+            glm::vec3 edge1 = v2.position - v1.position;
+            glm::vec3 vp1 = hit_point - v1.position;
+            c = glm::cross(edge1, vp1);
+            if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
+
+            // Edge 2
+            glm::vec3 edge2 = v0.position - v2.position;
+            glm::vec3 vp2 = hit_point - v2.position;
+            c = glm::cross(edge2, vp2);
+            if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
+
+            return true;
+        }
+    }
+    return false;
 }
