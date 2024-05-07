@@ -8,6 +8,7 @@
 #include "../RayCast.h"
 #include "../DebugPrimitives/Line3D.h"
 #define FLOATING_POINT_ACCEPTANCE 0.02
+
 Voxelizer::Voxelizer(GlobalContext* global_context, SceneContext* scene_context): Object3D(global_context)
 {
     scene_context_ = scene_context;
@@ -15,7 +16,6 @@ Voxelizer::Voxelizer(GlobalContext* global_context, SceneContext* scene_context)
 
 void Voxelizer::recalculate()
 {
-
     auto start = std::chrono::system_clock::now();
 
     auto transform_global = getGlobalTransform();
@@ -39,31 +39,35 @@ void Voxelizer::recalculate()
         std::cout << "needs an extension in z of at least 1\n";
     }
 
-    float step_size = 1.0f / static_cast<float>(voxel_precision);
-    glm::vec3 half_vector = glm::vec3(0.5f * step_size);
+    calculate_area_filled_recursive(scene_context_, upper_right_corner, lower_left_corner,
+                                    {distance_x, distance_y, distance_z}, {0,0,0});
 
-    for (unsigned int x = 0; x < distance_x; x += 1)
-    {
-        for (unsigned int y = 0; y < distance_y; y += 1)
-        {
-            for (unsigned int z = 0; z < distance_z; z += 1)
-            {
-                auto position_global = lower_left_corner +
-                    glm::vec3(static_cast<float>(x) * step_size,
-                              static_cast<float>(y) * step_size,
-                              static_cast<float>(z) * step_size);
-                if (RayCast::scene_geometry_proximity_check(scene_context_,position_global+half_vector,step_size*0.5f))
-                {
-                    auto c = new Cube3D(global_context_);
-                    this->addChild(c);
-                    c->setScale(step_size/this->get_scale().x,step_size/this->get_scale().y,step_size/this->get_scale().z);
-                    c->color = {0, 1, 0};
-                    c->set_position_global(position_global);
-                }
+    //float step_size = 1.0f / static_cast<float>(voxel_precision);
+    //glm::vec3 half_vector = glm::vec3(0.5f * step_size);
 
-            }
-        }
-    }
+    //for (unsigned int x = 0; x < distance_x; x += 1)
+    //{
+    //    for (unsigned int y = 0; y < distance_y; y += 1)
+    //    {
+    //        for (unsigned int z = 0; z < distance_z; z += 1)
+    //        {
+    //            auto position_global = lower_left_corner +
+    //                glm::vec3(static_cast<float>(x) * step_size,
+    //                          static_cast<float>(y) * step_size,
+    //                          static_cast<float>(z) * step_size);
+    //            if (RayCast::scene_geometry_proximity_check(scene_context_, position_global + half_vector,
+    //                                                        step_size * 0.5f))
+    //            {
+    //                auto c = new Cube3D(global_context_);
+    //                this->addChild(c);
+    //                c->setScale(step_size / this->get_scale().x, step_size / this->get_scale().y,
+    //                            step_size / this->get_scale().z);
+    //                c->color = {0, 1, 0};
+    //                c->set_position_global(position_global);
+    //            }
+    //        }
+    //    }
+    //}
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
@@ -73,8 +77,6 @@ void Voxelizer::recalculate()
 bool Voxelizer::proble_single_chunc(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
                                     float overlap_percentage)
 {
-
-
     //float length = glm::length(vec_1);
     //RayCastHit h = RayCast::ray_cast_editor(scene_context_, position_global_3, -vec_test_half, false);
     //new Line3D(scene_context_->get_root(), position_global_3, position_global_3 - vec_test_half,
@@ -87,4 +89,74 @@ bool Voxelizer::proble_single_chunc(SceneContext* scene_context, glm::vec3 ws_up
     //    c->set_position_global(h.hit_world_space);
     //}
     return false;
+}
+
+void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm::vec3 ws_upper_right,
+                                                glm::vec3 ws_lower_left, glm::i16vec3 voxel_upper_right,
+                                                glm::i16vec3 voxel_lower_left)
+{
+    float step_size = 1.0f / static_cast<float>(voxel_precision);
+
+    int distance_x = abs(voxel_upper_right.x - voxel_lower_left.x);
+    int distance_y = abs(voxel_upper_right.y - voxel_lower_left.y);
+    int distance_z = abs(voxel_upper_right.z - voxel_lower_left.z);
+
+    //if all distances are the same we can do a distance check from the center
+    if (distance_x == distance_y && distance_x == distance_z)
+    {
+        glm::vec3 center = ws_lower_left + (static_cast<glm::vec3>(voxel_lower_left) + static_cast<glm::vec3>(voxel_upper_right)) *
+            step_size * 0.5f;
+
+        float radius = glm::length(glm::vec3(step_size)) * static_cast<float>(distance_x) * 0.5f;
+        if (RayCast::scene_geometry_proximity_check(scene_context_, center,radius))
+        {
+            //raycast hit and smallest step size reached
+            if (distance_x == 1 && distance_y == 1 && distance_z == 1)
+            {
+                auto c = new Cube3D(global_context_);
+                this->addChild(c);
+                c->setScale(step_size / this->get_scale().x, step_size / this->get_scale().y,
+                            step_size / this->get_scale().z);
+                c->color = {0, 1, 0};
+                c->set_position_global(ws_lower_left + static_cast<glm::vec3>(voxel_lower_left) * step_size + step_size * 0.5f);
+                return;
+            } else
+            {
+                int distance = (distance_x + 1) / 2;
+                glm::i16vec3 offset_of_chunk = glm::i16vec3(distance);
+                for (int x = 0; x <= 1; x++)
+                {
+                    for (int y = 0; y <= 1; y++)
+                    {
+                        for (int z = 0; z <= 1; z++)
+                        {
+                            glm::i16vec3 offset = {x * distance, y * distance, z * distance};
+                            calculate_area_filled_recursive(scene_context, ws_upper_right,
+                                                            ws_lower_left, voxel_lower_left + offset + offset_of_chunk,
+                                                            voxel_lower_left + offset);
+                        }
+                    }
+                }
+            }
+            //countinue seperating
+        }
+        else
+        {
+            // no hit in chunk, abort
+            //TEMP FOR TEST
+            return;
+        }
+    }
+
+
+    if (distance_x <= distance_y && distance_x <= distance_z) // x is the smallest
+    {
+
+    }
+    if (distance_y <= distance_x && distance_y <= distance_z) // y is the smallest
+    {
+    }
+    if (distance_z <= distance_x && distance_z <= distance_y) // z is the smallest
+    {
+    }
 }

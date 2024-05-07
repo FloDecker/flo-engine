@@ -137,6 +137,9 @@ int main()
     auto me_sky_sphere = loadModel("EngineContent/SkySphere.fbx");
     me_sky_sphere->initializeVertexArrays();
 
+    auto me_test_building = loadModel("EngineContent/closedSpaceTest.fbx");
+    me_test_building->initializeVertexArrays();
+
     //init shaders
     auto* textureMaterial = new ShaderProgram();
     textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
@@ -194,6 +197,12 @@ int main()
     o_sky_sphere->setScale(512,512,512);
     root->addChild(o_sky_sphere);
 
+    auto test_building = new Mesh3D(me_test_building,&global_context);
+    test_building->materials.push_back(lightTestMaterial);
+    root->addChild(test_building);
+    test_building->set_position_global(20,0,0);
+    test_building->setRotationLocalDegrees(-90,0,0);
+
 
     //ADD LIGHTS
     auto light1 = new PointLight(&global_context);
@@ -208,11 +217,14 @@ int main()
     cube_test->set_position_global(0,0,-10);
 
     //TEST VOXELIZER
+    
     auto vox = new Voxelizer(&global_context, &scene_context);
-    vox->setScale(1,2,2);
-    vox->voxel_precision = 4;
-    vox->recalculate();
+    vox->setScale(4,4,4);
     root->addChild(vox);
+
+    vox->set_position_global(20,0,0);
+    vox->voxel_precision = 1;
+    vox->recalculate();
     
     ///////////////////////////////////////////////////////////////
 
