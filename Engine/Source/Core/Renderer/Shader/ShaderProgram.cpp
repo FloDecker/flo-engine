@@ -10,6 +10,7 @@
 #include "ShaderHeaders.h"
 
 
+class Texture;
 const char* vertexShaderTag   = "[vertex]";
 const char* fragmentShaderTag = "[fragment]";
 

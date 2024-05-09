@@ -8,6 +8,8 @@
 #include "Source/Core/Renderer/RenderContext.h"
 #include "gtx/string_cast.hpp"
 #include "Source/Core/Editor/GlobalContext.h"
+#include "Source/Core/Renderer/Texture/Texture3D.h"
+#include "Source/Core/Renderer/Texture/Texture2D.h"
 #include "Source/Core/Scene/Camera3D.h"
 #include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Handle.h"
@@ -115,11 +117,11 @@ int main()
     root->addChild(handle);
 
     //load textures 
-    auto textureBase = new Texture;
+    auto textureBase = new Texture2D;
     std::string pathTexture = "EngineContent/grass_base.png";
     textureBase->loadFromDisk(&pathTexture);
 
-    auto textureNormal = new Texture;
+    auto textureNormal = new Texture2D;
     std::string pathTextureNormal = "EngineContent/grass_normal.png";
     textureNormal->loadFromDisk(&pathTextureNormal);
 
@@ -141,6 +143,7 @@ int main()
     me_test_building->initializeVertexArrays();
 
     //init shaders
+    
     auto* textureMaterial = new ShaderProgram();
     textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
     textureMaterial->compileShader();
@@ -216,15 +219,36 @@ int main()
     root->addChild(cube_test);
     cube_test->set_position_global(0,0,-10);
 
+
+    //TEST 3D TEXTURE
+    auto test_texture_3d = new Texture3D();
+    test_texture_3d->initalize_as_voxel_data({0,0,0},{1,1,1},2,8,8,8);
+    for (unsigned int x = 0 ;x< 8;x++)
+    {
+        for (unsigned int y = 0 ;y< 8;y++)
+        {
+            for (unsigned int z = 0 ;z< 8;z++)
+            {
+                test_texture_3d->write_to_voxel_field(15,15,15,15,x,y,z);
+            }
+        }
+    }
+    test_texture_3d->initialize();
+
+    auto* m_gi_test_mater = new ShaderProgram();
+    m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelGI.glsl");
+    m_gi_test_mater->compileShader();
+    m_gi_test_mater->addTexture(test_texture_3d,"voxelData");
+    cube1->materials.push_back(m_gi_test_mater);
     //TEST VOXELIZER
     
-    auto vox = new Voxelizer(&global_context, &scene_context);
-    vox->setScale(4,4,4);
-    root->addChild(vox);
-
-    vox->set_position_global(20,0,0);
-    vox->voxel_precision = 1;
-    vox->recalculate();
+    //auto vox = new Voxelizer(&global_context, &scene_context);
+    //vox->setScale(4,4,4);
+    //root->addChild(vox);
+//
+    //vox->set_position_global(20,0,0);
+    //vox->voxel_precision = 1;
+    //vox->recalculate();
     
     ///////////////////////////////////////////////////////////////
 

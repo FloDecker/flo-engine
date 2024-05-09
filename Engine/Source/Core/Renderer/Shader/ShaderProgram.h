@@ -7,7 +7,7 @@
 #include <vec3.hpp>
 #include <vector>
 
-#include "../Texture.h"
+#include "../Texture/Texture.h"
 
 struct Sampler
 {

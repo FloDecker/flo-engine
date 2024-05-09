@@ -149,7 +149,8 @@
     <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp" />
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp" />
-    <ClCompile Include="Source\Core\Renderer\Texture.cpp" />
+    <ClCompile Include="Source\Core\Renderer\Texture\Texture2D.cpp" />
+    <ClCompile Include="Source\Core\Renderer\Texture\Texture3D.cpp" />
     <ClCompile Include="Source\Core\Renderer\VertexArray.cpp" />
     <ClCompile Include="Source\Core\Scene\Camera3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Collider.cpp" />
@@ -177,7 +178,9 @@
     <ClInclude Include="Source\Core\Renderer\RenderContext.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h" />
-    <ClInclude Include="Source\Core\Renderer\Texture.h" />
+    <ClInclude Include="Source\Core\Renderer\Texture\Texture.h" />
+    <ClInclude Include="Source\Core\Renderer\Texture\Texture2D.h" />
+    <ClInclude Include="Source\Core\Renderer\Texture\Texture3D.h" />
     <ClInclude Include="Source\Core\Renderer\VertexArray.h" />
     <ClInclude Include="Source\Core\Scene\Camera3D.h" />
     <ClInclude Include="Source\Core\Scene\Collider.h" />
@@ -210,6 +213,7 @@
     <Content Include="EngineContent\Shader\SkySphere.glsl" />
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Shader\test2.glsl" />
+    <Content Include="EngineContent\Shader\VoxelGI.glsl" />
     <Content Include="EngineContent\Shader\WorldPosition.glsl" />
     <Content Include="EngineContent\SkySphere.fbx" />
     <Content Include="EngineContent\Sphere.fbx" />

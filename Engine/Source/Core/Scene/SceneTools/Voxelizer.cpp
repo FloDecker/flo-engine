@@ -72,6 +72,7 @@ void Voxelizer::recalculate()
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::cout << "voxel build time: " << elapsed_seconds.count() << "s\n";
+    std::cout << "build " << voxel_positions_.size() << " voxels\n";
 }
 
 bool Voxelizer::proble_single_chunc(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
@@ -118,7 +119,9 @@ void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm
                 c->setScale(step_size / this->get_scale().x, step_size / this->get_scale().y,
                             step_size / this->get_scale().z);
                 c->color = {0, 1, 0};
-                c->set_position_global(ws_lower_left + static_cast<glm::vec3>(voxel_lower_left) * step_size + step_size * 0.5f);
+                auto ws_pos = ws_lower_left + static_cast<glm::vec3>(voxel_lower_left) * step_size + step_size * 0.5f;
+                c->set_position_global(ws_pos);
+                voxel_positions_.push_back(ws_pos);
                 return;
             } else
             {
