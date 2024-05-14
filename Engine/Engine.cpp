@@ -175,13 +175,13 @@ int main()
 
     auto mSphere1 = new Mesh3D(sphere, &global_context);
     mSphere1->materials.push_back(worldPosMat);
-    mSphere1->setPositionLocal(10,0,0);
+    mSphere1->setPositionLocal(20,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
     //mSphere1->setScale(2,0.5,1);
     root->addChild(mSphere1);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
-    mSphere2->setPositionLocal(0, 0, 0);
+    mSphere2->setPositionLocal(0, 0, 10);
     mSphere1->addChild(mSphere2);
 
     auto plane1 = new Mesh3D(plane, &global_context);
@@ -201,10 +201,9 @@ int main()
     root->addChild(o_sky_sphere);
 
     auto test_building = new Mesh3D(me_test_building,&global_context);
-    test_building->materials.push_back(lightTestMaterial);
     root->addChild(test_building);
-    test_building->set_position_global(20,0,0);
-    test_building->setRotationLocalDegrees(-90,0,0);
+    test_building->set_position_global(0,2,0);
+    test_building->setRotationLocalDegrees(90,0,0);
 
 
     //ADD LIGHTS
@@ -217,38 +216,43 @@ int main()
     //TEST CUBE
     auto cube_test = new Cube3D(&global_context);
     root->addChild(cube_test);
-    cube_test->set_position_global(0,0,-10);
+    cube_test->set_position_global(0,0,0);
+    cube_test->setScale(8,8,8);
 
 
     //TEST 3D TEXTURE
     auto test_texture_3d = new Texture3D();
-    test_texture_3d->initalize_as_voxel_data({0,0,0},{1,1,1},2,8,8,8);
+    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},2,8,8,8);
     for (unsigned int x = 0 ;x< 8;x++)
     {
         for (unsigned int y = 0 ;y< 8;y++)
         {
             for (unsigned int z = 0 ;z< 8;z++)
             {
-                test_texture_3d->write_to_voxel_field(15,15,15,15,x,y,z);
+                test_texture_3d->write_to_voxel_field(x%15,y%15,z%15,15,x,y,z);
             }
         }
     }
+    //test_texture_3d->write_to_voxel_field(15,15,15,15,0,0,0);
+
     test_texture_3d->initialize();
 
     auto* m_gi_test_mater = new ShaderProgram();
     m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelGI.glsl");
     m_gi_test_mater->compileShader();
-    m_gi_test_mater->addTexture(test_texture_3d,"voxelData");
-    cube1->materials.push_back(m_gi_test_mater);
+    m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
+    plane1->materials.push_back(m_gi_test_mater);
+    test_building->materials.push_back(m_gi_test_mater);
+
     //TEST VOXELIZER
     
-    //auto vox = new Voxelizer(&global_context, &scene_context);
-    //vox->setScale(4,4,4);
-    //root->addChild(vox);
+    auto vox = new Voxelizer(&global_context, &scene_context);
+    vox->setScale(4,4,4);
+    root->addChild(vox);
 //
-    //vox->set_position_global(20,0,0);
-    //vox->voxel_precision = 1;
-    //vox->recalculate();
+    vox->set_position_global(0,0,0);
+    vox->voxel_precision = 2;
+    vox->recalculate();
     
     ///////////////////////////////////////////////////////////////
 
@@ -273,6 +277,7 @@ int main()
     double renderFrameStart;
     while (!glfwWindowShouldClose(window))
     {
+        
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
         processInput(editor3DCamera, &scene_context, window);
@@ -298,6 +303,7 @@ int main()
         memset(mouseButtonsReleased, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 
         editorRenderContext.deltaTime = glfwGetTime() - renderFrameStart;
+        //std::cout<<1/editorRenderContext.deltaTime<<"-";
     }
     glfwDestroyWindow(window);
     glfwTerminate();

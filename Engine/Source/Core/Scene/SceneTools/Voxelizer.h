@@ -13,12 +13,11 @@ public:
     bool show_bounds;
     int voxel_precision;
     void recalculate();
+    void load_into_voxel_texture(Texture3D* texture_3d);
 
 private:
     std::vector<glm::vec3> voxel_positions_;
     SceneContext* scene_context_;
-    bool proble_single_chunc(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
-                             float overlap_percentage = 0.1f);
     void calculate_area_filled_recursive(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
                                          glm::i16vec3 voxel_upper_right, glm::i16vec3 voxel_lower_left);
 

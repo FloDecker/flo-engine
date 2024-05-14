@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "../Texture/Texture.h"
+#include "../Texture/Texture3D.h"
 
 struct Sampler
 {
@@ -45,12 +46,15 @@ public:
     void use();
     void initTextureUnits();
     void addTexture(Texture *texture, const GLchar *samplerName);
+    void addVoxelField(Texture3D *texture, const GLchar *samplerName);
     
 
     //uniforms
-    void setUniformVec3F(const GLchar* name, const GLfloat value[3]);
+    void set_uniform_vec3_f(const GLchar* name, const GLfloat value[3]);
     void setUniformMatrix4(const GLchar* name, const GLfloat* value);
-    void setInt(const GLchar *name, GLint value);
+    void set_uniform_float(const GLchar *name, const GLfloat value);
+
+    void setUniformInt(const GLchar *name, GLint value);
 };
 
 #endif //ENGINE_SHADERPROGRAM_H

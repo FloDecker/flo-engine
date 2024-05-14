@@ -38,7 +38,7 @@ int Mesh3D::drawSelf()
         p->setUniformMatrix4("mMatrix", glm::value_ptr(this->transformGlobal));
         p->setUniformMatrix4("vMatrix", glm::value_ptr(*this->renderContext->camera.getView()));
         p->setUniformMatrix4("pMatrix", glm::value_ptr(*this->renderContext->camera.getProjection()));
-        p->setUniformVec3F("cameraPosWS", glm::value_ptr(*this->renderContext->camera.getWorldPosition()));
+        p->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*this->renderContext->camera.getWorldPosition()));
         mesh->vertexArrays[i]->draw();
     }
     return 1;

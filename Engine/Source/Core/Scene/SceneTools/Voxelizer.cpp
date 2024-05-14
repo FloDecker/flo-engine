@@ -75,22 +75,20 @@ void Voxelizer::recalculate()
     std::cout << "build " << voxel_positions_.size() << " voxels\n";
 }
 
-bool Voxelizer::proble_single_chunc(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
-                                    float overlap_percentage)
+void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
 {
-    //float length = glm::length(vec_1);
-    //RayCastHit h = RayCast::ray_cast_editor(scene_context_, position_global_3, -vec_test_half, false);
-    //new Line3D(scene_context_->get_root(), position_global_3, position_global_3 - vec_test_half,
-    //           global_context_);
-    //if (h.hit)
-    //{
-    //    auto c = new Cube3D(global_context_);
-    //    this->addChild(c);
-    //    c->setScale(0.02);
-    //    c->set_position_global(h.hit_world_space);
-    //}
-    return false;
+    auto transform_global_inverse = glm::inverse(getGlobalTransform());
+
+    
+    for (auto v : voxel_positions_)
+    {
+        glm::vec3 object_space = transform_global_inverse*glm::vec4(v,1.0);
+        object_space*=0.5f;
+        object_space+=glm::vec3(0.5);
+                
+    }
 }
+
 
 void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm::vec3 ws_upper_right,
                                                 glm::vec3 ws_lower_left, glm::i16vec3 voxel_upper_right,

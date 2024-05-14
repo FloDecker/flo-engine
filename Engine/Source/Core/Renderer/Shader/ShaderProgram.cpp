@@ -6,6 +6,7 @@
 
 #include <vec2.hpp>
 #include <vec3.hpp>
+#include <gtc/type_ptr.hpp>
 
 #include "ShaderHeaders.h"
 
@@ -172,15 +173,28 @@ void ShaderProgram::initTextureUnits()
 void ShaderProgram::addTexture(Texture* texture, const GLchar *samplerName)
 {
     use();
-    setInt(samplerName,textures.size());
+    setUniformInt(samplerName,textures.size());
     textures.emplace_back(texture,samplerName);
 }
 
+void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
+{
+    addTexture(texture,samplerName);
+    //TODO change name depending on sampler name
+    set_uniform_vec3_f("voxel_field_lower_left",glm::value_ptr(texture->get_voxel_field_lower_left()));
+    set_uniform_vec3_f("voxel_field_upper_right",glm::value_ptr(texture->get_voxel_field_upper_right()));
+    
+    set_uniform_float("voxel_field_step_size",texture->get_step_size());
+   
+    setUniformInt("voxel_field_depth",texture->get_depth());
+    setUniformInt("voxel_field_height",texture->get_height());
+    setUniformInt("voxel_field_height",texture->get_height());
+}
 
 
 //set uniforms
 
-void ShaderProgram::setUniformVec3F(const GLchar* name, const GLfloat value[3])
+void ShaderProgram::set_uniform_vec3_f(const GLchar* name, const GLfloat value[3])
 {
     if (!compiled)
     {
@@ -199,7 +213,17 @@ void ShaderProgram::setUniformMatrix4(const GLchar *name, const GLfloat *value) 
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
 }
 
-void ShaderProgram::setInt(const GLchar *name, GLint value)
+void ShaderProgram::set_uniform_float(const GLchar* name, const GLfloat value)
+{
+    if (!compiled)
+    {
+        std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+    }
+    GLint location = glGetUniformLocation(shaderProgram_, name);
+    glUniform1f(location, value);
+}
+
+void ShaderProgram::setUniformInt(const GLchar *name, GLint value)
 {
     if (!compiled)
     {
