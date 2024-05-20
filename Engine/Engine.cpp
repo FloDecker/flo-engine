@@ -222,20 +222,20 @@ int main()
 
     //TEST 3D TEXTURE
     auto test_texture_3d = new Texture3D();
-    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},2,8,8,8);
-    for (unsigned int x = 0 ;x< 8;x++)
-    {
-        for (unsigned int y = 0 ;y< 8;y++)
-        {
-            for (unsigned int z = 0 ;z< 8;z++)
-            {
-                test_texture_3d->write_to_voxel_field(x%15,y%15,z%15,15,x,y,z);
-            }
-        }
-    }
+    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},1);
+    //for (unsigned int x = 0 ;x< 8;x++)
+    //{
+    //    for (unsigned int y = 0 ;y< 8;y++)
+    //    {
+    //        for (unsigned int z = 0 ;z< 8;z++)
+    //        {
+    //            test_texture_3d->write_to_voxel_field(x%15,y%15,z%15,15,x,y,z);
+    //        }
+    //    }
+    //}
     //test_texture_3d->write_to_voxel_field(15,15,15,15,0,0,0);
 
-    test_texture_3d->initialize();
+    //test_texture_3d->initialize();
 
     auto* m_gi_test_mater = new ShaderProgram();
     m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelGI.glsl");
@@ -249,11 +249,11 @@ int main()
     auto vox = new Voxelizer(&global_context, &scene_context);
     vox->setScale(4,4,4);
     root->addChild(vox);
-//
     vox->set_position_global(0,0,0);
-    vox->voxel_precision = 2;
+    vox->voxel_precision = 1;
     vox->recalculate();
-    
+    vox->load_into_voxel_texture(test_texture_3d);
+    test_texture_3d->initialize();
     ///////////////////////////////////////////////////////////////
 
     //TODO: this call should be automatically called when changing the scene

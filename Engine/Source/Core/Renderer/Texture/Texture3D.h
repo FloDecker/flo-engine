@@ -9,13 +9,19 @@ private:
     unsigned int _texture;
     bool _initalized = false;
 
+    //pointer to the voxel data
+    //Memory Alignment : [(4)R , (4)G , (4) B, (4) A]
     unsigned short int* _data;
 
+    //amount of voxels in every direction
     unsigned int width_ = 0;
     unsigned int height_ = 0;
     unsigned int depth_ = 0;
 
-    float step_size_ = 0;
+    //amount of voxels in one world space unit
+    int step_size_ = 1;
+
+    //position of voxel field edges in world space coordinates
     glm::vec3 voxel_field_lower_left_ = glm::vec3(0.0);
     glm::vec3 voxel_field_upper_right_ = glm::vec3(0.0);
 
@@ -25,12 +31,12 @@ public:
     unsigned int getTexture();
     void initalize_as_voxel_data(glm::vec3 voxel_field_lower_left,
                                  glm::vec3 voxel_field_upper_right,
-                                 float step_size,
-                                 unsigned int width,
-                                 unsigned int height,
-                                 unsigned int depth);
+                                 int steps_per_world_space_unit);
     void write_to_voxel_field(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
                               unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth);
+    void write_to_voxel_field_float(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
+                          float pos_width, float pos_height, float pos_depth);
+
 
     //getter
     unsigned int get_width() const { return width_; }

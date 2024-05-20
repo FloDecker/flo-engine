@@ -85,6 +85,7 @@ void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
         glm::vec3 object_space = transform_global_inverse*glm::vec4(v,1.0);
         object_space*=0.5f;
         object_space+=glm::vec3(0.5);
+        texture_3d->write_to_voxel_field_float(15,15,15,15,object_space.x,object_space.y,object_space.z);
                 
     }
 }

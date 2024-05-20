@@ -68,16 +68,16 @@ void main() {
     FragColor = vec4(vec3(0.0), 1.0);
     voxel_traversal_pos = pos_ws;
     
-    //FragColor = vec4(world_space_coord_voxel_field_lookup(pos_ws,box_distances), 1.0);
-    vec3 testCol = vec3(0.0);
-    for(int i = 0; i<50;i++) {
-        if (!is_in_volume(pos_ws)) { // start pos is not inside of the voxel field
-            FragColor = vec4(testCol, 1.0);
-            return;
-        }
-        FragColor = FragColor + world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a*0.1;
-        voxel_traversal_pos += direction*step_x;
-    }
+    FragColor = world_space_coord_voxel_field_lookup(pos_ws,box_distances);
+    //vec3 testCol = vec3(0.0);
+    //for(int i = 0; i<2;i++) {
+    //    if (!is_in_volume(pos_ws)) { // start pos is not inside of the voxel field
+    //        FragColor = vec4(testCol, 1.0);
+    //        return;
+    //    }
+    //    FragColor = FragColor + world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a*0.1;
+    //    voxel_traversal_pos += direction*step_x;
+    //}
 
     //} else { // start pos is outside of voxel field
     //    vec3 hit_plane_x_lower_left = hit_on_plane(vec3(1, 0, 0), voxel_field_lower_left, pos_ws, direction);

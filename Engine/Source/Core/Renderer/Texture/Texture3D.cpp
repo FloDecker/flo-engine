@@ -31,30 +31,39 @@ unsigned Texture3D::getTexture()
     return _texture;
 }
 
-void Texture3D::initalize_as_voxel_data(glm::vec3 voxel_field_lower_left, glm::vec3 voxel_field_upper_right,
-                                        float step_size, unsigned int width, unsigned int height,
-                                        unsigned int depth)
+void Texture3D::initalize_as_voxel_data(glm::vec3 voxel_field_lower_left,
+                                        glm::vec3 voxel_field_upper_right,
+                                        int steps_per_world_space_unit)
 {
     //allocate memory for 3d texture
-    this->_data = static_cast<unsigned short int*>(calloc(1, width * 2 * height * 2 * depth * 2));
-    if(!this->_data)
+
+    glm::i16vec3 distances = {
+        abs(ceil(voxel_field_upper_right.x) - floor(voxel_field_lower_left.x)),
+        abs(ceil(voxel_field_upper_right.y) - floor(voxel_field_lower_left.y)),
+        abs(ceil(voxel_field_upper_right.z) - floor(voxel_field_lower_left.z))
+    };
+
+
+    width_ = distances.x * steps_per_world_space_unit; //x
+    height_ = distances.y * steps_per_world_space_unit; //y
+    depth_ = distances.z * steps_per_world_space_unit; //z
+
+    step_size_ = steps_per_world_space_unit;
+
+    this->_data = static_cast<unsigned short int*>(calloc(1, width_ * 2 * height_ * 2 * depth_ * 2));
+    if (!this->_data)
     {
-        std::cerr<<"couldn't allocate memory for 3D texture\n";
+        std::cerr << "couldn't allocate memory for 3D texture\n";
         return;
     }
-    width_ = width; //x
-    height_ = height; //y
-    depth_ = depth; //z
 
-    step_size_ = step_size;
     voxel_field_lower_left_ = voxel_field_lower_left;
     voxel_field_upper_right_ = voxel_field_upper_right;
     _initalized = true;
 }
 
 void Texture3D::write_to_voxel_field(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
-                                     unsigned int pos_width,
-                                     unsigned int pos_height, unsigned int pos_depth)
+                                     unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth)
 {
     if (!_initalized)
     {
@@ -67,6 +76,7 @@ void Texture3D::write_to_voxel_field(unsigned short r, unsigned short g, unsigne
             " is out of bounds\n";
         return;
     }
+
     unsigned short int color_data_r = r << 12;
     unsigned short int color_data_g = g << 8;
     unsigned short int color_data_b = b << 4;
@@ -75,4 +85,22 @@ void Texture3D::write_to_voxel_field(unsigned short r, unsigned short g, unsigne
     unsigned short int color_data = (color_data_r | color_data_g | color_data_b | color_data_a);
 
     _data[(width_ * height_ * pos_depth + width_ * pos_height + pos_width)] = color_data;
+}
+
+void Texture3D::write_to_voxel_field_float(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
+                                           float pos_width, float pos_height, float pos_depth)
+{
+    if (pos_width > 1 || pos_depth > 1 || pos_height > 1 || pos_width < 0 || pos_depth < 0 || pos_height < 0)
+    {
+        std::cerr << "texel with coordinates: w: " << pos_width << " h: " << pos_height << " d: " << pos_depth <<
+            " is out of bounds 0-1\n";
+        return;
+    }
+
+
+    write_to_voxel_field(r, g, b, a,
+                         static_cast<int>(static_cast<float>(width_) * pos_width),
+                         static_cast<int>(static_cast<float>(height_) * pos_height),
+                         static_cast<int>(static_cast<float>(depth_) * pos_depth)
+    );
 }
