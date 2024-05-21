@@ -31,6 +31,7 @@ void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) con
 
 void ShaderProgram::loadFromFile(std::string pathOfMaterial)
 {
+    material_path_ = pathOfMaterial;
     //read shader 
     std::ifstream materialFileStream;
     materialFileStream.open(pathOfMaterial);
@@ -42,6 +43,13 @@ void ShaderProgram::loadFromFile(std::string pathOfMaterial)
     {
         return;
     }
+
+    struct stat result;
+    if(stat(pathOfMaterial.c_str(), &result)==0)
+    {
+        mod_time_ = result.st_mtime;
+    }
+    
     std::string line;
     while (materialFileStream.good()) {
 
@@ -86,8 +94,9 @@ void ShaderProgram::setShader(char *fragmentShader, char *vertexShader) {
     this->vertexShader_ = vertexShader;
 }
 
-int ShaderProgram::compileShader() {
-    if (compiled) return 0;
+int ShaderProgram::compileShader(bool recompile) {
+    if (compiled && ! recompile) return 0;
+    compiled = false;
 
     
     unsigned int vertexShader;
@@ -110,7 +119,7 @@ int ShaderProgram::compileShader() {
         std::cout<< "FAILED VERTEX SHADER:" << std::endl;
         std::cout<<pVertex<<std::endl;
         free(pVertex);
-        exit(-1);
+        return -1;
     }
 
     free(pVertex);
@@ -134,13 +143,16 @@ int ShaderProgram::compileShader() {
         std::cout<< "FAILED FRAGMENT SHADER:" << std::endl;
         std::cout<<pFragment<<std::endl;
         free(pFragment);
-
-        exit(-1);
+        return -1;
     }
 
     free(pFragment);
 
-    this->shaderProgram_ = glCreateProgram();
+    if (!compiled)
+    {
+        this->shaderProgram_ = glCreateProgram();
+    } 
+    
     glAttachShader(this->shaderProgram_,vertexShader);
     glAttachShader(this->shaderProgram_,fragmentShader);
     glLinkProgram(this->shaderProgram_);
@@ -156,9 +168,16 @@ unsigned int ShaderProgram::getShaderProgram() {
     return this->shaderProgram_;
 }
 
-void ShaderProgram::use() {
+bool ShaderProgram::is_compiled()
+{
+    return compiled;
+}
+
+int ShaderProgram::use() {
+    if (!compiled) return -1;
     initTextureUnits();
     glUseProgram(shaderProgram_);
+    return 0;
 }
 
 void ShaderProgram::initTextureUnits()
@@ -189,6 +208,23 @@ void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
     setUniformInt("voxel_field_depth",texture->get_depth());
     setUniformInt("voxel_field_height",texture->get_height());
     setUniformInt("voxel_field_height",texture->get_height());
+}
+
+void ShaderProgram::recompile_if_changed()
+{
+    struct stat result;
+    if(stat(material_path_.c_str(), &result)==0)
+    {
+        auto mod_time = result.st_mtime;
+        if (mod_time != mod_time_)
+        {
+            std::cout<<"recompiling "<<material_path_.c_str()<<"\n"; 
+            loadFromFile(material_path_);
+            compileShader(true);
+        }
+    }
+
+    
 }
 
 

@@ -32,6 +32,11 @@ int Mesh3D::drawSelf()
             p = global_context_->default_shader;
         }
 
+        if(!p->is_compiled())
+        {
+            p = global_context_->default_shader;
+        }
+
         //TODO: projection doesen't have to be set at runtime -> only on projection changes
         // set model view projection
         p->use();

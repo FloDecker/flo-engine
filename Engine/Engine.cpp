@@ -277,10 +277,10 @@ int main()
     double renderFrameStart;
     while (!glfwWindowShouldClose(window))
     {
-        
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
         processInput(editor3DCamera, &scene_context, window);
+        m_gi_test_mater->recompile_if_changed();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
         

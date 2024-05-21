@@ -70,7 +70,7 @@ void main() {
     
     FragColor = world_space_coord_voxel_field_lookup(pos_ws,box_distances);
     //vec3 testCol = vec3(0.0);
-    //for(int i = 0; i<2;i++) {
+    //for(int i = 0; i<2;i++) {s
     //    if (!is_in_volume(pos_ws)) { // start pos is not inside of the voxel field
     //        FragColor = vec4(testCol, 1.0);
     //        return;

@@ -27,26 +27,30 @@ class ShaderProgram
 private:
     std::string vertexShader_;
     std::string fragmentShader_;
+    std::string material_path_;
     
     unsigned int shaderProgram_; //ID of the shader programm
     bool compiled = false;
     void createVertexShaderInstruction(std::string *strPointer) const;
     void createFragmentShaderInstruction(std::string *strPointer) const;
+
+    time_t mod_time_ = 0; 
     
 
 public:
     enum shaderType { NONE, FRAGMENT, VERTEX };
 
-    
     std::vector<Sampler> textures;
     void loadFromFile(std::string pathOfMaterial);
     void setShader(char* fragmentShader, char* vertexShader);
-    int compileShader();
+    int compileShader(bool recompile = false);
     unsigned int getShaderProgram();
-    void use();
+    bool is_compiled();
+    int use();
     void initTextureUnits();
     void addTexture(Texture *texture, const GLchar *samplerName);
     void addVoxelField(Texture3D *texture, const GLchar *samplerName);
+    void recompile_if_changed();
     
 
     //uniforms
