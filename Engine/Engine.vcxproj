@@ -165,11 +165,13 @@
     <ClCompile Include="Source\Core\Scene\SceneTools\Voxelizer.cpp" />
     <ClCompile Include="Source\External\stb_image.cpp" />
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
+    <ClCompile Include="Source\Util\BoundingBoxHelper.cpp" />
     <ClCompile Include="Source\Util\RayIntersectionHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Content\Material.h" />
     <ClInclude Include="Source\Content\Mesh.h" />
+    <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h" />
     <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h" />
     <ClInclude Include="Source\Core\Editor\GlobalContext.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h" />
@@ -194,6 +196,7 @@
     <ClInclude Include="Source\Core\Scene\SceneContext.h" />
     <ClInclude Include="Source\Core\Scene\SceneTools\Voxelizer.h" />
     <ClInclude Include="Source\Util\AssetLoader.h" />
+    <ClInclude Include="Source\Util\BoundingBoxHelper.h" />
     <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
   </ItemGroup>
   <ItemGroup>

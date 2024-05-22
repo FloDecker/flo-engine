@@ -31,6 +31,17 @@ MeshCollider::MeshCollider(GlobalContext* global_context, Mesh3D* mesh): Collide
         vertex_arrays_.push_back(vertex_array->get_vertex_array());
     }
     mesh->addChild(this);
+    auto temp_bb = StructBoundingBox();
+    for (auto vertex_array : mesh->get_mesh()->vertexArrays)
+    {
+        BoundingBoxHelper::get_bounding_box_from_vertex_arrays(
+            &temp_bb,vertex_array->get_vertex_array(),getGlobalTransform());
+        BoundingBoxHelper::get_combined_bounding_box(
+            &bounding_box,
+            &bounding_box,&temp_bb
+            );
+    }
+    
 }
 
 std::vector<struct_vertex_array*>* MeshCollider::get_vertex_arrays()
