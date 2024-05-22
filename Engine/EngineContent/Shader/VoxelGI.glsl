@@ -1,13 +1,16 @@
 [vertex]
 out vec3 pos_ws;
+out vec3 normal_ws;
 void main() {
     pos_ws = (mMatrix * vec4(aPos, 1.0)).xyz;
+    normal_ws = (mMatrix * vec4(aNormal, 0.0)).xyz;
     vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
     gl_Position = pMatrix * vertexCamSpace;
 }
 
 [fragment]
 in vec3 pos_ws;
+in vec3 normal_ws;
 uniform sampler3D voxelData;
 
 uniform vec3 voxel_field_lower_left;
@@ -17,7 +20,7 @@ uniform int voxel_field_depth;
 uniform int voxel_field_height;
 uniform int voxel_field_width;
 #define max_iteration 1000
-
+#define shadow_color vec3(0.1,0.1,0.2)
 //returns the multiplactor for v so that it gets scaled so that the resulting vector is step_size longer in x
 float step_length_for_x(vec3 v, float step_size){
     return step_size/v.x;
@@ -65,19 +68,34 @@ void main() {
         FragColor = vec4(vec3(0.0), 1.0);
         return;
     }
-    FragColor = vec4(vec3(0.0), 1.0);
+    FragColor = vec4(0.0,0.0,0.0, 1.0);
     voxel_traversal_pos = pos_ws;
     
-    FragColor = world_space_coord_voxel_field_lookup(pos_ws,box_distances);
-    //vec3 testCol = vec3(0.0);
-    //for(int i = 0; i<2;i++) {s
-    //    if (!is_in_volume(pos_ws)) { // start pos is not inside of the voxel field
-    //        FragColor = vec4(testCol, 1.0);
-    //        return;
-    //    }
-    //    FragColor = FragColor + world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a*0.1;
-    //    voxel_traversal_pos += direction*step_x;
-    //}
+    //FragColor = world_space_coord_voxel_field_lookup(pos_ws,box_distances);
+    vec3 testCol = vec3(0.0);
+    //voxel_traversal_pos += direction*0.5;
+    voxel_traversal_pos += normal_ws * 0.25;
+    bool last_it_volume_hit = true;
+    
+    
+    for(int i = 0; i<50;i++) {
+        if(!is_in_volume(voxel_traversal_pos)){
+            break;
+        }
+        bool this_it_vol_hit = world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a > 0.8;
+        
+        if(!last_it_volume_hit && this_it_vol_hit){
+            //ray intersected a box
+            FragColor = vec4(shadow_color, 1.0);
+            return;
+        }
+        last_it_volume_hit = this_it_vol_hit;
+
+        voxel_traversal_pos += direction*0.1;
+
+    }
+    FragColor = vec4(1.0,1.0,1.0, 1.0);
+
 
     //} else { // start pos is outside of voxel field
     //    vec3 hit_plane_x_lower_left = hit_on_plane(vec3(1, 0, 0), voxel_field_lower_left, pos_ws, direction);

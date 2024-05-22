@@ -96,7 +96,6 @@ void ShaderProgram::setShader(char *fragmentShader, char *vertexShader) {
 
 int ShaderProgram::compileShader(bool recompile) {
     if (compiled && ! recompile) return 0;
-    compiled = false;
 
     
     unsigned int vertexShader;
@@ -119,6 +118,13 @@ int ShaderProgram::compileShader(bool recompile) {
         std::cout<< "FAILED VERTEX SHADER:" << std::endl;
         std::cout<<pVertex<<std::endl;
         free(pVertex);
+        
+        if(compiled)
+        {
+            glDeleteProgram(this->shaderProgram_);
+        }
+        compiled = false;
+
         return -1;
     }
 
@@ -143,19 +149,43 @@ int ShaderProgram::compileShader(bool recompile) {
         std::cout<< "FAILED FRAGMENT SHADER:" << std::endl;
         std::cout<<pFragment<<std::endl;
         free(pFragment);
+        
+        if(compiled)
+        {
+            glDeleteProgram(this->shaderProgram_);
+        }
+        compiled = false;
+        
         return -1;
     }
-
     free(pFragment);
 
+    
     if (!compiled)
     {
+        //compiling for the first time
         this->shaderProgram_ = glCreateProgram();
-    } 
+    }
+    else
+    {
+        //recompiling
+        glDetachShader(shaderProgram_,fragmentShaderID_);
+        glDetachShader(shaderProgram_,vertexShaderID_);
+    }
+    
+    fragmentShaderID_ = fragmentShader;
+    vertexShaderID_ = vertexShader;
     
     glAttachShader(this->shaderProgram_,vertexShader);
     glAttachShader(this->shaderProgram_,fragmentShader);
     glLinkProgram(this->shaderProgram_);
+
+    GLint isLinked = 0;
+    glGetProgramiv(this->shaderProgram_, GL_LINK_STATUS, (int *)&isLinked);
+    if (isLinked == GL_FALSE) {
+        glGetProgramInfoLog(this->shaderProgram_, 512, NULL, infoLog);
+        std::cout << "Failed to link shader " << infoLog << std::endl;
+    }
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -210,7 +240,7 @@ void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
     setUniformInt("voxel_field_height",texture->get_height());
 }
 
-void ShaderProgram::recompile_if_changed()
+bool ShaderProgram::recompile_if_changed()
 {
     struct stat result;
     if(stat(material_path_.c_str(), &result)==0)
@@ -221,8 +251,10 @@ void ShaderProgram::recompile_if_changed()
             std::cout<<"recompiling "<<material_path_.c_str()<<"\n"; 
             loadFromFile(material_path_);
             compileShader(true);
+            return true;
         }
     }
+    return false;
 
     
 }

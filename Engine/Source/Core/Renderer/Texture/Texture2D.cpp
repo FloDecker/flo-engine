@@ -36,7 +36,6 @@ void Texture2D::loadFromDisk(std::string *path)
     {
         std::cerr<<"couldn't load image " << _path << std::endl;
     }
-    std::cout<<"size of texture: " << _width;
     this->initialize(data);
     stbi_image_free(data);
 }

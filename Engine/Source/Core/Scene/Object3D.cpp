@@ -151,6 +151,11 @@ void Object3D::set_position_global(float x, float y, float z)
     set_position_global(glm::vec3(x,y,z));
 }
 
+void Object3D::recalculate_global_transform()
+{
+    this->recalculateTransform();
+}
+
 
 void Object3D::recalculateTransform() {
     transformLocal = glm::mat4 (1.0f);

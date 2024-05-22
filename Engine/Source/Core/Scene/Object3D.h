@@ -59,6 +59,7 @@ public:
     //transform global
     void set_position_global(const glm::vec3& pos);
     void set_position_global(float x, float y, float z);
+    void recalculate_global_transform();
 
     
     glm::mat4 getGlobalTransform();

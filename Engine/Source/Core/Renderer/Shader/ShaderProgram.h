@@ -30,6 +30,8 @@ private:
     std::string material_path_;
     
     unsigned int shaderProgram_; //ID of the shader programm
+    unsigned int vertexShaderID_;
+    unsigned int fragmentShaderID_;
     bool compiled = false;
     void createVertexShaderInstruction(std::string *strPointer) const;
     void createFragmentShaderInstruction(std::string *strPointer) const;
@@ -50,7 +52,9 @@ public:
     void initTextureUnits();
     void addTexture(Texture *texture, const GLchar *samplerName);
     void addVoxelField(Texture3D *texture, const GLchar *samplerName);
-    void recompile_if_changed();
+
+    //returns true if recompiles
+    bool recompile_if_changed();
     
 
     //uniforms

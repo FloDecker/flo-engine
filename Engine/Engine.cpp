@@ -194,6 +194,7 @@ int main()
     auto cube1 = new Mesh3D(cube, &global_context);
     mSphere1->addChild(cube1);
     cube1->set_position_global(0, 10, 0);
+    cube1->name = "THE CUUUUBE";
 
     auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
     o_sky_sphere->materials.push_back(m_sky_sphere);
@@ -280,7 +281,11 @@ int main()
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
         processInput(editor3DCamera, &scene_context, window);
-        m_gi_test_mater->recompile_if_changed();
+        if(m_gi_test_mater->recompile_if_changed())
+        {
+            //TODO: textures should automatically be reassigned after recompiling during runtime
+            m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
+        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
         

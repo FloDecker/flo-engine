@@ -16,6 +16,10 @@ bool Collider::is_in_proximity(glm::vec3 center_ws, float radius)
     return false;
 }
 
+void Collider::calculate_world_space_bounding_box()
+{
+}
+
 
 //Mesh Collider
 MeshCollider::MeshCollider(GlobalContext* global_context,
@@ -31,17 +35,6 @@ MeshCollider::MeshCollider(GlobalContext* global_context, Mesh3D* mesh): Collide
         vertex_arrays_.push_back(vertex_array->get_vertex_array());
     }
     mesh->addChild(this);
-    auto temp_bb = StructBoundingBox();
-    for (auto vertex_array : mesh->get_mesh()->vertexArrays)
-    {
-        BoundingBoxHelper::get_bounding_box_from_vertex_arrays(
-            &temp_bb,vertex_array->get_vertex_array(),getGlobalTransform());
-        BoundingBoxHelper::get_combined_bounding_box(
-            &bounding_box,
-            &bounding_box,&temp_bb
-            );
-    }
-    
 }
 
 std::vector<struct_vertex_array*>* MeshCollider::get_vertex_arrays()
@@ -174,4 +167,24 @@ bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)
         }
     }
     return false;
+}
+
+void MeshCollider::calculate_world_space_bounding_box()
+{
+    auto temp_bb = StructBoundingBox();
+    temp_bb.max = getGlobalTransform() * glm::vec4(vertex_arrays_.at(0)->vertices->at(0).position, 1);
+    temp_bb.min = temp_bb.max;
+
+    bounding_box.max = temp_bb.max;
+    bounding_box.min = temp_bb.max;
+    
+    for (auto vertex_array : vertex_arrays_)
+    {
+        BoundingBoxHelper::get_bounding_box_from_vertex_array(
+            &temp_bb,vertex_array,getGlobalTransform());
+        BoundingBoxHelper::get_combined_bounding_box(
+            &bounding_box,
+            &bounding_box,&temp_bb
+            );
+    }
 }

@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#include "Collider.h"
+#include "DebugPrimitives/Cube3D.h"
+
 
 SceneContext::SceneContext(GlobalContext* global_context, Object3D* scene_root)
 {
@@ -23,6 +26,11 @@ void SceneContext::recalculate_at(Object3D* parent)
         this->scenePointLights.insert(dynamic_cast<PointLight*>(parent));
     }
 
+    if (parent->has_tag(engine_collider_id_))
+    {
+        this->sceneColliders.push_back(dynamic_cast<Collider*>(parent));
+    }
+
     const auto children = parent->get_children();
     for (Object3D* child : children)
     {
@@ -33,6 +41,34 @@ void SceneContext::recalculate_at(Object3D* parent)
 void SceneContext::recalculate_from_root()
 {
     recalculate_at(scene_root_);
+    calculateColliderBoundingBoxes();
+    calcualteSceneTree();
+
+}
+
+void SceneContext::calcualteSceneTree()
+{
+    //calcuate distance matrix
+    std::vector<std::vector<float>> distance_matrix;
+    for (auto collider : sceneColliders)
+    {
+        
+    }
+}
+
+void SceneContext::calculateColliderBoundingBoxes()
+{
+    for (auto collider : sceneColliders)
+    {
+        collider->calculate_world_space_bounding_box();
+
+        //TEST
+        auto c = new Cube3D(global_context_);
+        scene_root_->addChild(c);
+        c->setScale(BoundingBoxHelper::get_scale_of_bb(&collider->bounding_box));
+        c->color = {0, 0, 1};
+        c->set_position_global(BoundingBoxHelper::get_center_of_bb(&collider->bounding_box));
+    }
 }
 
 Object3D* SceneContext::get_root() const
