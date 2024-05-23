@@ -35,6 +35,7 @@ MeshCollider::MeshCollider(GlobalContext* global_context, Mesh3D* mesh): Collide
         vertex_arrays_.push_back(vertex_array->get_vertex_array());
     }
     mesh->addChild(this);
+    name = "collider of " + mesh->name;
 }
 
 std::vector<struct_vertex_array*>* MeshCollider::get_vertex_arrays()

@@ -187,26 +187,28 @@ void SceneContext::calcualteSceneTree()
             distance_matrix[smaller_position_in_matrix][x] = d;
         }
 
-        std::cout<<matrix_bb_tree_map.size()<<"  - asdf\n";
         BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &axis_aligned_bb_tree_[matrix_bb_tree_map.at(0)].bb, &axis_aligned_bb_tree_[matrix_bb_tree_map.at(1)].bb);
         smallest_box = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
         next_merge = {0,1};
         
         //get the smallest distance
-        //for (unsigned int x = 0; x < distance_matrix.size(); x++)
-        //{
-        //    for (unsigned int y = x; y < distance_matrix.size(); y++)
-        //    {
-        //        float d = distance_matrix[x][y];
-        //        if (d < smallest_box && x!= y)
-        //        {
-        //            smallest_box = d;
-        //            next_merge = {x,y};
-        //        }
-        //    }
-        //}
+        for (unsigned int x = 0; x < distance_matrix.size(); x++)
+        {
+            for (unsigned int y = x; y < distance_matrix.size(); y++)
+            {
+                float d = distance_matrix[x][y];
+                if (d < smallest_box && x!= y)
+                {
+                    smallest_box = d;
+                    next_merge = {x,y};
+                }
+            }
+        }
         
     }
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::cout << "stacked bb build time: " << elapsed_seconds.count() << "s\n";
 }
 
 Object3D* SceneContext::get_root() const

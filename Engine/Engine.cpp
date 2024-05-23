@@ -194,7 +194,18 @@ int main()
     auto cube1 = new Mesh3D(cube, &global_context);
     mSphere1->addChild(cube1);
     cube1->set_position_global(0, 10, 0);
-    cube1->name = "THE CUUUUBE";
+    cube1->name = "THE CUUUUBE1";
+
+    auto cube2 = new Mesh3D(cube, &global_context);
+    mSphere1->addChild(cube2);
+    cube2->set_position_global(1, 13, 1);
+    cube2->name = "THE CUUUUBE2";
+
+    auto cube3 = new Mesh3D(cube, &global_context);
+    mSphere1->addChild(cube3);
+    cube3->set_position_global(0, 17, 0);
+    cube3->name = "THE CUUUUBE3";
+
 
     auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
     o_sky_sphere->materials.push_back(m_sky_sphere);
