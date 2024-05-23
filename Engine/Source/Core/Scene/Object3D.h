@@ -39,6 +39,7 @@ public:
     
     //TAGS
     void add_tag(std::string tag);
+    void remove_tag(std::string tag);
     bool has_tag(unsigned int tag_id) const;
     bool has_tag(const std::string& tag) const;
 

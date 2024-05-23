@@ -55,11 +55,11 @@ void SceneContext::calculateColliderBoundingBoxes()
         collider->calculate_world_space_bounding_box();
 
         //TODO REMOVE THIS TEST
-        auto c = new Cube3D(global_context_);
-        scene_root_->addChild(c);
-        c->setScale(BoundingBoxHelper::get_scale_of_bb(&collider->bounding_box));
-        c->color = {0, 0, 1};
-        c->set_position_global(BoundingBoxHelper::get_center_of_bb(&collider->bounding_box));
+        //auto c = new Cube3D(global_context_);
+        //scene_root_->addChild(c);
+        //c->setScale(BoundingBoxHelper::get_scale_of_bb(&collider->bounding_box));
+        //c->color = {0, 0, 1};
+        //c->set_position_global(BoundingBoxHelper::get_center_of_bb(&collider->bounding_box));
         ////////////////////TEST END //////////////////////////
     }
 }
@@ -123,7 +123,7 @@ void SceneContext::calcualteSceneTree()
 
         int array_pos_of_next_merge_obj_0 =  matrix_bb_tree_map[next_merge.x];
         int array_pos_of_next_merge_obj_1 =  matrix_bb_tree_map[next_merge.y];
-        auto temp_bb = StructBoundingBox{};
+        temp_bb = StructBoundingBox{};
         BoundingBoxHelper::get_combined_bounding_box(
             &temp_bb,
             &axis_aligned_bb_tree_[array_pos_of_next_merge_obj_0].bb,
@@ -141,13 +141,19 @@ void SceneContext::calcualteSceneTree()
         auto c = new Cube3D(global_context_);
         scene_root_->addChild(c);
         c->setScale(BoundingBoxHelper::get_scale_of_bb(&temp_bb));
-        c->color = {0, static_cast<float>(i)/static_cast<float>(sceneColliders.size()), 1};
+        c->color = {1, static_cast<float>(i)/static_cast<float>(sceneColliders.size()), 1};
         c->set_position_global(BoundingBoxHelper::get_center_of_bb(&temp_bb));
         ////////////////////TEST END //////////////////////////
 
         //add new bounding box containing both objects into the array
         axis_aligned_bb_tree_[sceneColliders.size()+i] = temp;
 
+        if(distance_matrix.size() <=2)
+        {
+            scene_bb_entry_id_ = sceneColliders.size()+i;
+            break;
+        }
+        
         int larger_position_in_matrix = std::max(next_merge.x,next_merge.y);
         int smaller_position_in_matrix = std::min(next_merge.x,next_merge.y);
 
@@ -180,21 +186,27 @@ void SceneContext::calcualteSceneTree()
             float d = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
             distance_matrix[smaller_position_in_matrix][x] = d;
         }
+
+        std::cout<<matrix_bb_tree_map.size()<<"  - asdf\n";
+        BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &axis_aligned_bb_tree_[matrix_bb_tree_map.at(0)].bb, &axis_aligned_bb_tree_[matrix_bb_tree_map.at(1)].bb);
+        smallest_box = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
+        next_merge = {0,1};
         
         //get the smallest distance
-        for (unsigned int x = 0; x < distance_matrix.size(); x++)
-        {
-            for (unsigned int y = x; y < distance_matrix.size(); y++)
-            {
-                BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &axis_aligned_bb_tree_[matrix_bb_tree_map.at(x)].bb, &axis_aligned_bb_tree_[matrix_bb_tree_map.at(y)].bb);
-                distance_matrix[x][y] = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
-            }
-        }
+        //for (unsigned int x = 0; x < distance_matrix.size(); x++)
+        //{
+        //    for (unsigned int y = x; y < distance_matrix.size(); y++)
+        //    {
+        //        float d = distance_matrix[x][y];
+        //        if (d < smallest_box && x!= y)
+        //        {
+        //            smallest_box = d;
+        //            next_merge = {x,y};
+        //        }
+        //    }
+        //}
         
     }
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "Bounding Box stacking took: " << elapsed_seconds.count() << "s\n";
 }
 
 Object3D* SceneContext::get_root() const

@@ -24,6 +24,7 @@ Handle::Handle(GlobalContext* global_context, Object3D* root): Object3D(global_c
     handler_blue->compileShader();
 
     std::string engine_collider_tag = "ENGINE_COLLIDER";
+    std::string engine_handle_collider_tag = "ENGINE_HANDLE_COLLIDER";
 
     arrow_x = new Mesh3D(engine_handler_arrow_model, global_context);
     arrow_x->materials.push_back(handler_red);
@@ -40,6 +41,13 @@ Handle::Handle(GlobalContext* global_context, Object3D* root): Object3D(global_c
     arrow_y_collider_ = dynamic_cast<Collider*>(arrow_y->get_child_by_tag(&engine_collider_tag));
     arrow_z_collider_ = dynamic_cast<Collider*>(arrow_z->get_child_by_tag(&engine_collider_tag));
 
+    arrow_x_collider_->remove_tag(engine_collider_tag);
+    arrow_y_collider_->remove_tag(engine_collider_tag);
+    arrow_z_collider_->remove_tag(engine_collider_tag);
+
+    arrow_x_collider_->add_tag(engine_handle_collider_tag);
+    arrow_y_collider_->add_tag(engine_handle_collider_tag);
+    arrow_z_collider_->add_tag(engine_handle_collider_tag);
 
     addChild(arrow_x);
     addChild(arrow_y);

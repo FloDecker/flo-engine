@@ -252,7 +252,7 @@ int main()
     root->addChild(vox);
     vox->set_position_global(0,0,0);
     vox->voxel_precision = 1;
-    vox->recalculate();
+    //vox->recalculate();
     vox->load_into_voxel_texture(test_texture_3d);
     test_texture_3d->initialize();
     ///////////////////////////////////////////////////////////////
