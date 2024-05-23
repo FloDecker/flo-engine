@@ -46,15 +46,6 @@ void SceneContext::recalculate_from_root()
 
 }
 
-void SceneContext::calcualteSceneTree()
-{
-    //calcuate distance matrix
-    std::vector<std::vector<float>> distance_matrix;
-    for (auto collider : sceneColliders)
-    {
-        
-    }
-}
 
 void SceneContext::calculateColliderBoundingBoxes()
 {
@@ -68,6 +59,107 @@ void SceneContext::calculateColliderBoundingBoxes()
         c->setScale(BoundingBoxHelper::get_scale_of_bb(&collider->bounding_box));
         c->color = {0, 0, 1};
         c->set_position_global(BoundingBoxHelper::get_center_of_bb(&collider->bounding_box));
+    }
+}
+
+void SceneContext::calcualteSceneTree()
+{
+    //allocate memory for kd tree
+    //sceneColliders.size() for the leaf nodes and sceneColliders.size()-1 for the 
+    axis_aligned_bb_tree_ = static_cast<kdTreeElement*>(calloc(sceneColliders.size()*2-1 ,sizeof(kdTreeElement)));
+
+    //vector that holds the positions in axis_aligned_bb_tree_ that the matrix represents e.g at matrix x,y = 4 represents
+    //the bounding box positioned at pos 8 in axis_aligned_bb_tree_ -> matrix_bb_tree_map[4] = 8
+    std::vector<int> matrix_bb_tree_map;
+    matrix_bb_tree_map.resize(sceneColliders.size());
+
+    //insert the objects into the leaf nodes
+    for (unsigned int x = 0; x < sceneColliders.size(); x++)
+    {
+        auto temp = kdTreeElement{
+            -1,
+            static_cast<int>(x),
+            sceneColliders.at(x)->bounding_box
+        };
+        axis_aligned_bb_tree_[x] = temp;
+        matrix_bb_tree_map[x] = x;
+    }
+    
+    StructBoundingBox temp_bb;
+    BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &sceneColliders.at(0)->bounding_box, &sceneColliders.at(1)->bounding_box);
+    float smallest_box = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
+    glm::i32vec2 next_merge = {0,1};
+    
+    //calculate distance matrix
+    std::vector<std::vector<float>> distance_matrix;
+    distance_matrix.resize(sceneColliders.size());
+    
+    for (unsigned int x = 0; x < sceneColliders.size(); x++)
+    {
+        distance_matrix[x].resize(sceneColliders.size());
+        for (unsigned int y = x; y < sceneColliders.size(); y++)
+        {
+            BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &sceneColliders.at(x)->bounding_box, &sceneColliders.at(y)->bounding_box);
+            float d = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
+            distance_matrix[x][y] = d;
+            if (d < smallest_box)
+            {
+                smallest_box = d;
+                next_merge = {x,y};
+            }
+        }
+    }
+
+    //calculate distance matrix
+    //combine the two closest and merge them
+    for (unsigned int i = 0; i < sceneColliders.size() - 1; i++)
+    {
+        
+        auto temp_bb = StructBoundingBox{};
+        BoundingBoxHelper::get_combined_bounding_box(
+            &temp_bb,
+            &axis_aligned_bb_tree_[next_merge.x].bb,
+            &axis_aligned_bb_tree_[next_merge.y].bb);
+
+        //merge the smallest box
+        auto temp = kdTreeElement{
+            next_merge.x,
+            next_merge.y,
+            temp_bb
+        };
+        axis_aligned_bb_tree_[sceneColliders.size()+i] = temp;
+
+        int larger_position_in_matrix = std::max(next_merge.x,next_merge.y);
+
+        //remove the last element
+        //row
+        distance_matrix.erase(distance_matrix.begin()+larger_position_in_matrix);
+        //colum
+        for (auto vec : distance_matrix)
+        {
+            vec.erase(vec.begin()+larger_position_in_matrix);
+        }
+
+        //get the smallest distance
+        for (unsigned int x = 0; x < sceneColliders.size(); x++)
+        {
+            for (unsigned int y = x; y < sceneColliders.size(); y++)
+            {
+                BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &sceneColliders.at(x)->bounding_box, &sceneColliders.at(y)->bounding_box);
+                distance_matrix[x][y] = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
+            }
+        }
+        
+    }
+
+    
+    for (unsigned int x = 0; x < sceneColliders.size(); x++)
+    {
+        for (unsigned int y = 0; y < sceneColliders.size(); y++)
+        {
+            std::cout<<" "<<distance_matrix[x][y];
+        }
+        std::cout<<"\n";
     }
 }
 

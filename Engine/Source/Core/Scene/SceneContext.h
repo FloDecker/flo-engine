@@ -7,12 +7,15 @@
 #include "../CommonDataStructures/StructBoundingBox.h"
 
 //ray trace acceleration structures
+
+//if child_0 = -1 -> child_1 indicates the position of the found collider in the sceneColliders array
 struct kdTreeElement
 {
     int child_0;
     int child_1;
     StructBoundingBox bb;
 };
+
 
 //scene context is used to feed scene information to the material shaders 
 class SceneContext
@@ -31,7 +34,7 @@ private:
     std::unordered_set<PointLight*> scenePointLights;
     std::vector<Collider*> sceneColliders;
     
-    std::vector<kdTreeElement> axis_aligned_bb_tree_;
+    kdTreeElement* axis_aligned_bb_tree_;
     unsigned int scene_bb_entry_id_;
     
     GlobalContext *global_context_;

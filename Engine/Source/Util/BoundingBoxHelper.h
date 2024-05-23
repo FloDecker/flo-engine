@@ -18,4 +18,5 @@ public:
 
     static glm::vec3 get_center_of_bb(const StructBoundingBox *bounding_box);
     static glm::vec3  get_scale_of_bb(const StructBoundingBox *bounding_box);
+    static float  get_max_length_of_bb(const StructBoundingBox *bounding_box);
 };

@@ -44,3 +44,9 @@ glm::vec3 BoundingBoxHelper::get_scale_of_bb(const StructBoundingBox* bounding_b
 {
     return bounding_box->max - bounding_box->min;
 }
+
+float BoundingBoxHelper::get_max_length_of_bb(const StructBoundingBox* bounding_box)
+{
+    return glm::length(get_scale_of_bb(bounding_box));
+}
+
