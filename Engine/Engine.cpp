@@ -178,17 +178,20 @@ int main()
     mSphere1->setPositionLocal(20,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
     //mSphere1->setScale(2,0.5,1);
+    mSphere1->name = "sphere 1";
     root->addChild(mSphere1);
 
     auto mSphere2 = new Mesh3D(sphere, &global_context);
     mSphere2->setPositionLocal(0, 0, 10);
     mSphere1->addChild(mSphere2);
+    mSphere2->name = "sphere 2";
 
     auto plane1 = new Mesh3D(plane, &global_context);
     plane1->setScale(10,10,10);
     plane1->setPositionLocal(0, 0, 0);
     plane1->setRotationLocalDegrees(-90, 0, 0);
     root->addChild(plane1);
+    plane1->name = "plane 1";
 
 
     auto cube1 = new Mesh3D(cube, &global_context);
@@ -207,15 +210,16 @@ int main()
     cube3->name = "THE CUUUUBE3";
 
 
-    auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
-    o_sky_sphere->materials.push_back(m_sky_sphere);
-    o_sky_sphere->setScale(512,512,512);
-    root->addChild(o_sky_sphere);
+    //auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
+    //o_sky_sphere->materials.push_back(m_sky_sphere);
+    //o_sky_sphere->setScale(512,512,512);
+    //root->addChild(o_sky_sphere);
 
     auto test_building = new Mesh3D(me_test_building,&global_context);
     root->addChild(test_building);
     test_building->set_position_global(0,2,0);
     test_building->setRotationLocalDegrees(90,0,0);
+    test_building->name = "Test Building";
 
 
     //ADD LIGHTS
@@ -234,7 +238,7 @@ int main()
 
     //TEST 3D TEXTURE
     auto test_texture_3d = new Texture3D();
-    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},1);
+    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},4);
     //for (unsigned int x = 0 ;x< 8;x++)
     //{
     //    for (unsigned int y = 0 ;y< 8;y++)
@@ -262,15 +266,18 @@ int main()
     vox->setScale(4,4,4);
     root->addChild(vox);
     vox->set_position_global(0,0,0);
-    vox->voxel_precision = 1;
-    //vox->recalculate();
-    vox->load_into_voxel_texture(test_texture_3d);
-    test_texture_3d->initialize();
-    ///////////////////////////////////////////////////////////////
+    vox->voxel_precision = 4;
+
 
     //TODO: this call should be automatically called when changing the scene
     scene_context.recalculate_from_root();
 
+
+    vox->recalculate();
+    vox->load_into_voxel_texture(test_texture_3d);
+    test_texture_3d->initialize();
+    ///////////////////////////////////////////////////////////////
+    
     //initialize render context
     auto editorRenderContext = RenderContext{
         *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)

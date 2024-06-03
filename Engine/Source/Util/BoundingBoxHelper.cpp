@@ -35,6 +35,18 @@ void BoundingBoxHelper::bounding_box_to_sphere(StructBoundingSphere* result_sphe
     result_sphere->center = (bounding_box->max + bounding_box->min) * 0.5f;
 }
 
+bool BoundingBoxHelper::is_in_bounding_box(const StructBoundingBox* bounding_box, const glm::vec3& p, const float uniform_scale_addition)
+{
+    return (
+    bounding_box->max.x+uniform_scale_addition > p.x &&
+    bounding_box->max.y+uniform_scale_addition > p.y &&
+    bounding_box->max.z+uniform_scale_addition > p.z &&
+    bounding_box->min.x-uniform_scale_addition < p.x &&
+    bounding_box->min.y-uniform_scale_addition < p.y &&
+    bounding_box->min.z-uniform_scale_addition < p.z
+    );
+}
+
 glm::vec3 BoundingBoxHelper::get_center_of_bb(const StructBoundingBox* bounding_box)
 {
     return (bounding_box->max + bounding_box->min) * 0.5f;

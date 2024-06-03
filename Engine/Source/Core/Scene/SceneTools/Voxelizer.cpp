@@ -113,13 +113,13 @@ void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm
             //raycast hit and smallest step size reached
             if (distance_x == 1 && distance_y == 1 && distance_z == 1)
             {
-                auto c = new Cube3D(global_context_);
-                this->addChild(c);
-                c->setScale(step_size / this->get_scale().x, step_size / this->get_scale().y,
-                            step_size / this->get_scale().z);
-                c->color = {0, 1, 0};
+                //auto c = new Cube3D(global_context_);
+                //this->addChild(c);
+                //c->setScale(step_size / this->get_scale().x, step_size / this->get_scale().y,
+                //            step_size / this->get_scale().z);
+                //c->color = {0, 1, 0};
                 auto ws_pos = ws_lower_left + static_cast<glm::vec3>(voxel_lower_left) * step_size + step_size * 0.5f;
-                c->set_position_global(ws_pos);
+                //c->set_position_global(ws_pos);
                 voxel_positions_.push_back(ws_pos);
                 return;
             } else

@@ -16,6 +16,7 @@ public:
 
     static void bounding_box_to_sphere(StructBoundingSphere *result_sphere, const StructBoundingBox *bounding_box);
 
+    static bool is_in_bounding_box(const StructBoundingBox *bounding_box, const glm::vec3& p, const float uniform_scale_addition = 0.0f);
     static glm::vec3 get_center_of_bb(const StructBoundingBox *bounding_box);
     static glm::vec3  get_scale_of_bb(const StructBoundingBox *bounding_box);
     static float  get_max_length_of_bb(const StructBoundingBox *bounding_box);

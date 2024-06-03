@@ -21,28 +21,32 @@ struct kdTreeElement
 class SceneContext
 {
 public:
-    SceneContext(GlobalContext *global_context, Object3D *scene_root);
+    SceneContext(GlobalContext* global_context, Object3D* scene_root);
     std::vector<PointLight*> get_scene_point_lights();
     void recalculate_at(Object3D* parent);
     void recalculate_from_root();
     void calcualteSceneTree();
     void calculateColliderBoundingBoxes();
     Object3D* get_root() const;
-    GlobalContext * get_global_context() const;
+    GlobalContext* get_global_context() const;
+
+    //scene bb
+    kdTreeElement* get_scene_bb_entry_element() const;
+    kdTreeElement* get_scene_bb_element(unsigned int id) const;
+    Object3D* get_scene_bb_element_leaf(const kdTreeElement* leaf_node) const;
+    static bool is_bb_element_leaf_node(const kdTreeElement* leaf_node);
     
 private:
     std::unordered_set<PointLight*> scenePointLights;
     std::vector<Collider*> sceneColliders;
-    
+
     kdTreeElement* axis_aligned_bb_tree_;
-    unsigned int scene_bb_entry_id_;
-    
-    GlobalContext *global_context_;
-    Object3D *scene_root_;
+    int scene_bb_entry_id_ = -1;
+
+    GlobalContext* global_context_;
+    Object3D* scene_root_;
 
     //ids for engine defined tags
     unsigned int engine_light_point_id_;
     unsigned int engine_collider_id_;
-
-    
 };

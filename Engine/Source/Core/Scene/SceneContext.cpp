@@ -220,3 +220,35 @@ GlobalContext* SceneContext::get_global_context() const
 {
     return global_context_;
 }
+
+kdTreeElement* SceneContext::get_scene_bb_entry_element() const
+{
+    if (scene_bb_entry_id_ == -1) return nullptr;
+    return &axis_aligned_bb_tree_[scene_bb_entry_id_];
+}
+
+kdTreeElement* SceneContext::get_scene_bb_element(unsigned int id) const
+{
+    return &axis_aligned_bb_tree_[id];
+}
+
+Object3D* SceneContext::get_scene_bb_element_leaf(const kdTreeElement* leaf_node) const
+{
+    if (!is_bb_element_leaf_node(leaf_node))
+    {
+        std::cerr << "not a leaf node\n";
+        return nullptr;
+    }
+
+    if (leaf_node->child_1 > sceneColliders.size())
+    {
+        std::cerr << "shouldnt happen\n";
+        return nullptr;
+    }
+    return sceneColliders.at(leaf_node->child_1);
+}
+
+bool SceneContext::is_bb_element_leaf_node(const kdTreeElement* leaf_node)
+{
+    return leaf_node->child_0 == -1;
+}

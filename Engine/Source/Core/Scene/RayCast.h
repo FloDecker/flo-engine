@@ -56,4 +56,13 @@ private:
         glm::vec3 proximity_center,
         float radius
     );
+
+    static bool recurse_proximity_check_bb_tree(
+    const kdTreeElement* bb_to_check,
+    const SceneContext* scene_context,
+
+    std::string* collision_tag,
+    const glm::vec3& proximity_center,
+    float radius
+);
 };
