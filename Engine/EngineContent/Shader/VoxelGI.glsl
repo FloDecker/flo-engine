@@ -19,8 +19,9 @@ uniform float voxel_field_step_size;
 uniform int voxel_field_depth;
 uniform int voxel_field_height;
 uniform int voxel_field_width;
-#define max_iteration 1000
-#define shadow_color vec3(0.1,0.1,0.2)
+#define max_iteration 100
+#define step_length 0.1
+#define shadow_color vec3(0.1, 0.1, 0.2)
 //returns the multiplactor for v so that it gets scaled so that the resulting vector is step_size longer in x
 float step_length_for_x(vec3 v, float step_size){
     return step_size/v.x;
@@ -48,83 +49,63 @@ vec3 hit_on_plane(vec3 plane_normal, vec3 point_on_plane, vec3 ray_origin, vec3 
 vec4 world_space_coord_voxel_field_lookup(vec3 pos, vec3 voxel_field_size){
     vec3 t = pos - voxel_field_lower_left;
     t = t / voxel_field_size;
-    return texture(voxelData,t);
+    return texture(voxelData, t);
 }
 
 
-//vec3 get_hit_in_field_xy(vec3 ray_start_ws, vec3 ray_direction, vec3 box_distances) {
-//    float x = ray_start_ws.x;
-//    
-//}
+vec3 calculateNormalFromDistanceFunction(vec3 p, vec3 voxel_field_size) {
+    //Sample the distance function at the nearby points
+    float distance = 0.1;
+    float dx = (world_space_coord_voxel_field_lookup(p + vec3(distance, 0.0, 0.0), voxel_field_size) -
+    world_space_coord_voxel_field_lookup(p - vec3(distance, 0.0, 0.0), voxel_field_size)).a;
+    float dy = (world_space_coord_voxel_field_lookup(p + vec3(0.0, distance, 0.0), voxel_field_size) -
+    world_space_coord_voxel_field_lookup(p - vec3(0.0, distance, 0.0), voxel_field_size)).a;
+    float dz = (world_space_coord_voxel_field_lookup(p + vec3(0.0, 0.0, distance), voxel_field_size) -
+    world_space_coord_voxel_field_lookup(p - vec3(0.0, 0.0, distance), voxel_field_size)).a;
+
+    // Construct the gradient vector
+    vec3 gradient = -vec3(dx, dy, dz);
+
+    // Normalize to get the normal
+    vec3 normal = normalize(gradient);
+
+    return normal;
+}
+
+float intersection(vec3 trace_start, vec3 trace_direction, vec3 voxel_field_size) {
+    float distance_0 = 0.0;
+    float distance_1 = 0.0;
+    float distance_2 = 0.0;
+    
+    for (int i = 0; i < max_iteration; i++){
+        distance_0 = distance_1;
+        distance_1 = distance_2;
+        
+        vec3 current_pos = trace_start + trace_direction*i*step_length;
+        if (!is_in_volume(current_pos)) {
+            return 0.5;
+        }
+        distance_2 = world_space_coord_voxel_field_lookup(current_pos,voxel_field_size).a;
+        if (distance_0 - distance_1 < 0.0 && distance_1 - distance_2 > 0.0) {
+            return 1.0;
+        }
+    }
+    
+    return -1.0;
+}
 
 void main() {
+
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 box_distances = abs(v_lower_right_upper_left);
     vec3 direction =  normalize(vec3(1, 1, 1));
-    float step_x =  voxel_field_step_size/direction.x;
-
-    vec3 voxel_traversal_pos = vec3(0);
-    if (!is_in_volume(pos_ws)) { // start pos is not inside of the voxel field
-        FragColor = vec4(vec3(0.0), 1.0);
-        return;
-    }
-    FragColor = vec4(0.0,0.0,0.0, 1.0);
-    voxel_traversal_pos = pos_ws;
     
-    //FragColor = world_space_coord_voxel_field_lookup(pos_ws,box_distances);
-    vec3 testCol = vec3(0.0);
-    //voxel_traversal_pos += direction*0.5;
-    voxel_traversal_pos += normal_ws * 0.25;
-    bool last_it_volume_hit = true;
+    vec3 surfaceNormal = calculateNormalFromDistanceFunction(pos_ws, box_distances);
+    float d = intersection(pos_ws + normal_ws*0.1, direction ,box_distances);
     
-    
-    for(int i = 0; i<50;i++) {
-        if(!is_in_volume(voxel_traversal_pos)){
-            break;
-        }
-        bool this_it_vol_hit = world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a > 0.8;
-        
-        if(!last_it_volume_hit && this_it_vol_hit){
-            //ray intersected a box
-            FragColor = vec4(shadow_color, 1.0);
-            return;
-        }
-        last_it_volume_hit = this_it_vol_hit;
+    FragColor = vec4(surfaceNormal, 1.0);
 
-        voxel_traversal_pos += direction*0.1;
+    FragColor = vec4(vec3(d), 1.0);
 
-    }
-    FragColor = vec4(1.0,1.0,1.0, 1.0);
-
-
-    //} else { // start pos is outside of voxel field
-    //    vec3 hit_plane_x_lower_left = hit_on_plane(vec3(1, 0, 0), voxel_field_lower_left, pos_ws, direction);
-    //    vec3 hit_plane_y_lower_left = hit_on_plane(vec3(0, 1, 0), voxel_field_lower_left, pos_ws, direction);
-    //    vec3 hit_plane_z_lower_left = hit_on_plane(vec3(0, 0, 1), voxel_field_lower_left, pos_ws, direction);
-    //    vec3 hit_plane_x_upper_right = hit_on_plane(vec3(1, 0, 0), voxel_field_upper_right, pos_ws, direction);
-    //    vec3 hit_plane_y_upper_right = hit_on_plane(vec3(0, 1, 0), voxel_field_upper_right, pos_ws, direction);
-    //    vec3 hit_plane_z_upper_right = hit_on_plane(vec3(0, 0, 1), voxel_field_upper_right, pos_ws, direction);
-//
-    //    bool hit_is_in_plane_x_lower_left = is_in_surface(voxel_field_upper_right.yz, voxel_field_lower_left.yz, hit_plane_x_lower_left.yz);
-    //    bool hit_is_in_plane_y_lower_left = is_in_surface(voxel_field_upper_right.xz, voxel_field_lower_left.xz, hit_plane_y_lower_left.xz);
-    //    bool hit_is_in_plane_z_lower_left = is_in_surface(voxel_field_upper_right.xy, voxel_field_lower_left.xy, hit_plane_z_lower_left.xy);
-    //    bool hit_is_in_plane_x_upper_right = is_in_surface(voxel_field_upper_right.yz, voxel_field_lower_left.yz, hit_plane_x_upper_right.yz);
-    //    bool hit_is_in_plane_y_upper_right = is_in_surface(voxel_field_upper_right.xz, voxel_field_lower_left.xz, hit_plane_y_upper_right.xz);
-    //    bool hit_is_in_plane_z_upper_right = is_in_surface(voxel_field_upper_right.xy, voxel_field_lower_left.yz, hit_plane_z_upper_right.xy);
-    //    
-    //    if (hit_is_in_plane_x_lower_left || hit_is_in_plane_y_lower_left || hit_is_in_plane_z_lower_left){
-//
-//
-    //        
-//
-//
-    //        hits = 1;
-    //    }
-    //}
-
-
-    //float t = distance(pos_ws, voxel_field_lower_left)* distance(pos_ws, voxel_field_upper_right);
-
-    //c = c + texture(voxelData,pos_sized+float(i)*0.0002).rgb*0.001;
 
 }

@@ -73,7 +73,6 @@ bool RayCast::recurse_proximity_check(Object3D* object, std::string* collision_t
 bool RayCast::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
     const SceneContext* scene_context, std::string* collision_tag, const glm::vec3& proximity_center, float radius)
 {
-    //TODO: this implementation doesent consider the radius around the point
     if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb,proximity_center,radius))
     {
         return false;

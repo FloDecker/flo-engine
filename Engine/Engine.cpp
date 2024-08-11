@@ -17,7 +17,7 @@
 #include "Source/Core/Scene/SceneContext.h"
 #include "Source/Core/Scene/DebugPrimitives/Cube3D.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
-#include "Source/Core/Scene/SceneTools/Voxelizer.h"
+#include "Source/Core/Scene/SceneTools/VoxelizerTools/Voxelizer.h"
 #include "Source/Util/AssetLoader.h"
 
 #define WINDOW_HEIGHT (1080/2)
@@ -235,10 +235,10 @@ int main()
     cube_test->set_position_global(0,0,0);
     cube_test->setScale(8,8,8);
 
-
+    
     //TEST 3D TEXTURE
     auto test_texture_3d = new Texture3D();
-    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},4);
+    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},8);
     //for (unsigned int x = 0 ;x< 8;x++)
     //{
     //    for (unsigned int y = 0 ;y< 8;y++)
@@ -254,7 +254,8 @@ int main()
     //test_texture_3d->initialize();
 
     auto* m_gi_test_mater = new ShaderProgram();
-    m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelGI.glsl");
+    //m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelGI.glsl");
+    m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelVisualizer.glsl");
     m_gi_test_mater->compileShader();
     m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
     plane1->materials.push_back(m_gi_test_mater);
@@ -266,7 +267,7 @@ int main()
     vox->setScale(4,4,4);
     root->addChild(vox);
     vox->set_position_global(0,0,0);
-    vox->voxel_precision = 4;
+    vox->voxel_precision = 8;
 
 
     //TODO: this call should be automatically called when changing the scene
@@ -274,7 +275,7 @@ int main()
 
 
     vox->recalculate();
-    vox->load_into_voxel_texture(test_texture_3d);
+    vox->load_into_voxel_texture_df(test_texture_3d);
     test_texture_3d->initialize();
     ///////////////////////////////////////////////////////////////
     

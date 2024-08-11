@@ -1,5 +1,7 @@
 ﻿#include "Collider.h"
 
+#include "../../Util/RayIntersectionHelper.h"
+
 Collider::Collider(GlobalContext* global_context): Object3D(global_context)
 {
     
@@ -131,7 +133,11 @@ bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)
             vertex v1 = vertex_array->vertices->at(vertex_array->indices->at(i + 1));
             vertex v2 = vertex_array->vertices->at(vertex_array->indices->at(i + 2));
 
-
+            if (RayIntersectionHelper::sphere_triangle_intersection(v0.position,v1.position,v2.position,proximity_center_local,radius))
+            {
+                return true;
+            }
+            
             glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
 
 
@@ -163,8 +169,9 @@ bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)
             glm::vec3 vp2 = hit_point - v2.position;
             c = glm::cross(edge2, vp2);
             if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
-
             return true;
+
+
         }
     }
     return false;
