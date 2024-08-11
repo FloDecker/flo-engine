@@ -36,6 +36,7 @@ public:
                               unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth);
     void write_to_voxel_field_float(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
                           float pos_width, float pos_height, float pos_depth);
+	unsigned short get_distance_at(unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth);
 
 
     //getter

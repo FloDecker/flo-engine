@@ -12,8 +12,8 @@ void Texture3D::initialize()
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage3D(GL_TEXTURE_3D, 0,GL_RGBA4, width_, height_, depth_, 0, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, _data);
     glGenerateMipmap(GL_TEXTURE_3D);
@@ -103,4 +103,9 @@ void Texture3D::write_to_voxel_field_float(unsigned short r, unsigned short g, u
                          static_cast<int>(static_cast<float>(height_) * pos_height),
                          static_cast<int>(static_cast<float>(depth_) * pos_depth)
     );
+}
+
+unsigned short Texture3D::get_distance_at(unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth)
+{
+    return _data[(width_ * height_ * pos_depth + width_ * pos_height + pos_width)];
 }
