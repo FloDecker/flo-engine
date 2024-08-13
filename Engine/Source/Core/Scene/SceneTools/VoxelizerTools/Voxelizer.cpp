@@ -45,7 +45,8 @@ void Voxelizer::recalculate()
     std::cout << "voxel build time: " << elapsed_seconds.count() << "s\n";
     std::cout << "build " << voxel_positions_.size() << " voxels\n";
 }
-
+//load the zero level voxels into 3d texture where every surface point is 1 and the empty space is 0
+//(just use the distance function it's way faster to traverse)
 void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
 {
     auto transform_global_inverse = glm::inverse(getGlobalTransform());
@@ -59,6 +60,8 @@ void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
         texture_3d->write_to_voxel_field_float(15,15,15,15,object_space.x,object_space.y,object_space.z);
     }
 }
+
+//load the zero level voxels into a 3d texture where every surface point is 0 and the empty space is the distance to the zero level set
 void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
 {
     auto transform_global = getGlobalTransform();
@@ -182,6 +185,12 @@ void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
 }
 
 
+void Voxelizer::calculate_area_filled_by_polygons(SceneContext* scene_context)
+{
+    //get all objects inside the field
+    
+}
+
 void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm::vec3 ws_upper_right,
                                                 glm::vec3 ws_lower_left, glm::i16vec3 voxel_upper_right,
                                                 glm::i16vec3 voxel_lower_left)
@@ -201,7 +210,7 @@ void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm
         //float radius = glm::length(glm::vec3(step_size)) * 0.5f;
         float radius = glm::length(glm::vec3(step_size))*distance_x*0.5;
         
-        if (RayCast::scene_geometry_proximity_check(scene_context_, center,radius))
+        if (scene_context_->get_bb()->scene_geometry_proximity_check(center,radius))
         {
             //raycast hit and smallest step size reached
             if (distance_x == 1 && distance_y == 1 && distance_z == 1)

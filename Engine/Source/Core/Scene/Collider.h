@@ -1,9 +1,8 @@
 ﻿#pragma once
 #include "Mesh3D.h"
 #include "Object3D.h"
-#include "RayCast.h"
-#include "../CommonDataStructures/StructBoundingBox.h"
 #include "../../Util/BoundingBoxHelper.h"
+#include "../../Util/RayIntersectionHelper.h"
 
 class Collider : public Object3D
 {
@@ -25,6 +24,7 @@ public:
     void check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length, bool ignore_back_face,
                          RayCastHit* ray_cast_hit) override;
     bool is_in_proximity(glm::vec3 center_ws, float radius) override;
+    bool is_in_proximity_vertex(glm::vec3 center_ws, float radius, unsigned int vertex_id);
     void calculate_world_space_bounding_box() override;
 
 private:

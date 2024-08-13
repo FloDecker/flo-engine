@@ -1,7 +1,11 @@
 [vertex]
 out vec3 pos_ws;
 out vec3 normal_ws;
+out vec3 cam_pos_ws;
+
 void main() {
+    cam_pos_ws = cameraPosWS;
+
     pos_ws = (mMatrix * vec4(aPos, 1.0)).xyz;
     normal_ws = (mMatrix * vec4(aNormal, 0.0)).xyz;
     vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
@@ -9,6 +13,8 @@ void main() {
 }
 
 [fragment]
+in vec3 cam_pos_ws;
+
 in vec3 pos_ws;
 in vec3 normal_ws;
 uniform sampler3D voxelData;
@@ -55,7 +61,7 @@ vec4 world_space_coord_voxel_field_lookup(vec3 pos, vec3 voxel_field_size){
 
 vec3 calculateNormalFromDistanceFunction(vec3 p, vec3 voxel_field_size) {
     //Sample the distance function at the nearby points
-    float distance = 0.1;
+    float distance = 0.3;
     float dx = (world_space_coord_voxel_field_lookup(p + vec3(distance, 0.0, 0.0), voxel_field_size) -
     world_space_coord_voxel_field_lookup(p - vec3(distance, 0.0, 0.0), voxel_field_size)).a;
     float dy = (world_space_coord_voxel_field_lookup(p + vec3(0.0, distance, 0.0), voxel_field_size) -
@@ -72,25 +78,85 @@ vec3 calculateNormalFromDistanceFunction(vec3 p, vec3 voxel_field_size) {
     return normal;
 }
 
-float intersection(vec3 trace_start, vec3 trace_direction, vec3 voxel_field_size) {
-    float distance_0 = 0.0;
-    float distance_1 = 0.0;
-    float distance_2 = 0.0;
+float intersection_df(vec3 in_field_pos, vec3 trace_direction) {
+    float max_travel_distance = 8.0*(2.0/14.0);
+    float trace_direction_length = length(trace_direction);
+    trace_direction = normalize(trace_direction);
+
+    vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
+    vec3 box_distances = abs(v_lower_right_upper_left);
     
-    for (int i = 0; i < max_iteration; i++){
-        distance_0 = distance_1;
-        distance_1 = distance_2;
+    vec3 trace_start = in_field_pos;
+    
+    float last_a = 0.0;
+    
+    for (int i=0; i < 100; i++) {
         
-        vec3 current_pos = trace_start + trace_direction*i*step_length;
-        if (!is_in_volume(current_pos)) {
-            return 0.5;
+        float a = world_space_coord_voxel_field_lookup(in_field_pos,box_distances).a;
+        float d = a * max_travel_distance;
+        if (a < 0.07 && last_a > a) {
+            return distance(trace_start,in_field_pos)/trace_direction_length;
         }
-        distance_2 = world_space_coord_voxel_field_lookup(current_pos,voxel_field_size).a;
-        if (distance_0 - distance_1 < 0.0 && distance_1 - distance_2 > 0.0) {
-            return 1.0;
+
+        if (!is_in_volume(in_field_pos)) {
+            return -1;
         }
+        last_a = a;
+
+        in_field_pos+=trace_direction*d;
+    }
+
+    return -1.0;
+}
+
+float trace_primary_ray(vec3 trace_start, vec3 trace_direction){
+    float voxel_size = 1.0/2.0;
+    trace_direction = normalize(trace_direction);
+
+    vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
+    vec3 box_distances = abs(v_lower_right_upper_left);
+    
+    float a = world_space_coord_voxel_field_lookup(trace_start,box_distances).a;
+    float b = world_space_coord_voxel_field_lookup(trace_start+trace_direction*voxel_size,box_distances).a;
+    float p  = 0.1;
+    //return a;
+    return float(a >= p && a < p+0.05);
+    if(b-a >=0.07){
+        return 1.0;
+    }
+    else return 0;
+}
+
+
+float intersection_df_test(vec3 trace_start, vec3 trace_direction) {
+    float max_travel_distance = 8.0*(2.0/14.0);
+    trace_direction = normalize(trace_direction);
+
+    vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
+    vec3 box_distances = abs(v_lower_right_upper_left);
+
+    vec3 in_field_pos = trace_start;
+    for (int i=0; i < max_iteration; i++) {
+        if (is_in_volume(in_field_pos)) {
+            break;
+        }
+        in_field_pos+=trace_direction * 0.5;
     }
     
+
+    for (int i=0; i < 400; i++) {
+        float a = world_space_coord_voxel_field_lookup(in_field_pos,box_distances).a;
+        float d = a * max_travel_distance;
+        if (a < 0.07) {
+            return 0.01*i;
+        }
+
+        if (!is_in_volume(in_field_pos)) {
+            return -1;
+        }
+        in_field_pos+=trace_direction*d;
+    }
+
     return -1.0;
 }
 
@@ -101,10 +167,27 @@ void main() {
     vec3 direction =  normalize(vec3(1, 1, 1));
     
     vec3 surfaceNormal = calculateNormalFromDistanceFunction(pos_ws, box_distances);
-    float d = intersection(pos_ws + normal_ws*0.1, direction ,box_distances);
+    float d = intersection_df(pos_ws + normal_ws*0.0, direction);
     
-    FragColor = vec4(surfaceNormal, 1.0);
+    FragColor = vec4(-surfaceNormal, 1.0);
+    //if(dot(normal_ws, direction) < 0) {
+    //    FragColor = vec4(0.0,0.0,1.0, 1.0);
+    //    return;
+    //}
 
+
+    FragColor = vec4(vec3(trace_primary_ray(pos_ws,direction)),1.0);
+    return;
+
+    if (!is_in_volume(pos_ws)){
+        FragColor = vec4(1.0,0.0,0.0, 1.0);
+        return;
+    }
+
+    if (d < 0){
+        FragColor = vec4(0.0,1.0,0.0, 1.0);
+        return;
+    }
     FragColor = vec4(vec3(d), 1.0);
 
 

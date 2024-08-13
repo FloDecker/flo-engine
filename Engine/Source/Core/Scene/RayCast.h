@@ -1,17 +1,7 @@
 ﻿#pragma once
 #include "SceneContext.h"
 #include "../CommonDataStructures/StructVertexArray.h"
-
-struct RayCastHit
-{
-    bool hit = false; //if the raycast hit something
-    double distance_from_origin;
-    Object3D* object_3d; //the object that was hit
-    glm::vec3 hit_world_space; //hit intersection in world space
-    glm::vec3 hit_normal_world_space; //normal of the hit
-    glm::vec3 hit_local; //hit intersection in world space
-    glm::vec3 hit_normal_local; //normal of the hit
-};
+#include "../../Util/RayIntersectionHelper.h"
 
 class RayCast
 {
@@ -33,11 +23,7 @@ public:
         glm::vec3 ray_cast_direction,
         bool ignore_back_face = true);
 
-    static bool scene_geometry_proximity_check(
-        const SceneContext* scene_context,
-        const glm::vec3& proximity_center,
-        float radius
-    );
+
 
 private:
     static void recurse_scene_model_ray_cast(
@@ -57,12 +43,5 @@ private:
         float radius
     );
 
-    static bool recurse_proximity_check_bb_tree(
-    const kdTreeElement* bb_to_check,
-    const SceneContext* scene_context,
 
-    std::string* collision_tag,
-    const glm::vec3& proximity_center,
-    float radius
-);
 };

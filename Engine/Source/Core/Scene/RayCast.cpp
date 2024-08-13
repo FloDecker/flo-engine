@@ -70,46 +70,6 @@ bool RayCast::recurse_proximity_check(Object3D* object, std::string* collision_t
     return false;
 }
 
-bool RayCast::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
-    const SceneContext* scene_context, std::string* collision_tag, const glm::vec3& proximity_center, float radius)
-{
-    if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb,proximity_center,radius))
-    {
-        return false;
-    }
-
-    //is leaf node
-    if(SceneContext::is_bb_element_leaf_node(bb_to_check))
-    {
-
-        auto object = scene_context->get_scene_bb_element_leaf(bb_to_check);
-        if (object->has_tag(*collision_tag) && object->visible)
-        {
-            auto mesh_collider = dynamic_cast<Collider*>(object);
-            if (mesh_collider->is_in_proximity(proximity_center, radius))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    //not a leaf node -> continue in closest child
-    auto child_0 = scene_context->get_scene_bb_element(bb_to_check->child_0);
-    auto child_1 = scene_context->get_scene_bb_element(bb_to_check->child_1);
-    if (glm::distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb),proximity_center) <
-        glm::distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb),proximity_center))
-    {
-        //child 1 closer
-        return recurse_proximity_check_bb_tree(child_0,scene_context,collision_tag,proximity_center,radius) ||
-            recurse_proximity_check_bb_tree(child_1,scene_context,collision_tag,proximity_center,radius);
-    } else
-    {
-        return recurse_proximity_check_bb_tree(child_1,scene_context,collision_tag,proximity_center,radius) ||
-           recurse_proximity_check_bb_tree(child_0,scene_context,collision_tag,proximity_center,radius);
-    }
-}
-
 
 //EDITOR ONLY RAY CAST FOR OBJECT SELECTION 
 
@@ -133,17 +93,4 @@ RayCastHit RayCast::ray_cast_editor(SceneContext* scene_context,
     return ray_cast_hit;
 }
 
-bool RayCast::scene_geometry_proximity_check(const SceneContext* scene_context, const glm::vec3& proximity_center,
-                                             float radius)
-{
-    std::string tag = "ENGINE_COLLIDER";
 
-    //if scene provides bb tree search it
-    if (scene_context->get_scene_bb_entry_element() != nullptr)
-    {
-        auto bb_root_node = scene_context->get_scene_bb_entry_element();
-        return recurse_proximity_check_bb_tree(bb_root_node,scene_context,&tag,proximity_center,radius);
-    }
-    //else iterate over every item
-    return recurse_proximity_check(scene_context->get_root(), &tag, proximity_center, radius);
-}

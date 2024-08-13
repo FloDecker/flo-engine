@@ -244,6 +244,7 @@
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
     <ClCompile Include="Source\Util\BoundingBoxHelper.cpp" />
     <ClCompile Include="Source\Util\RayIntersectionHelper.cpp" />
+    <ClCompile Include="Source\Util\StackedBB.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Content\Material.h" />
@@ -276,6 +277,7 @@
     <ClInclude Include="Source\Util\AssetLoader.h" />
     <ClInclude Include="Source\Util\BoundingBoxHelper.h" />
     <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
+    <ClInclude Include="Source\Util\StackedBB.h" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="EngineContent\Arrow.fbx" />

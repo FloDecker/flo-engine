@@ -1,7 +1,5 @@
 ﻿#include "RayIntersectionHelper.h"
 
-#include <detail/func_geometric.inl>
-
 #define in_bounding_box(a, min,max) ((a)<(max)&&(a)>(min))
 
 Intersection* RayIntersectionHelper::RayPlaneIntersection(glm::vec3 ray_origin, glm::vec3 ray_direction_normalized,
