@@ -53,8 +53,7 @@ class Importer;
 
 int main()
 {
-    //init glsl
-
+    
     if (!glfwInit())
     {
         std::cerr << "Couldnt init GLFW" << std::endl;
@@ -187,7 +186,7 @@ int main()
     mSphere2->name = "sphere 2";
 
     auto plane1 = new Mesh3D(plane, &global_context);
-    plane1->setScale(10,10,10);
+    plane1->setScale(6,6,6);
     plane1->setPositionLocal(0, 0, 0);
     plane1->setRotationLocalDegrees(-90, 0, 0);
     root->addChild(plane1);
@@ -238,7 +237,7 @@ int main()
     
     //TEST 3D TEXTURE
     auto test_texture_3d = new Texture3D();
-    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},8);
+    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},16);
     //for (unsigned int x = 0 ;x< 8;x++)
     //{
     //    for (unsigned int y = 0 ;y< 8;y++)
@@ -267,7 +266,7 @@ int main()
     vox->setScale(4,4,4);
     root->addChild(vox);
     vox->set_position_global(0,0,0);
-    vox->voxel_precision = 8;
+    vox->voxel_precision = 16;
 
 
     //TODO: this call should be automatically called when changing the scene

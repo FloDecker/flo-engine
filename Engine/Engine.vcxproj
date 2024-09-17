@@ -249,6 +249,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Content\Material.h" />
     <ClInclude Include="Source\Content\Mesh.h" />
+    <ClInclude Include="Source\Core\CommonDataStructures\StructMeshTriangleFilter.h" />
     <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h" />
     <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h" />
     <ClInclude Include="Source\Core\Editor\GlobalContext.h" />

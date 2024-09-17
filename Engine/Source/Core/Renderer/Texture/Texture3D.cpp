@@ -98,6 +98,7 @@ void Texture3D::write_to_voxel_field_float(unsigned short r, unsigned short g, u
     }
 
 
+    //TODO: move logic to voxelizer
     write_to_voxel_field(r, g, b, a,
                          static_cast<int>(static_cast<float>(width_) * pos_width),
                          static_cast<int>(static_cast<float>(height_) * pos_height),

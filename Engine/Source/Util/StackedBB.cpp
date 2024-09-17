@@ -214,6 +214,7 @@ bool StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center
 	return false;
 }
 
+
 bool StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
                                                 std::string* collision_tag, const glm::vec3& proximity_center,
                                                 float radius)

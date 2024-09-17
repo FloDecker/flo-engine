@@ -21,6 +21,11 @@ void Collider::calculate_world_space_bounding_box()
 {
 }
 
+int Collider::get_collider_type()
+{
+    return -1;
+}
+
 
 //Mesh Collider
 MeshCollider::MeshCollider(GlobalContext* global_context,
@@ -122,7 +127,7 @@ bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)
 
     for (unsigned int a = 0; a < vertex_arrays_of_geometry->size(); a++)
     {
-        if (is_in_proximity_vertex(center_ws, radius, a))
+        if (is_in_proximity_vertex_array(center_ws, radius, a))
         {
             return true;
         }
@@ -130,7 +135,12 @@ bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)
     return false;
 }
 
-bool MeshCollider::is_in_proximity_vertex(glm::vec3 center_ws, float radius, unsigned int vertex_id)
+int MeshCollider::get_collider_type()
+{
+    return 1;
+}
+
+bool MeshCollider::is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id)
 {
     auto global_inverse = glm::inverse(this->transformGlobal);
 
@@ -138,29 +148,28 @@ bool MeshCollider::is_in_proximity_vertex(glm::vec3 center_ws, float radius, uns
     std::vector<struct_vertex_array*>* vertex_arrays_of_geometry = this->get_vertex_arrays();
 
 
-    struct_vertex_array* vertex_array = vertex_arrays_of_geometry->at(vertex_id);
+    struct_vertex_array* vertex_array = vertex_arrays_of_geometry->at(vertex_array_id);
     for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3)
     {
         vertex v0 = vertex_array->vertices->at(vertex_array->indices->at(i));
         vertex v1 = vertex_array->vertices->at(vertex_array->indices->at(i + 1));
         vertex v2 = vertex_array->vertices->at(vertex_array->indices->at(i + 2));
-
+        
         if (RayIntersectionHelper::sphere_triangle_intersection(v0.position, v1.position, v2.position,
-                                                                proximity_center_local, radius))
+                                                        proximity_center_local, radius))
         {
             return true;
         }
-
+        
         glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
-
-
+        
         float d = -glm::dot(face_normal, v0.position);
         float t =
             -(glm::dot(face_normal, proximity_center_local) + d);
-
+ 
         glm::vec3 hit_point = proximity_center_local + t * face_normal;
+        
         auto vec_to_center_global = this->transformGlobal * glm::vec4(hit_point - proximity_center_local, 0.0);
-
         if (glm::length(vec_to_center_global) > radius) continue;
 
         auto c = glm::vec3();
@@ -187,6 +196,52 @@ bool MeshCollider::is_in_proximity_vertex(glm::vec3 center_ws, float radius, uns
 
     return false;
 }
+
+bool MeshCollider::is_in_proximity_vertex(float radius, unsigned int v_0, glm::vec3 proximity_center_local,
+                                          struct_vertex_array* vertex_array) const
+{
+    vertex v0 = vertex_array->vertices->at(vertex_array->indices->at(v_0));
+    vertex v1 = vertex_array->vertices->at(vertex_array->indices->at(v_0 + 1));
+    vertex v2 = vertex_array->vertices->at(vertex_array->indices->at(v_0 + 2));
+        
+    if (RayIntersectionHelper::sphere_triangle_intersection(v0.position, v1.position, v2.position,
+                                                    proximity_center_local, radius))
+    {
+        return true;
+    }
+        
+    glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
+
+    float d = -glm::dot(face_normal, v0.position);
+    float t = -(glm::dot(face_normal, proximity_center_local) + d);
+ 
+    glm::vec3 hit_point = proximity_center_local + t * face_normal;
+        
+    auto vec_to_center_global = this->transformGlobal * glm::vec4(hit_point - proximity_center_local, 0.0);
+    if (glm::length(vec_to_center_global) > radius) return false;
+
+    auto c = glm::vec3();
+
+    // Edge 0
+    glm::vec3 edge0 = v1.position - v0.position;
+    glm::vec3 vp0 = hit_point - v0.position;
+    c = glm::cross(edge0, vp0);
+    if (glm::dot(face_normal, c) < 0) return false; // P is on the right side
+
+    // Edge 1
+    glm::vec3 edge1 = v2.position - v1.position;
+    glm::vec3 vp1 = hit_point - v1.position;
+    c = glm::cross(edge1, vp1);
+    if (glm::dot(face_normal, c) < 0) return false; // P is on the right side
+
+    // Edge 2
+    glm::vec3 edge2 = v0.position - v2.position;
+    glm::vec3 vp2 = hit_point - v2.position;
+    c = glm::cross(edge2, vp2);
+    if (glm::dot(face_normal, c) < 0) return false; // P is on the right side
+    return true;
+}
+
 
 void MeshCollider::calculate_world_space_bounding_box()
 {

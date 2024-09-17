@@ -5,7 +5,7 @@
 #include "../Editor/GlobalContext.h"
 #include "Lighting/PointLight.h"
 #include "../../Util/StackedBB.h"
-
+#include "../CommonDataStructures/StructMeshTriangleFilter.h"
 //scene context is used to feed scene information to the material shaders 
 class SceneContext
 {
@@ -18,14 +18,18 @@ public:
     Object3D* get_root() const;
     GlobalContext* get_global_context() const;
     StackedBB* get_bb() const;
-    
+
+    std::vector<Collider*>* get_colliders_in_bounding_box(StructBoundingBox *bounding_box) const;
+
+    std::vector<glm::vec3>* get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const;
+
+    std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const;
+
+
 private:
     std::unordered_set<PointLight*> scenePointLights;
     std::vector<Collider*> sceneColliders;
     StackedBB *scene_bb;
-
-    void recalculate_scene_bb();
-
     GlobalContext* global_context_;
     Object3D* scene_root_;
 

@@ -58,6 +58,12 @@ glm::mat4 Object3D::getGlobalTransform()
     return transformGlobal;
 }
 
+glm::mat4 Object3D::getGlobalTransformInverse()
+{
+    return global_transform_inverse_;
+}
+
+
 
 glm::vec3 Object3D::getWorldPosition()
 {
@@ -171,6 +177,11 @@ void Object3D::recalculate_global_transform()
     this->recalculateTransform();
 }
 
+glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const
+{
+    return transformGlobal * glm::vec4(vertex_in_local_space, 1);
+}
+
 
 void Object3D::recalculateTransform()
 {
@@ -193,6 +204,7 @@ void Object3D::recalculateTransform()
 void Object3D::recalculateTransformGlobal()
 {
     this->transformGlobal = (parent) ? parent->transformGlobal * this->transformLocal : this->transformLocal;
+    this->global_transform_inverse_ = glm::inverse(this->transformGlobal);
     for (auto child : this->children)
     {
         child->recalculateTransformGlobal();

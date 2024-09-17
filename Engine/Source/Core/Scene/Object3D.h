@@ -27,6 +27,7 @@ private:
     std::vector<Object3D*> children;
     Object3D* parent = nullptr;
 
+    glm::mat4 global_transform_inverse_;
     int draw_(struct RenderContext* parentRenderContext);
     void recalculateTransform(); //should be called after changing location / scale / rotation
     void recalculateTransformGlobal();
@@ -62,8 +63,15 @@ public:
     void set_position_global(float x, float y, float z);
     void recalculate_global_transform();
 
+
+    //Transform Helper
+
+    //takes a vertex defined in the objects local space and returns the world space coordinates of it
+    glm::vec3 transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const;
     
+    //Getter
     glm::mat4 getGlobalTransform();
+    glm::mat4 getGlobalTransformInverse();
     glm::vec3 getWorldPosition();
     glm::vec3 getLocalRotation();
 

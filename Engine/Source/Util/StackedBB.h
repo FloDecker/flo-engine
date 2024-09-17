@@ -28,6 +28,17 @@ public:
 
 	//traversal functions
 
+	bool scene_geometry_proximity_check(
+		const glm::vec3& proximity_center,
+		float radius
+	);
+
+private:
+
+	
+	void calculateSceneTree();
+
+
 	bool recurse_proximity_check_bb_tree(
 		const kdTreeElement* bb_to_check,
 		std::string* collision_tag,
@@ -35,14 +46,7 @@ public:
 		float radius
 	);
 
-	bool scene_geometry_proximity_check(
-		const glm::vec3& proximity_center,
-		float radius
-	);
-
-private:
-	void calculateSceneTree();
-
+	
 	kdTreeElement* axis_aligned_bb_tree_ = nullptr;
 	int scene_bb_entry_id_ = -1;
 	std::vector<Collider*> *leaf_nodes;
