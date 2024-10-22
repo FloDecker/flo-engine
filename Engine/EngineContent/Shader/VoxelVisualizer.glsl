@@ -206,6 +206,38 @@ vec3 visualization_slide(vec3 slidePos, vec3 slideNormal) {
 }
 
 
+
+vec3 calculateNormalFromDistanceFunction(vec3 p, vec3 voxel_field_size) {
+    //Sample the distance function at the nearby points
+    float distance = 0.3;
+    float dx = (world_space_coord_voxel_field_lookup(p + vec3(distance, 0.0, 0.0), voxel_field_size) -
+    world_space_coord_voxel_field_lookup(p - vec3(distance, 0.0, 0.0), voxel_field_size)).a;
+    float dy = (world_space_coord_voxel_field_lookup(p + vec3(0.0, distance, 0.0), voxel_field_size) -
+    world_space_coord_voxel_field_lookup(p - vec3(0.0, distance, 0.0), voxel_field_size)).a;
+    float dz = (world_space_coord_voxel_field_lookup(p + vec3(0.0, 0.0, distance), voxel_field_size) -
+    world_space_coord_voxel_field_lookup(p - vec3(0.0, 0.0, distance), voxel_field_size)).a;
+
+    // Construct the gradient vector
+    vec3 gradient = -vec3(dx, dy, dz);
+
+    // Normalize to get the normal
+    vec3 normal = normalize(gradient);
+
+    return normal;
+}
+
+float inside_edge_detection(vec3 box_distances){
+    float center = world_space_coord_voxel_field_lookup(pos_ws,box_distances).a;
+    float front = world_space_coord_voxel_field_lookup(pos_ws+normal_ws*0.5,box_distances).a;
+    return front;//float(front < 0.1);
+}
+
+vec3 get_first_outside_voxel_pos(){
+    
+    return vec3(0.0);
+}
+
+
 void main() {
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 cam_direction = normalize(pos_ws - cam_pos_ws);
@@ -218,8 +250,10 @@ void main() {
     //}
     //FragColor = vec4(vec3(float(d<0.05)),1.0);    
     //FragColor = vec4(vec3(d),1.0);    
+    FragColor = vec4(vec3(inside_edge_detection(box_distances)),1.0);    
+    FragColor = vec4(abs(calculateNormalFromDistanceFunction(pos_ws,box_distances)),1.0);    
     //FragColor = vec4(visualization_solid_df(0.0,0.05)+vec3(0.1),1.0);
-    FragColor = vec4(vec3(intersection_df(cam_pos_ws,cam_direction)),1.0);
+   //FragColor = vec4(vec3(intersection_df(cam_pos_ws,cam_direction)),1.0);
     //FragColor = vec4(visualization_slide(vec3(0.,0.0,0.0),normalize(vec3(1.0,0.0,0.0))),1.0);
     //FragColor = vec4(visualization_solid_df(),1.0);
 }
