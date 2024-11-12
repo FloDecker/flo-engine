@@ -244,6 +244,7 @@
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
     <ClCompile Include="Source\Util\BoundingBoxHelper.cpp" />
     <ClCompile Include="Source\Util\RayIntersectionHelper.cpp" />
+    <ClCompile Include="Source\Util\Remesh.cpp" />
     <ClCompile Include="Source\Util\StackedBB.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -278,6 +279,7 @@
     <ClInclude Include="Source\Util\AssetLoader.h" />
     <ClInclude Include="Source\Util\BoundingBoxHelper.h" />
     <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
+    <ClInclude Include="Source\Util\Remesh.h" />
     <ClInclude Include="Source\Util\StackedBB.h" />
   </ItemGroup>
   <ItemGroup>
@@ -297,6 +299,7 @@
     <Content Include="EngineContent\Shader\SkySphere.glsl" />
     <Content Include="EngineContent\Shader\test.glsl" />
     <Content Include="EngineContent\Shader\test2.glsl" />
+    <Content Include="EngineContent\Shader\TriangleVisualizer.glsl" />
     <Content Include="EngineContent\Shader\VoxelGI.glsl" />
     <Content Include="EngineContent\Shader\VoxelVisualizer.glsl" />
     <Content Include="EngineContent\Shader\WorldPosition.glsl" />

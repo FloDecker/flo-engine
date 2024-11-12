@@ -226,11 +226,34 @@ vec3 calculateNormalFromDistanceFunction(vec3 p, vec3 voxel_field_size) {
     return normal;
 }
 
-float inside_edge_detection(vec3 box_distances){
-    float center = world_space_coord_voxel_field_lookup(pos_ws,box_distances).a;
-    float front = world_space_coord_voxel_field_lookup(pos_ws+normal_ws*0.5,box_distances).a;
+float inside_edge_detection(vec3 box_distances,vec3 pos){
+    float center = world_space_coord_voxel_field_lookup(pos,box_distances).a;
+    float front = world_space_coord_voxel_field_lookup(pos+normal_ws*0.5,box_distances).a;
     return front;//float(front < 0.1);
 }
+
+vec3 outisde_edge(vec3 box_distances, vec3 start_pos) {
+    const int MAX_IT = 10;
+    const float THREASHHODL = 0.3;
+    vec3 current_pos = start_pos;
+    for (int i = 0; i < MAX_IT;i++) {
+        if (inside_edge_detection(box_distances,current_pos) > THREASHHODL){
+            //return current_pos-start_pos;
+            return vec3(i/10.0);
+        }
+        current_pos+=calculateNormalFromDistanceFunction(current_pos,box_distances)*0.9;
+    }
+    return vec3(1.0);   
+}
+
+vec3 distance_to_voxel(vec3 box_distances, vec3 start_pos){
+    vec3 distances = vec3(voxel_field_depth,voxel_field_height,voxel_field_width);
+    vec3 a = box_distances/distances;
+    
+    vec3 pos_relative = start_pos - voxel_field_lower_left;
+    
+    return mod(pos_relative,a);
+} 
 
 vec3 get_first_outside_voxel_pos(){
     
@@ -244,16 +267,8 @@ void main() {
 
     vec3 box_distances = abs(v_lower_right_upper_left);
     float d = world_space_coord_voxel_field_lookup(pos_ws,box_distances).a;
-    //if (!is_in_volume(pos_ws)) {
-    //    FragColor = vec4(1.0,0.,0.,1.0);
-    //    return;
-    //}
-    //FragColor = vec4(vec3(float(d<0.05)),1.0);    
-    //FragColor = vec4(vec3(d),1.0);    
-    FragColor = vec4(vec3(inside_edge_detection(box_distances)),1.0);    
-    FragColor = vec4(abs(calculateNormalFromDistanceFunction(pos_ws,box_distances)),1.0);    
-    //FragColor = vec4(visualization_solid_df(0.0,0.05)+vec3(0.1),1.0);
-   //FragColor = vec4(vec3(intersection_df(cam_pos_ws,cam_direction)),1.0);
-    //FragColor = vec4(visualization_slide(vec3(0.,0.0,0.0),normalize(vec3(1.0,0.0,0.0))),1.0);
-    //FragColor = vec4(visualization_solid_df(),1.0);
+
+    FragColor = vec4(vec3(distance_to_voxel(box_distances,pos_ws)),1.0);    
+    //FragColor = vec4(vec3(float(inside_edge_detection(box_distances,pos_ws)>0.1)),1.0);    
+
 }

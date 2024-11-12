@@ -137,7 +137,7 @@ void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
 
 
 						//just for debugging
-						/*
+					
 						if (current_level == 3)
 						{
 						    auto transform_global = getGlobalTransform();
@@ -157,7 +157,7 @@ void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
 						    c->color = glm::vec3(1, 0, 0)*interpol+glm::vec3(0, 1, 0)*(1.0f-interpol);
 						    c->set_position_global(ws_pos);
 						}
-*/
+
 					}
 				}
 			}

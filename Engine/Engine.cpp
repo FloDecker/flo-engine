@@ -141,6 +141,10 @@ int main()
     auto me_test_building = loadModel("EngineContent/closedSpaceTest.fbx");
     me_test_building->initializeVertexArrays();
 
+    auto me_test_triangle = loadModel("EngineContent/Triangle.fbx");
+    
+    me_test_triangle->initializeVertexArrays();
+
     //init shaders
     
     auto* textureMaterial = new ShaderProgram();
@@ -153,6 +157,10 @@ int main()
     posMaterial->loadFromFile("EngineContent/Shader/test2.glsl");
     posMaterial->compileShader();
 
+    auto* triangle_visualizer_material = new ShaderProgram();
+    triangle_visualizer_material->loadFromFile("EngineContent/Shader/TriangleVisualizer.glsl");
+    triangle_visualizer_material->compileShader();
+    
     auto* lightTestMaterial = new ShaderProgram();
     lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
     lightTestMaterial->compileShader();
@@ -162,7 +170,7 @@ int main()
     worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
     worldPosMat->compileShader();
 
-    
+
     auto* m_sky_sphere = new ShaderProgram();
     m_sky_sphere->loadFromFile("EngineContent/Shader/SkySphere.glsl");
     m_sky_sphere->compileShader();
@@ -172,6 +180,9 @@ int main()
     sphere->materials.push_back(lightTestMaterial);
 
 
+    /////ADD SCENE GEOMETRY: 
+
+    
     auto mSphere1 = new Mesh3D(sphere, &global_context);
     mSphere1->materials.push_back(worldPosMat);
     mSphere1->setPositionLocal(20,0,0);
@@ -208,6 +219,12 @@ int main()
     cube3->set_position_global(0, 17, 0);
     cube3->name = "THE CUUUUBE3";
 
+    auto triangle = new Mesh3D(me_test_triangle, &global_context);
+    mSphere1->addChild(triangle);
+    triangle->set_position_global(0, 20, 0);
+    triangle->name = "triangle";
+    triangle->materials.push_back(triangle_visualizer_material);
+
 
     //auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
     //o_sky_sphere->materials.push_back(m_sky_sphere);
@@ -236,8 +253,10 @@ int main()
 
     
     //TEST 3D TEXTURE
+
+    /**
     auto test_texture_3d = new Texture3D();
-    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},16);
+    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},8);
     //for (unsigned int x = 0 ;x< 8;x++)
     //{
     //    for (unsigned int y = 0 ;y< 8;y++)
@@ -258,25 +277,28 @@ int main()
     m_gi_test_mater->compileShader();
     m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
     plane1->materials.push_back(m_gi_test_mater);
-    test_building->materials.push_back(m_gi_test_mater);
+    test_building->materials.push_back(triangle_visualizer_material);
 
     //TEST VOXELIZER
     
-    auto vox = new Voxelizer(&global_context, &scene_context);
-    vox->setScale(4,4,4);
-    root->addChild(vox);
-    vox->set_position_global(0,0,0);
-    vox->voxel_precision = 16;
+    //auto vox = new Voxelizer(&global_context, &scene_context);
+    //vox->setScale(4,4,4);
+    //root->addChild(vox);
+    //vox->set_position_global(0,0,0);
+    //vox->voxel_precision = 8;
 
+
+
+
+
+    //vox->recalculate();
+    //vox->load_into_voxel_texture_df(test_texture_3d);
+    //test_texture_3d->initialize();
+    ///////////////////////////////////////////////////////////////
+    */
 
     //TODO: this call should be automatically called when changing the scene
     scene_context.recalculate_from_root();
-
-
-    vox->recalculate();
-    vox->load_into_voxel_texture_df(test_texture_3d);
-    test_texture_3d->initialize();
-    ///////////////////////////////////////////////////////////////
     
     //initialize render context
     auto editorRenderContext = RenderContext{
@@ -294,16 +316,19 @@ int main()
     auto editor3DCamera = new Camera3D(&editorRenderContext, &global_context);
     std::cout << glm::to_string(*editorRenderContext.camera.getProjection()) << std::endl;
     double renderFrameStart;
+
+    //// ------ RENDER LOOP ------ ////
     while (!glfwWindowShouldClose(window))
     {
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
         processInput(editor3DCamera, &scene_context, window);
-        if(m_gi_test_mater->recompile_if_changed())
-        {
-            //TODO: textures should automatically be reassigned after recompiling during runtime
-            m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
-        }
+        triangle_visualizer_material->recompile_if_changed();
+        //if(m_gi_test_mater->recompile_if_changed())
+        //{
+        //    //TODO: textures should automatically be reassigned after recompiling during runtime
+        //    m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
+        //}
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
         
