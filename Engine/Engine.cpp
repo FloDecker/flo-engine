@@ -17,14 +17,18 @@
 #include "Source/Core/Scene/SceneContext.h"
 #include "Source/Core/Scene/DebugPrimitives/Cube3D.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
-#include "Source/Core/Scene/SceneTools/VoxelizerTools/Voxelizer.h"
 #include "Source/Util/AssetLoader.h"
-
+/*
+#include <nanogui/nanogui.h>
+#include <Eigen/Eigen>
+*/
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
+
+
 
 //input callbacks
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -53,6 +57,7 @@ class Importer;
 
 int main()
 {
+    std::cout << "Start" << std::endl;
     
     if (!glfwInit())
     {
@@ -60,24 +65,25 @@ int main()
         return -1;
     }
 
-    //create window 
+    //// -- CREATE RENDER CONTEXT AND WINDOW -- ////
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
 
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "test", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flo Engine", nullptr, nullptr);
 
     if (window == nullptr)
     {
-        std::cerr << "Couldnt create window" << std::endl;
+        std::cerr << "Couldn't create window" << std::endl;
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
     glewExperimental = GLFW_TRUE;
+    
     glFrontFace(GL_CW);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
@@ -90,6 +96,29 @@ int main()
         return -1;
     }
 
+    /*
+    //// -- INIT ENGINE UI -- //// 
+
+    nanogui::Screen *screen = new nanogui::Screen();
+    screen->initialize(window, true);
+    nanogui::FormHelper *gui = new nanogui::FormHelper(screen);
+    nanogui::ref<nanogui::Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Form helper example");
+
+    bool bvar = true;
+    std::string strval = "A string";
+    
+    gui->addGroup("Basic types");
+    gui->addVariable("bool", bvar)->setTooltip("Test tooltip.");
+    gui->addVariable("string", strval);
+    
+    gui->addButton("A button", []() { std::cout << "Button pressed." << std::endl; })->setTooltip("Testing a much longer tooltip, that will wrap around to new lines multiple times.");;
+
+    screen->setVisible(true);
+    screen->performLayout();
+    nanoguiWindow->center();
+    */
+
+    
     //Init Global Context
     GlobalContext global_context = GlobalContext();
 

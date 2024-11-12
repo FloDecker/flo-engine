@@ -78,10 +78,19 @@
     <ClCompile Include="Source\Core\Scene\SceneContext.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\Scene\SceneTools\Voxelizer.cpp">
+    <ClCompile Include="Source\Util\RayIntersectionHelper.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Util\RayIntersectionHelper.cpp">
+    <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Util\BoundingBoxHelper.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Util\Remesh.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Util\StackedBB.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -161,10 +170,25 @@
     <ClInclude Include="Source\Core\Scene\SceneContext.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Scene\SceneTools\Voxelizer.h">
+    <ClInclude Include="Source\Util\RayIntersectionHelper.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Util\RayIntersectionHelper.h">
+    <ClInclude Include="Source\Core\CommonDataStructures\StructMeshTriangleFilter.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\BoundingBoxHelper.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\Remesh.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\StackedBB.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
