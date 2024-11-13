@@ -18,10 +18,8 @@
 #include "Source/Core/Scene/DebugPrimitives/Cube3D.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/Util/AssetLoader.h"
-/*
-#include <nanogui/nanogui.h>
-#include <Eigen/Eigen>
-*/
+
+
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -96,9 +94,10 @@ int main()
         return -1;
     }
 
-    /*
+ 
     //// -- INIT ENGINE UI -- //// 
 
+    /*
     nanogui::Screen *screen = new nanogui::Screen();
     screen->initialize(window, true);
     nanogui::FormHelper *gui = new nanogui::FormHelper(screen);
@@ -117,7 +116,6 @@ int main()
     screen->performLayout();
     nanoguiWindow->center();
     */
-
     
     //Init Global Context
     GlobalContext global_context = GlobalContext();

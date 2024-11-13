@@ -93,6 +93,9 @@
     <ClCompile Include="Source\Util\StackedBB.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Content\Material.h">
@@ -189,6 +192,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Source\Util\StackedBB.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
