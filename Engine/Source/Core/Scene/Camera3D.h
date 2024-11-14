@@ -15,7 +15,7 @@ private:
     RenderContext *renderContext_;
 
 public:
-    explicit Camera3D(RenderContext *renderContext, GlobalContext *global_context);
+    explicit Camera3D(Object3D *parent, RenderContext *renderContext);
     void setRenderContext(RenderContext *renderContext);
     RenderContext *getRenderContext();
     void calculateView();

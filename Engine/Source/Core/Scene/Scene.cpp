@@ -1,15 +1,27 @@
 ﻿#include "Scene.h"
 
 
-Scene::Scene(GlobalContext* global_context, Object3D* scene_root)
+SceneRoot::SceneRoot(): Object3D()
+{
+}
+
+int SceneRoot::draw_entry_point(RenderContext* render_context) const
+{
+	for (auto& child : children)
+	{
+		child->draw_(render_context);
+	}
+	return 1;
+}
+
+Scene::Scene(GlobalContext* global_context)
 {
 	global_context_ = global_context;
-	scene_root_ = scene_root;
-
 	//get ids of engine defined tags
 	engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
 	engine_collider_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_COLLIDER");
 	scene_bb = new StackedBB(&sceneColliders);
+	scene_root_ = new SceneRoot();
 	recalculate_from_root();
 }
 
@@ -71,6 +83,11 @@ GlobalContext* Scene::get_global_context() const
 StackedBB* Scene::get_bb() const
 {
 	return scene_bb;
+}
+
+void Scene::draw_scene(RenderContext* render_context) const
+{
+	scene_root_->draw_entry_point(render_context);
 }
 
 std::vector<Collider*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const

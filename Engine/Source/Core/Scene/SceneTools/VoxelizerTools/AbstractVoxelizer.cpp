@@ -1,8 +1,7 @@
 ﻿#include "AbstractVoxelizer.h"
 
-AbstractVoxelizer::AbstractVoxelizer(GlobalContext* global_context, Scene* scene_context): Object3D(global_context)
+AbstractVoxelizer::AbstractVoxelizer(Object3D *parent): Object3D(parent)
 {
-	scene_context_ = scene_context;
 }
 
 StructBoundingBox* AbstractVoxelizer::get_as_bounding_box()

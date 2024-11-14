@@ -3,10 +3,18 @@
 
 #include "imgui.h"
 #include "gtx/string_cast.hpp"
+#include "Scene.h"
 
-Object3D::Object3D(GlobalContext* global_context)
+Object3D::Object3D(Object3D* parent)
 {
-    global_context_ = global_context;
+    this->parent = parent;
+    this->scene_ = parent->scene_;
+    this->global_context_ = parent->global_context_;
+    parent->children.push_back(this);
+}
+
+Object3D::Object3D()
+{
 }
 
 int Object3D::draw_(struct RenderContext* parentRenderContext)
@@ -41,11 +49,6 @@ void Object3D::addChild(Object3D* child)
 Object3D* Object3D::get_parent() const
 {
     return parent;
-}
-
-void Object3D::drawEntryPoint(RenderContext* renderContext)
-{
-    draw_(renderContext);
 }
 
 int Object3D::drawSelf()
@@ -230,7 +233,7 @@ void Object3D::recalculateTransformGlobal()
 
 void Object3D::add_tag(std::string tag)
 {
-    auto tag_id = global_context_->tag_manager.get_id_of_tag(tag);
+    auto tag_id = scene_->get_global_context()->tag_manager.get_id_of_tag(tag);
     if (tag_id < 0)
     {
         std::cout << "tag: " << tag.c_str() << " cant be added since its not part of the Tagmanager";
@@ -242,7 +245,7 @@ void Object3D::add_tag(std::string tag)
 
 void Object3D::remove_tag(std::string tag)
 {
-    unsigned int tag_id = global_context_->tag_manager.get_id_of_tag(tag);
+    unsigned int tag_id = scene_->get_global_context()->tag_manager.get_id_of_tag(tag);
     if (tag_id < 0)
     {
         std::cout << "tag: " << tag.c_str() << " cant be removed since its not part of the Tagmanager";
@@ -277,7 +280,7 @@ bool Object3D::has_tag(const unsigned tag_id) const
 
 bool Object3D::has_tag(const std::string& tag) const
 {
-    const auto id = global_context_->tag_manager.get_id_of_tag(tag);
+    const auto id = scene_->get_global_context()->tag_manager.get_id_of_tag(tag);
     if (id < 0)
     {
         return false;

@@ -4,7 +4,7 @@
 class AbstractVoxelizer : public Object3D
 {
 public:
-	explicit AbstractVoxelizer(GlobalContext* global_context, Scene* scene_context);
+	explicit AbstractVoxelizer(Object3D *parent);
 	
 	int voxel_precision; //how many segments are put into a 1x1 units square
 	virtual void recalculate() {std::wcout<<"recalculate not implemented\n";} //recalculate the voxel field
@@ -13,8 +13,4 @@ public:
 	StructBoundingBox* get_as_bounding_box();
 	//for debug
 	bool show_voxels = true; //TODO:not implemented
-private:
-protected:
-	Scene* scene_context_;
-
 };

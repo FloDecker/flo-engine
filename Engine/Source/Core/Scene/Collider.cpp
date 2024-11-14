@@ -1,7 +1,7 @@
 ﻿#include "Collider.h"
 
 
-Collider::Collider(GlobalContext* global_context): Object3D(global_context)
+Collider::Collider(Object3D *parent): Object3D(parent)
 {
     
 }
@@ -28,13 +28,13 @@ int Collider::get_collider_type()
 
 
 //Mesh Collider
-MeshCollider::MeshCollider(GlobalContext* global_context,
-                           const std::vector<struct_vertex_array*>& vertex_arrays): Collider(global_context)
+MeshCollider::MeshCollider(Object3D *parent,
+                           const std::vector<struct_vertex_array*>& vertex_arrays): Collider(parent)
 {
     vertex_arrays_ = vertex_arrays;
 }
 
-MeshCollider::MeshCollider(GlobalContext* global_context, Mesh3D* mesh): Collider(global_context)
+MeshCollider::MeshCollider(Object3D *parent, Mesh3D* mesh): Collider(parent)
 {
     for (auto vertex_array : mesh->get_mesh()->vertexArrays)
     {

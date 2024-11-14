@@ -8,8 +8,8 @@
 
 #define FLOATING_POINT_ACCEPTANCE 0.02
 
-Voxelizer::Voxelizer(GlobalContext* global_context, Scene* scene_context): AbstractVoxelizer(
-	global_context, scene_context)
+Voxelizer::Voxelizer(Object3D *parent): AbstractVoxelizer(
+	parent)
 {
 };
 
@@ -70,7 +70,7 @@ void Voxelizer::recalculate()
 		std::cout << "needs an extension in z of at least 1\n";
 	}
 
-	calculate_area_filled_by_polygons(scene_context_);
+	calculate_area_filled_by_polygons(scene_);
 
 	//calculate_area_filled_recursive(scene_context_, upper_right_corner, lower_left_corner,
 	//                                {distance_x, distance_y, distance_z}, {0, 0, 0});
@@ -146,7 +146,7 @@ void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
 						    float step_size = 1.0f / static_cast<float>(voxel_precision);
 						    auto ws_pos = ws_lower_left + static_cast<glm::vec3>(test_pos) * step_size + step_size * 0.5f;
 						
-						    auto c = new Cube3D(global_context_);
+						    auto c = new Cube3D(this);
 
 						    
 						    this->addChild(c);
@@ -427,7 +427,7 @@ void Voxelizer::calculate_area_filled_recursive(Scene* scene_context, glm::vec3 
 		//float radius = glm::length(glm::vec3(step_size)) * 0.5f;
 		float radius = glm::length(glm::vec3(step_size)) * distance_x * 0.5;
 
-		if (scene_context_->get_bb()->scene_geometry_proximity_check(center, radius))
+		if (scene_->get_bb()->scene_geometry_proximity_check(center, radius))
 		{
 			//raycast hit and smallest step size reached
 			if (distance_x == 1 && distance_y == 1 && distance_z == 1)

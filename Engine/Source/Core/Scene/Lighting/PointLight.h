@@ -4,7 +4,7 @@
 class PointLight: public Object3D
 {
 public:
-    PointLight(GlobalContext *global_context);
+    PointLight(Object3D *parent);
     float intensity;
     glm::vec3 color;
 };

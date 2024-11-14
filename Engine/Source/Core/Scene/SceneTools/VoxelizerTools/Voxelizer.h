@@ -15,7 +15,7 @@ public:
 	static glm::i16vec3 cubic_expansion_directions[26];
 
 
-	explicit Voxelizer(GlobalContext* global_context, Scene* scene_context);
+	explicit Voxelizer(Object3D *parent);
 	void recalculate() override;
 	void load_into_voxel_texture(Texture3D* texture_3d) override;
 	void load_into_voxel_texture_df(Texture3D* texture_3d);

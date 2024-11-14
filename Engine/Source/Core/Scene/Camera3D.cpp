@@ -4,6 +4,11 @@
 
 #include "Camera3D.h"
 
+Camera3D::Camera3D(Object3D *parent, RenderContext *renderContext) : Object3D(parent) {
+    this->renderContext_ = renderContext;
+    forwardVectorLocal = glm::vec3 (0,0,-1);
+}
+
 void Camera3D::setRenderContext(RenderContext *renderContext) {
     this->renderContext_ = renderContext;
 }
@@ -21,8 +26,4 @@ int Camera3D::drawSelf() {
     return 0;
 }
 
-Camera3D::Camera3D(RenderContext *renderContext, GlobalContext *global_context) : Object3D(global_context) {
-    this->renderContext_ = renderContext;
-    forwardVectorLocal = glm::vec3 (0,0,-1);
-}
 

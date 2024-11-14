@@ -1,6 +1,6 @@
 ﻿#include "PointLight.h"
 
-PointLight::PointLight(GlobalContext* global_context): Object3D(global_context)
+PointLight::PointLight(Object3D *parent): Object3D(parent)
 {
     add_tag("ENGINE_LIGHT_POINT");
 }

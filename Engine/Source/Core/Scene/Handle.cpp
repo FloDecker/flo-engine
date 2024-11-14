@@ -1,10 +1,11 @@
 ﻿#include "Handle.h"
 
 #include "Collider.h"
+#include "Scene.h"
 #include "../../Util/RayIntersectionHelper.h"
 
 
-Handle::Handle(GlobalContext* global_context, Object3D* root): Object3D(global_context)
+Handle::Handle(Scene* scene): Object3D(scene->get_root())
 {
     //load handler models
     auto engine_handler_arrow_model = loadModel("EngineContent/Arrow.fbx");
@@ -26,15 +27,15 @@ Handle::Handle(GlobalContext* global_context, Object3D* root): Object3D(global_c
     std::string engine_collider_tag = "ENGINE_COLLIDER";
     std::string engine_handle_collider_tag = "ENGINE_HANDLE_COLLIDER";
 
-    arrow_x = new Mesh3D(engine_handler_arrow_model, global_context);
+    arrow_x = new Mesh3D(this,engine_handler_arrow_model);
     arrow_x->materials.push_back(handler_red);
     arrow_x->setRotationLocalDegrees(0, 90, 0);
 
-    arrow_y = new Mesh3D(engine_handler_arrow_model, global_context);
+    arrow_y = new Mesh3D(this,engine_handler_arrow_model);
     arrow_y->materials.push_back(handler_green);
     arrow_y->setRotationLocalDegrees(-90, 0, 0);
 
-    arrow_z = new Mesh3D(engine_handler_arrow_model, global_context);
+    arrow_z = new Mesh3D(this,engine_handler_arrow_model);
     arrow_z->materials.push_back(handler_blue);
 
     arrow_x_collider_ = dynamic_cast<Collider*>(arrow_x->get_child_by_tag(&engine_collider_tag));

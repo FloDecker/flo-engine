@@ -2,6 +2,8 @@
 #include "Mesh3D.h"
 #include "../../Util/AssetLoader.h"
 
+class Collider;
+
 enum HandlerType
 {
     not_transforming,
@@ -13,7 +15,7 @@ enum HandlerType
 class Handle : public Object3D
 {
 public:
-    explicit Handle(GlobalContext* global_context, Object3D* root);
+    explicit Handle(Scene* scene);
     void attach_to_object(Object3D* object_3d);
     void detach();
     bool is_attached() const;

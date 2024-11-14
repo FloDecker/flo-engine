@@ -11,12 +11,9 @@
 #include "Source/Core/Renderer/Texture/Texture3D.h"
 #include "Source/Core/Renderer/Texture/Texture2D.h"
 #include "Source/Core/Scene/Camera3D.h"
-#include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Handle.h"
 #include "Source/Core/Scene/RayCast.h"
 #include "Source/Core/Scene/Scene.h"
-#include "Source/Core/Scene/DebugPrimitives/Cube3D.h"
-#include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/Util/AssetLoader.h"
 
 #include "imgui.h"
@@ -125,14 +122,11 @@ int main()
 
     //Inti Scene Context
     //scene root
-    auto root = new Object3D(&global_context);
     //init scene context
-    auto scene_context = Scene(&global_context, root);
-    auto handle = new Handle(&global_context, root);
-    global_context.handle = handle;
-    root->addChild(handle);
-
-
+    auto scene = Scene(&global_context);
+    //auto handle = new Handle(&scene);
+    //global_context.handle = handle;
+    
     //initialize render context
     auto editorRenderContext = RenderContext{
         *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -146,13 +140,13 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    auto editor3DCamera = new Camera3D(&editorRenderContext, &global_context);
+    auto editor3DCamera = new Camera3D(scene.get_root(), &editorRenderContext);
     double renderFrameStart;
 
     
     /////// TEST STUF ///////
 
-    
+
     //load textures 
     auto textureBase = new Texture2D;
     std::string pathTexture = "EngineContent/grass_base.png";
@@ -180,7 +174,6 @@ int main()
     me_test_building->initializeVertexArrays();
 
     auto me_test_triangle = loadModel("EngineContent/Triangle.fbx");
-    
     me_test_triangle->initializeVertexArrays();
 
     //init shaders
@@ -220,14 +213,13 @@ int main()
 
     /////ADD SCENE GEOMETRY: 
     
-    auto mSphere1 = new Mesh3D(sphere, &global_context);
+    auto mSphere1 = new Mesh3D(scene.get_root(),sphere);
     mSphere1->materials.push_back(worldPosMat);
     mSphere1->setPositionLocal(20,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
     //mSphere1->setScale(2,0.5,1);
     mSphere1->name = "sphere 1";
-    root->addChild(mSphere1);
-
+/*
     auto mSphere2 = new Mesh3D(sphere, &global_context);
     mSphere2->setPositionLocal(0, 0, 10);
     mSphere1->addChild(mSphere2);
@@ -335,7 +327,7 @@ int main()
     */
 
     //TODO: this call should be automatically called when changing the scene
-    scene_context.recalculate_from_root();
+    scene.recalculate_from_root();
 
     //WIDNOWS
     bool scene_tree_active = true;
@@ -347,7 +339,7 @@ int main()
        
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
-        processInput(editor3DCamera, &scene_context, window); //low level input processing
+        processInput(editor3DCamera, &scene, window); //low level input processing
 
         
         //IMGUI 
@@ -383,7 +375,7 @@ int main()
         editor3DCamera->calculateView();
         
         //draw scene elements
-        root->drawEntryPoint(&editorRenderContext);
+        scene.draw_scene(&editorRenderContext);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -493,8 +485,9 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 
         auto ray_direction = inverse_view * glm::normalize(ray_target);
         auto ray_origin = camera3D->getWorldPosition();
+        
         auto handle = scene_context->get_global_context()->handle;
-
+        /*
         if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
         {
             if (handle->is_moving_coord())
@@ -529,6 +522,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
                 }
             }
         }
+        */
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);

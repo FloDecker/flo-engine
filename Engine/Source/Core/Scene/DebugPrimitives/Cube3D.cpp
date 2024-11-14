@@ -2,7 +2,7 @@
 
 #include <gtc/type_ptr.hpp>
 
-Cube3D::Cube3D(GlobalContext* global_context) : Object3D(global_context)
+Cube3D::Cube3D(Object3D *parent) : Object3D(parent)
 {
     cube_ = new Cube();
     cube_->load();

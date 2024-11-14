@@ -8,6 +8,9 @@
 #include "../Editor/GlobalContext.h"
 #include "../Renderer/RenderContext.h"
 
+//Forward declaration
+class Scene;
+
 const glm::vec3 vecX = glm::vec3(1, 0, 0);
 const glm::vec3 vecY = glm::vec3(0, 1, 0);
 const glm::vec3 vecZ = glm::vec3(0, 0, 1);
@@ -17,13 +20,15 @@ const glm::vec3 vecZ = glm::vec3(0, 0, 1);
 
 class Object3D
 {
-private:
-    
-    
-    std::vector<unsigned int> tags_;
 
-    glm::vec3 rotation_;
-    glm::vec3 position_;
+    friend class SceneRoot;
+    
+private:
+    Object3D();
+    std::vector<unsigned int> tags_;
+    
+    glm::vec3 rotation_ = {0.0,0.0,0.0};
+    glm::vec3 position_ = {0.0,0.0,0.0};
     glm::vec3 scale_ = {1.0,1.0,1.0};
 
     std::vector<Object3D*> children;
@@ -35,7 +40,7 @@ private:
     void recalculateTransformGlobal();
 
 public:
-    Object3D(GlobalContext* global_context);
+    Object3D(Object3D* parent);
     bool visible = true;
     std::string name;
 
@@ -84,7 +89,6 @@ public:
     glm::vec3 get_scale();
 
     ////////////
-    void drawEntryPoint(struct RenderContext* renderContext);
     void addChild(Object3D* child);
     Object3D* get_parent() const;
     std::vector<Object3D*>& get_children();
@@ -93,13 +97,12 @@ public:
     //UI
     void ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags) const;
 protected:
-    GlobalContext* global_context_;
-
-
-
+    
+    Scene* scene_;
     glm::mat4 transformLocal = glm::mat4(1.0f); //local transform
     glm::mat4 transformGlobal = glm::mat4(1.0f); //global transform is recalculated for each frame //TODO: may optimize
     struct RenderContext* renderContext;
+    GlobalContext *global_context_;
     glm::vec3 forwardVectorLocal = glm::vec3(0, 0, 1);
     glm::vec3 upwardVectorLocal = glm::vec3(0, 1, 0);
     glm::vec3 rightVectorLocal = glm::vec3(1, 0, 0);

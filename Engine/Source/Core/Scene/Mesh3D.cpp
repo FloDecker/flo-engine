@@ -1,12 +1,13 @@
 #include "Mesh3D.h"
 
 #include "Collider.h"
+#include "Scene.h"
 
-Mesh3D::Mesh3D(Mesh* mesh, GlobalContext* global_context) : Object3D(global_context)
+Mesh3D::Mesh3D(Object3D* parent, Mesh* mesh) : Object3D(parent)
 {
     this->mesh = mesh;
-    auto m = new MeshCollider(global_context, this);
-    m->add_tag("ENGINE_COLLIDER");
+    //auto m = new MeshCollider(parent, this);
+    //m->add_tag("ENGINE_COLLIDER");
 }
 
 Mesh* Mesh3D::get_mesh() const
@@ -29,12 +30,12 @@ int Mesh3D::drawSelf()
         }
         else //use default material
         {
-            p = global_context_->default_shader;
+            p = scene_->get_global_context()->default_shader;
         }
 
         if(!p->is_compiled())
         {
-            p = global_context_->default_shader;
+            p = scene_->get_global_context()->default_shader;
         }
 
         //TODO: projection doesen't have to be set at runtime -> only on projection changes

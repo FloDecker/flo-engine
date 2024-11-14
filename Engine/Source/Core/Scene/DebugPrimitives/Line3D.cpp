@@ -3,12 +3,13 @@
 #include <gtc/type_ptr.hpp>
 #include <gtx/dual_quaternion.hpp>
 
-Line3D::Line3D(Object3D* scene_root, glm::vec3 pos_0, glm::vec3 pos_1, GlobalContext* global_context): Object3D(
-    global_context)
+Line3D::Line3D(Object3D *parent, glm::vec3 pos_0, glm::vec3 pos_1): Object3D(
+    parent)
 {
     this->pos_0 = pos_0;
     this->pos_1 = pos_1;
-    scene_root->addChild(this);
+    //TODO add directly to root
+    //scene_root->addChild(this);
     set_positions(pos_0, pos_1);
     line_ = new Line();
     line_->load();

@@ -5,7 +5,7 @@
 class Line3D : public Object3D
 {
 public:
-    explicit Line3D(Object3D *scene_root, glm::vec3 pos_0, glm::vec3 pos_1, GlobalContext* global_context);
+    explicit Line3D(Object3D *parent, glm::vec3 pos_0, glm::vec3 pos_1);
     int drawSelf() override;
     glm::vec3 pos_0;
     glm::vec3 pos_1;
