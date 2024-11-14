@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SceneContext.h"
+#include "Scene.h"
 #include "../CommonDataStructures/StructVertexArray.h"
 #include "../../Util/RayIntersectionHelper.h"
 
@@ -8,7 +8,7 @@ class RayCast
 public:
     //ray cast in scene
     static RayCastHit ray_cast(
-        SceneContext* scene_context,
+        Scene* scene_context,
         std::string* collision_tag,
         glm::vec3 ray_cast_origin,
         glm::vec3 ray_cast_direction,
@@ -18,7 +18,7 @@ public:
 
     //TODO this shouldn't be used by the game developer !Engine only!
     static RayCastHit ray_cast_editor(
-        SceneContext* scene_context,
+        Scene* scene_context,
         glm::vec3 ray_cast_origin,
         glm::vec3 ray_cast_direction,
         bool ignore_back_face = true);

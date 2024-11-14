@@ -168,7 +168,7 @@
     <ClCompile Include="Source\Core\Scene\Mesh3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
     <ClCompile Include="Source\Core\Scene\RayCast.cpp" />
-    <ClCompile Include="Source\Core\Scene\SceneContext.cpp" />
+    <ClCompile Include="Source\Core\Scene\Scene.cpp" />
     <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.cpp" />
     <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.cpp" />
     <ClCompile Include="Source\External\imgui\backends\imgui_impl_glfw.cpp" />
@@ -212,7 +212,7 @@
     <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
     <ClInclude Include="Source\Core\Scene\Object3D.h" />
     <ClInclude Include="Source\Core\Scene\RayCast.h" />
-    <ClInclude Include="Source\Core\Scene\SceneContext.h" />
+    <ClInclude Include="Source\Core\Scene\Scene.h" />
     <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.h" />
     <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.h" />
     <ClInclude Include="Source\External\imgui\backends\imgui_impl_glfw.h" />

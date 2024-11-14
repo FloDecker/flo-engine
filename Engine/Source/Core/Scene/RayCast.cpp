@@ -7,7 +7,7 @@
 #include "Mesh3D.h"
 
 
-RayCastHit RayCast::ray_cast(SceneContext* scene_context, std::string* collision_tag, glm::vec3 ray_cast_origin,
+RayCastHit RayCast::ray_cast(Scene* scene_context, std::string* collision_tag, glm::vec3 ray_cast_origin,
                              glm::vec3 ray_cast_direction,
                              float length,
                              bool ignore_back_face)
@@ -73,7 +73,7 @@ bool RayCast::recurse_proximity_check(Object3D* object, std::string* collision_t
 
 //EDITOR ONLY RAY CAST FOR OBJECT SELECTION 
 
-RayCastHit RayCast::ray_cast_editor(SceneContext* scene_context,
+RayCastHit RayCast::ray_cast_editor(Scene* scene_context,
                                     glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction, bool ignore_back_face)
 {
     RayCastHit ray_cast_hit = RayCastHit{

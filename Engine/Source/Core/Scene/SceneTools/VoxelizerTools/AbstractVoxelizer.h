@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include "../../Object3D.h"
-#include "../../SceneContext.h"
+#include "../../Scene.h"
 class AbstractVoxelizer : public Object3D
 {
 public:
-	explicit AbstractVoxelizer(GlobalContext* global_context, SceneContext* scene_context);
+	explicit AbstractVoxelizer(GlobalContext* global_context, Scene* scene_context);
 	
 	int voxel_precision; //how many segments are put into a 1x1 units square
 	virtual void recalculate() {std::wcout<<"recalculate not implemented\n";} //recalculate the voxel field
@@ -15,6 +15,6 @@ public:
 	bool show_voxels = true; //TODO:not implemented
 private:
 protected:
-	SceneContext* scene_context_;
+	Scene* scene_context_;
 
 };

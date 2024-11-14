@@ -6,11 +6,11 @@
 #include "Lighting/PointLight.h"
 #include "../../Util/StackedBB.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
-//scene context is used to feed scene information to the material shaders 
-class SceneContext
+//scene context contains scene specific information
+class Scene
 {
 public:
-    SceneContext(GlobalContext* global_context, Object3D* scene_root);
+    Scene(GlobalContext* global_context, Object3D* scene_root);
     std::vector<PointLight*> get_scene_point_lights();
     void recalculate_at(Object3D* parent);
     void recalculate_from_root();

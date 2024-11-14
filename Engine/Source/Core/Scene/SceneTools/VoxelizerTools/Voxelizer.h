@@ -4,7 +4,7 @@
 
 #include "AbstractVoxelizer.h"
 #include "../../Object3D.h"
-#include "../../SceneContext.h"
+#include "../../Scene.h"
 #include <vec3.hpp>
 #include "../../RayCast.h"
 #include "../../../Scene/DebugPrimitives/Cube3D.h"
@@ -15,7 +15,7 @@ public:
 	static glm::i16vec3 cubic_expansion_directions[26];
 
 
-	explicit Voxelizer(GlobalContext* global_context, SceneContext* scene_context);
+	explicit Voxelizer(GlobalContext* global_context, Scene* scene_context);
 	void recalculate() override;
 	void load_into_voxel_texture(Texture3D* texture_3d) override;
 	void load_into_voxel_texture_df(Texture3D* texture_3d);
@@ -49,8 +49,8 @@ private:
 
 	//takes the mesh collider from scene context and extracts the triangles that are contained in the bounding box
 	//for every triangle that meets this condition the expand_polygon_to_zero_level_set is executed for it
-	void calculate_area_filled_by_polygons(SceneContext* scene_context);
-	void calculate_area_filled_recursive(SceneContext* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
+	void calculate_area_filled_by_polygons(Scene* scene_context);
+	void calculate_area_filled_recursive(Scene* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
 	                                     glm::i16vec3 voxel_upper_right, glm::i16vec3 voxel_lower_left);
 
 protected:

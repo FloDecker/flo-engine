@@ -1,5 +1,7 @@
 #include <iostream>
 #include "Object3D.h"
+
+#include "imgui.h"
 #include "gtx/string_cast.hpp"
 
 Object3D::Object3D(GlobalContext* global_context)
@@ -105,6 +107,19 @@ Object3D* Object3D::get_child_by_tag(std::string* tag)
         if (child->has_tag(*tag)) return child;
     }
     return nullptr;
+}
+
+void Object3D::ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags) const
+{
+    if (ImGui::TreeNodeEx((this->name.empty())?"...":this->name.c_str(), flags))
+    {
+        for (auto& child : this->children)
+        {
+            child->ui_get_scene_structure_recursively(flags);
+        }
+        ImGui::TreePop();
+    }
+    
 }
 
 //setter for transform

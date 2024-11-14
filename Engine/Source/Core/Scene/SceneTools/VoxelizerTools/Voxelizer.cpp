@@ -8,7 +8,7 @@
 
 #define FLOATING_POINT_ACCEPTANCE 0.02
 
-Voxelizer::Voxelizer(GlobalContext* global_context, SceneContext* scene_context): AbstractVoxelizer(
+Voxelizer::Voxelizer(GlobalContext* global_context, Scene* scene_context): AbstractVoxelizer(
 	global_context, scene_context)
 {
 };
@@ -361,7 +361,7 @@ void Voxelizer::expand_polygon_to_zero_level_set(MeshCollider *collider, unsigne
 	//zero_level_set.push_back(voxel_to_expand_from);
 }
 
-void Voxelizer::calculate_area_filled_by_polygons(SceneContext* scene_context)
+void Voxelizer::calculate_area_filled_by_polygons(Scene* scene_context)
 {
 	create_level_set_matrix();
 	const auto b = get_as_bounding_box();
@@ -407,7 +407,7 @@ void Voxelizer::calculate_area_filled_by_polygons(SceneContext* scene_context)
 	//get all objects inside the field
 }
 
-void Voxelizer::calculate_area_filled_recursive(SceneContext* scene_context, glm::vec3 ws_upper_right,
+void Voxelizer::calculate_area_filled_recursive(Scene* scene_context, glm::vec3 ws_upper_right,
                                                 glm::vec3 ws_lower_left, glm::i16vec3 voxel_upper_right,
                                                 glm::i16vec3 voxel_lower_left)
 {

@@ -14,7 +14,7 @@
 #include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Handle.h"
 #include "Source/Core/Scene/RayCast.h"
-#include "Source/Core/Scene/SceneContext.h"
+#include "Source/Core/Scene/Scene.h"
 #include "Source/Core/Scene/DebugPrimitives/Cube3D.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/Util/AssetLoader.h"
@@ -31,15 +31,13 @@
 
 
 
-//input callbacks
+//low level input callbacks
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
 void cursor_position_callback(GLFWwindow* window,double xpos, double ypos);
-
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
+void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window);
 
-void processInput(Camera3D* camera3D, SceneContext* scene_context, GLFWwindow* window);
 
 bool keyPressed[KEY_AMOUNT];
 bool keyClicked[KEY_AMOUNT];
@@ -59,11 +57,10 @@ class Importer;
 
 int main()
 {
-    std::cout << "Start" << std::endl;
-    
+    printf("Start");
     if (!glfwInit())
     {
-        std::cerr << "Couldnt init GLFW" << std::endl;
+        std::cerr << "Couldn't init GLFW\n";
         return -1;
     }
 
@@ -72,8 +69,6 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-
-
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flo Engine", nullptr, nullptr);
 
     if (window == nullptr)
@@ -82,17 +77,16 @@ int main()
         glfwTerminate();
         return -1;
     }
-
+    
     glfwMakeContextCurrent(window);
     glewExperimental = GLFW_TRUE;
-    
     glFrontFace(GL_CW);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
 
     if (glewInit() != GLEW_OK)
     {
-        std::cerr << "Window init failed" << std::endl;
+        std::cerr << "Window init failed\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
@@ -110,10 +104,14 @@ int main()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);         
     ImGui_ImplOpenGL3_Init();
+
+
+    // --- INITIALIZE ENGINE BACKEND FEATURES --- //
     
     //Init Global Context
     GlobalContext global_context = GlobalContext();
 
+    //compile default shader
     auto* default_shader = new ShaderProgram();
     default_shader->loadFromFile("EngineContent/Shader/DefaultShader.glsl");
     default_shader->compileShader();
@@ -124,18 +122,37 @@ int main()
     default_color_shader->loadFromFile("EngineContent/Shader/DebugColorChangable.glsl");
     default_color_shader->compileShader();
     global_context.default_color_debug_shader = default_color_shader;
-    //Inti Scene Context
 
+    //Inti Scene Context
     //scene root
     auto root = new Object3D(&global_context);
     //init scene context
-    auto scene_context = SceneContext(&global_context, root);
+    auto scene_context = Scene(&global_context, root);
     auto handle = new Handle(&global_context, root);
     global_context.handle = handle;
-
-    /////// TEST STUF ///////
     root->addChild(handle);
 
+
+    //initialize render context
+    auto editorRenderContext = RenderContext{
+        *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+    };
+
+    //register interaction callbacks
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    auto editor3DCamera = new Camera3D(&editorRenderContext, &global_context);
+    double renderFrameStart;
+
+    
+    /////// TEST STUF ///////
+
+    
     //load textures 
     auto textureBase = new Texture2D;
     std::string pathTexture = "EngineContent/grass_base.png";
@@ -202,7 +219,6 @@ int main()
 
 
     /////ADD SCENE GEOMETRY: 
-
     
     auto mSphere1 = new Mesh3D(sphere, &global_context);
     mSphere1->materials.push_back(worldPosMat);
@@ -320,23 +336,9 @@ int main()
 
     //TODO: this call should be automatically called when changing the scene
     scene_context.recalculate_from_root();
-    
-    //initialize render context
-    auto editorRenderContext = RenderContext{
-        *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
-    };
 
-    //register interaction callbacks
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    auto editor3DCamera = new Camera3D(&editorRenderContext, &global_context);
-    std::cout << glm::to_string(*editorRenderContext.camera.getProjection()) << std::endl;
-    double renderFrameStart;
+    //WIDNOWS
+    bool scene_tree_active = true;
 
     //// ------ RENDER LOOP ------ ////
     while (!glfwWindowShouldClose(window))
@@ -345,33 +347,42 @@ int main()
        
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
+        processInput(editor3DCamera, &scene_context, window); //low level input processing
 
+        
+        //IMGUI 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::ShowDemoWindow(); 
-        
-        processInput(editor3DCamera, &scene_context, window);
+        ImGui::Text("Hello, world %d", 123);
+        /*
+        bool my_tool_active = true;
+        ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Open..", "Ctrl+O")) { }
+                if (ImGui::MenuItem("Save", "Ctrl+S"))   {  }
+                if (ImGui::MenuItem("Close", "Ctrl+W"))  { my_tool_active = false; }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+        ImGui::End();
 
+        ImGui::Begin("Scene Tree", &scene_tree_active, ImGuiWindowFlags_MenuBar);
+        root->ui_get_scene_structure_recursively(ImGuiTreeNodeFlags_DefaultOpen);
+        ImGui::End();
 
-       
+        */
         
-        
-        triangle_visualizer_material->recompile_if_changed();
-        //if(m_gi_test_mater->recompile_if_changed())
-        //{
-        //    //TODO: textures should automatically be reassigned after recompiling during runtime
-        //    m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
-        //}
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
         
         
         editor3DCamera->calculateView();
+        
         //draw scene elements
-
-        auto p = cube1->getWorldPosition();
-        line_test->set_positions(mSphere1->getWorldPosition(),p);
         root->drawEntryPoint(&editorRenderContext);
 
         ImGui::Render();
@@ -389,7 +400,6 @@ int main()
         memset(mouseButtonsReleased, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 
         editorRenderContext.deltaTime = glfwGetTime() - renderFrameStart;
-        //std::cout<<1/editorRenderContext.deltaTime<<"-";
     }
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -448,7 +458,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 #define CAMERA_ROTATION_SPEED 0.05
 
 //TODO: generalize this especially mouse capture
-void processInput(Camera3D* camera3D, SceneContext* scene_context, GLFWwindow* window)
+void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 {
     glm::vec2 cursorDelta;
     //capture mouse when right-clicking in window

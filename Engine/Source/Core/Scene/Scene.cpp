@@ -1,7 +1,7 @@
-﻿#include "SceneContext.h"
+﻿#include "Scene.h"
 
 
-SceneContext::SceneContext(GlobalContext* global_context, Object3D* scene_root)
+Scene::Scene(GlobalContext* global_context, Object3D* scene_root)
 {
 	global_context_ = global_context;
 	scene_root_ = scene_root;
@@ -14,7 +14,7 @@ SceneContext::SceneContext(GlobalContext* global_context, Object3D* scene_root)
 }
 
 
-void SceneContext::recalculate_at(Object3D* parent)
+void Scene::recalculate_at(Object3D* parent)
 {
 	//sort objets by their tag
 	if (parent->has_tag(engine_light_point_id_))
@@ -34,7 +34,7 @@ void SceneContext::recalculate_at(Object3D* parent)
 	}
 }
 
-void SceneContext::recalculate_from_root()
+void Scene::recalculate_from_root()
 {
 	recalculate_at(scene_root_);
 	calculateColliderBoundingBoxes();
@@ -42,7 +42,7 @@ void SceneContext::recalculate_from_root()
 }
 
 
-void SceneContext::calculateColliderBoundingBoxes()
+void Scene::calculateColliderBoundingBoxes()
 {
 	for (auto collider : sceneColliders)
 	{
@@ -58,22 +58,22 @@ void SceneContext::calculateColliderBoundingBoxes()
 	}
 }
 
-Object3D* SceneContext::get_root() const
+Object3D* Scene::get_root() const
 {
 	return scene_root_;
 }
 
-GlobalContext* SceneContext::get_global_context() const
+GlobalContext* Scene::get_global_context() const
 {
 	return global_context_;
 }
 
-StackedBB* SceneContext::get_bb() const
+StackedBB* Scene::get_bb() const
 {
 	return scene_bb;
 }
 
-std::vector<Collider*>* SceneContext::get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const
+std::vector<Collider*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const
 {
 	auto out = new std::vector<Collider*>;
 	for (auto element : sceneColliders)
@@ -87,7 +87,7 @@ std::vector<Collider*>* SceneContext::get_colliders_in_bounding_box(StructBoundi
 }
 
 
-std::vector<glm::vec3>* SceneContext::get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const
+std::vector<glm::vec3>* Scene::get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const
 {
 	auto out = new std::vector<glm::vec3>;
 	std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box);
@@ -123,7 +123,7 @@ std::vector<glm::vec3>* SceneContext::get_polygons_in_bounding_box(StructBoundin
 	return out;
 }
 
-std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* SceneContext::get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const
+std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* Scene::get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const
 {
 	auto out = new std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>;
 	std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box);

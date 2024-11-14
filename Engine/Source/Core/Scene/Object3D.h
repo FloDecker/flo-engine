@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "imgui.h"
 #include "vector"
 #include "../Editor/GlobalContext.h"
 #include "../Renderer/RenderContext.h"
@@ -11,13 +12,14 @@ const glm::vec3 vecX = glm::vec3(1, 0, 0);
 const glm::vec3 vecY = glm::vec3(0, 1, 0);
 const glm::vec3 vecZ = glm::vec3(0, 0, 1);
 
-class Collider;
 
-//an object that can be in the 3D scene
+//an object is the most basic type in a Scene
 
 class Object3D
 {
 private:
+    
+    
     std::vector<unsigned int> tags_;
 
     glm::vec3 rotation_;
@@ -87,6 +89,9 @@ public:
     Object3D* get_parent() const;
     std::vector<Object3D*>& get_children();
     Object3D* get_child_by_tag(std::string* tag);
+
+    //UI
+    void ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags) const;
 protected:
     GlobalContext* global_context_;
 
