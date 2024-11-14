@@ -19,9 +19,12 @@
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/Util/AssetLoader.h"
 
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
-#define WINDOW_HEIGHT (1080/2)
-#define WINDOW_WIDTH (1920/2)
+#define WINDOW_HEIGHT (1080)
+#define WINDOW_WIDTH (1920)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -31,7 +34,7 @@
 //input callbacks
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
+void cursor_position_callback(GLFWwindow* window,double xpos, double ypos);
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
@@ -47,6 +50,7 @@ bool mouseButtonsReleased[MOUSE_BUTTON_AMOUNT];
 
 glm::vec2 mousePos;
 glm::vec2 mouseNormalized;
+ImGuiIO* io = nullptr;
 
 bool mouseCaptured;
 glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
@@ -94,28 +98,18 @@ int main()
         return -1;
     }
 
- 
-    //// -- INIT ENGINE UI -- //// 
+    // --- IMGUI INIT -- //
 
-    /*
-    nanogui::Screen *screen = new nanogui::Screen();
-    screen->initialize(window, true);
-    nanogui::FormHelper *gui = new nanogui::FormHelper(screen);
-    nanogui::ref<nanogui::Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Form helper example");
-
-    bool bvar = true;
-    std::string strval = "A string";
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    io = &ImGui::GetIO();
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      
+    io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     
-    gui->addGroup("Basic types");
-    gui->addVariable("bool", bvar)->setTooltip("Test tooltip.");
-    gui->addVariable("string", strval);
-    
-    gui->addButton("A button", []() { std::cout << "Button pressed." << std::endl; })->setTooltip("Testing a much longer tooltip, that will wrap around to new lines multiple times.");;
-
-    screen->setVisible(true);
-    screen->performLayout();
-    nanoguiWindow->center();
-    */
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);         
+    ImGui_ImplOpenGL3_Init();
     
     //Init Global Context
     GlobalContext global_context = GlobalContext();
@@ -347,9 +341,22 @@ int main()
     //// ------ RENDER LOOP ------ ////
     while (!glfwWindowShouldClose(window))
     {
+
+       
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow(); 
+        
         processInput(editor3DCamera, &scene_context, window);
+
+
+       
+        
+        
         triangle_visualizer_material->recompile_if_changed();
         //if(m_gi_test_mater->recompile_if_changed())
         //{
@@ -365,12 +372,16 @@ int main()
 
         auto p = cube1->getWorldPosition();
         line_test->set_positions(mSphere1->getWorldPosition(),p);
-
-        
         root->drawEntryPoint(&editorRenderContext);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         //swap front and back buffer
         glfwSwapBuffers(window);
 
+
+        
         //clear clicked / released arrays
         memset(keyClicked, 0, KEY_AMOUNT * sizeof(bool));
         memset(keyReleased, 0, KEY_AMOUNT * sizeof(bool));
@@ -380,6 +391,11 @@ int main()
         editorRenderContext.deltaTime = glfwGetTime() - renderFrameStart;
         //std::cout<<1/editorRenderContext.deltaTime<<"-";
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
@@ -417,12 +433,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     default:
         break;
     }
+
+    io->AddMouseButtonEvent(button,action);
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     mousePos = {xpos, ypos};
     mouseNormalized = {xpos / WINDOW_WIDTH, ypos / WINDOW_HEIGHT};
+    io->AddMousePosEvent(xpos,ypos);
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
