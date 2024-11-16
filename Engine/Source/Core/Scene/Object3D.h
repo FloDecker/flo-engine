@@ -24,20 +24,27 @@ class Object3D
     friend class SceneRoot;
     
 private:
-    Object3D();
-    std::vector<unsigned int> tags_;
-    
+    Object3D(); //friend class SceneRoot overwrites this since it's the only Object3D without parent
+    std::vector<unsigned int> tags_; //tags associated with this object
+
+    //transforms
     glm::vec3 rotation_ = {0.0,0.0,0.0};
     glm::vec3 position_ = {0.0,0.0,0.0};
     glm::vec3 scale_ = {1.0,1.0,1.0};
 
+    //hierarchy
     std::vector<Object3D*> children;
     Object3D* parent = nullptr;
 
+    
     glm::mat4 global_transform_inverse_;
+
+    
     int draw_(struct RenderContext* parentRenderContext);
     void recalculateTransform(); //should be called after changing location / scale / rotation
     void recalculateTransformGlobal();
+
+    
 
 public:
     Object3D(Object3D* parent);
@@ -106,6 +113,8 @@ protected:
     glm::vec3 forwardVectorLocal = glm::vec3(0, 0, 1);
     glm::vec3 upwardVectorLocal = glm::vec3(0, 1, 0);
     glm::vec3 rightVectorLocal = glm::vec3(1, 0, 0);
-
     virtual int drawSelf();
+
+    //FLAGS
+    bool IGNORE_IN_SCENE_TREE_VIEW = false;
 };

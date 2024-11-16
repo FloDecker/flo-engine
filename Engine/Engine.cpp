@@ -49,6 +49,7 @@ ImGuiIO* io = nullptr;
 
 bool mouseCaptured;
 glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
+Handle *handle = nullptr;
 
 class Importer;
 
@@ -123,9 +124,8 @@ int main()
     //Inti Scene Context
     //scene root
     //init scene context
-    auto scene = Scene(&global_context);
-    //auto handle = new Handle(&scene);
-    //global_context.handle = handle;
+    auto scene = Scene(&global_context, "Test Scene");
+    handle = new Handle(&scene);
     
     //initialize render context
     auto editorRenderContext = RenderContext{
@@ -217,14 +217,16 @@ int main()
     mSphere1->materials.push_back(worldPosMat);
     mSphere1->setPositionLocal(20,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
-    //mSphere1->setScale(2,0.5,1);
     mSphere1->name = "sphere 1";
-/*
-    auto mSphere2 = new Mesh3D(sphere, &global_context);
+
+    auto mSphere2 = new Mesh3D(scene.get_root(),sphere);
     mSphere2->setPositionLocal(0, 0, 10);
-    mSphere1->addChild(mSphere2);
     mSphere2->name = "sphere 2";
 
+    auto mSphere3 = new Mesh3D(mSphere2,sphere);
+    mSphere3->setPositionLocal(0, 0, 5);
+    mSphere3->name = "sphere 3";
+/*
     auto plane1 = new Mesh3D(plane, &global_context);
     plane1->setScale(6,6,6);
     plane1->setPositionLocal(0, 0, 0);
@@ -362,12 +364,13 @@ int main()
             ImGui::EndMenuBar();
         }
         ImGui::End();
-
+        */
+        
         ImGui::Begin("Scene Tree", &scene_tree_active, ImGuiWindowFlags_MenuBar);
-        root->ui_get_scene_structure_recursively(ImGuiTreeNodeFlags_DefaultOpen);
+        scene.get_root()->ui_get_scene_structure_recursively(ImGuiTreeNodeFlags_DefaultOpen);
         ImGui::End();
 
-        */
+        
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
         
@@ -486,8 +489,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
         auto ray_direction = inverse_view * glm::normalize(ray_target);
         auto ray_origin = camera3D->getWorldPosition();
         
-        auto handle = scene_context->get_global_context()->handle;
-        /*
+       
         if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
         {
             if (handle->is_moving_coord())
@@ -522,7 +524,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
                 }
             }
         }
-        */
+        
     }
 
     glm::vec2 cameraInput = glm::vec2(0, 0);

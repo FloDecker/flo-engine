@@ -6,8 +6,8 @@
 Mesh3D::Mesh3D(Object3D* parent, Mesh* mesh) : Object3D(parent)
 {
     this->mesh = mesh;
-    //auto m = new MeshCollider(parent, this);
-    //m->add_tag("ENGINE_COLLIDER");
+    auto m = new MeshCollider(this, this);
+    m->add_tag("ENGINE_COLLIDER");
 }
 
 Mesh* Mesh3D::get_mesh() const

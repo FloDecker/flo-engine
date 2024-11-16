@@ -15,7 +15,7 @@ enum HandlerType
 class Handle : public Object3D
 {
 public:
-    explicit Handle(Scene* scene);
+    explicit Handle(Scene *scene);
     void attach_to_object(Object3D* object_3d);
     void detach();
     bool is_attached() const;
@@ -39,5 +39,5 @@ private:
     //0 = x
     //1 = y
     //2 = z
-
+    
 };

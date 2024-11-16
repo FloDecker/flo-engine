@@ -5,7 +5,7 @@
 #include "../../Util/RayIntersectionHelper.h"
 
 
-Handle::Handle(Scene* scene): Object3D(scene->get_root())
+Handle::Handle(Scene *scene): Object3D(scene->get_root())
 {
     //load handler models
     auto engine_handler_arrow_model = loadModel("EngineContent/Arrow.fbx");
@@ -49,12 +49,10 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
     arrow_x_collider_->add_tag(engine_handle_collider_tag);
     arrow_y_collider_->add_tag(engine_handle_collider_tag);
     arrow_z_collider_->add_tag(engine_handle_collider_tag);
-
-    addChild(arrow_x);
-    addChild(arrow_y);
-    addChild(arrow_z);
-
+    
     detach();
+
+    IGNORE_IN_SCENE_TREE_VIEW = true;
 }
 
 void Handle::attach_to_object(Object3D* object_3d)

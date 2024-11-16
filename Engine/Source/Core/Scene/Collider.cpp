@@ -40,7 +40,6 @@ MeshCollider::MeshCollider(Object3D *parent, Mesh3D* mesh): Collider(parent)
     {
         vertex_arrays_.push_back(vertex_array->get_vertex_array());
     }
-    mesh->addChild(this);
     name = "collider of " + mesh->name;
 }
 

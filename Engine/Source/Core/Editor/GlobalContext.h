@@ -3,7 +3,6 @@
 #include <vector>
 #include "../Renderer/Shader/ShaderProgram.h"
 
-class Handle;
 
 class TagManager
 {
@@ -23,5 +22,4 @@ struct GlobalContext
     TagManager tag_manager;
     ShaderProgram *default_shader;
     ShaderProgram *default_color_debug_shader;
-    Handle *handle;
 };

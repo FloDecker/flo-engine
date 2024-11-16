@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include <unordered_set>
+
+#include "Handle.h"
 #include "Object3D.h"
 #include "../Editor/GlobalContext.h"
 #include "Lighting/PointLight.h"
@@ -10,7 +12,7 @@
 class SceneRoot: public Object3D
 {
     public:
-    SceneRoot();
+    SceneRoot(GlobalContext *global_context, Scene* scene);
     int draw_entry_point(RenderContext* render_context) const;
 };
 
@@ -18,7 +20,7 @@ class SceneRoot: public Object3D
 class Scene
 {
 public:
-    Scene(GlobalContext* global_context);
+    Scene(GlobalContext* global_context , const std::string& name);
     std::vector<PointLight*> get_scene_point_lights();
     void recalculate_at(Object3D* parent);
     void recalculate_from_root();
@@ -33,7 +35,6 @@ public:
     std::vector<glm::vec3>* get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const;
 
     std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const;
-    
 
 private:
     std::unordered_set<PointLight*> scenePointLights;
@@ -46,4 +47,7 @@ private:
     //ids for engine defined tags
     unsigned int engine_light_point_id_;
     unsigned int engine_collider_id_;
+
+    //name of the scene
+    std::string name_;
 };

@@ -1,8 +1,12 @@
 ﻿#include "Scene.h"
 
+#include "Handle.h"
 
-SceneRoot::SceneRoot(): Object3D()
+
+SceneRoot::SceneRoot(GlobalContext * global_context, Scene *scene): Object3D()
 {
+	global_context_ = global_context;
+	this->scene_ = scene;
 }
 
 int SceneRoot::draw_entry_point(RenderContext* render_context) const
@@ -14,15 +18,17 @@ int SceneRoot::draw_entry_point(RenderContext* render_context) const
 	return 1;
 }
 
-Scene::Scene(GlobalContext* global_context)
+Scene::Scene(GlobalContext* global_context, const std::string& name)
 {
 	global_context_ = global_context;
 	//get ids of engine defined tags
 	engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
 	engine_collider_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_COLLIDER");
 	scene_bb = new StackedBB(&sceneColliders);
-	scene_root_ = new SceneRoot();
+	scene_root_ = new SceneRoot(global_context,this);
+	scene_root_->name = name;
 	recalculate_from_root();
+	name_ = name;
 }
 
 

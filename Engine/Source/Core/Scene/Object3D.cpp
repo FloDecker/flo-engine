@@ -32,18 +32,19 @@ int Object3D::draw_(struct RenderContext* parentRenderContext)
 
 void Object3D::addChild(Object3D* child)
 {
-    if (child->parent)
-    {
-        std::cerr << "Child already has parent" << std::endl;
-        //TODO: allow reparenting
-        return;
-    }
-
-    //TODO : maybe there is a more elegant solution for this
-    auto pos_global = child->getWorldPosition();
-    this->children.push_back(child);
-    child->parent = this;
-    child->set_position_global(pos_global);
+    printf("Add child is not implemented!!");
+    //if (child->parent)
+    //{
+    //    std::cerr << "Child already has parent" << std::endl;
+    //    //TODO: allow reparenting
+    //    return;
+    //}
+//
+    ////TODO : maybe there is a more elegant solution for this
+    //auto pos_global = child->getWorldPosition();
+    //this->children.push_back(child);
+    //child->parent = this;
+    //child->set_position_global(pos_global);
 }
 
 Object3D* Object3D::get_parent() const
@@ -114,6 +115,7 @@ Object3D* Object3D::get_child_by_tag(std::string* tag)
 
 void Object3D::ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags) const
 {
+    if (IGNORE_IN_SCENE_TREE_VIEW) return;
     if (ImGui::TreeNodeEx((this->name.empty())?"...":this->name.c_str(), flags))
     {
         for (auto& child : this->children)
