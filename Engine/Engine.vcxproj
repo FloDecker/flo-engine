@@ -152,6 +152,10 @@
   <ItemGroup>
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Source\Core\Editor\GlobalContext.cpp" />
+    <ClCompile Include="Source\Core\GUI\GUIBase.cpp" />
+    <ClCompile Include="Source\Core\GUI\GUIManager.cpp" />
+    <ClCompile Include="Source\Core\GUI\ObjectInfo.cpp" />
+    <ClCompile Include="Source\Core\GUI\SceneTree.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp" />
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />
@@ -193,6 +197,10 @@
     <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h" />
     <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h" />
     <ClInclude Include="Source\Core\Editor\GlobalContext.h" />
+    <ClInclude Include="Source\Core\GUI\GUIBase.h" />
+    <ClInclude Include="Source\Core\GUI\GUIManager.h" />
+    <ClInclude Include="Source\Core\GUI\ObjectInfo.h" />
+    <ClInclude Include="Source\Core\GUI\SceneTree.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Line.h" />
     <ClInclude Include="Source\Core\Renderer\renderable.h" />
@@ -255,9 +263,6 @@
     <Content Include="EngineContent\SkySphere.fbx" />
     <Content Include="EngineContent\Sphere.fbx" />
     <Content Include="EngineContent\testSpheres.fbx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Source\Core\GUI\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -29,6 +29,9 @@ public:
     GlobalContext* get_global_context() const;
     StackedBB* get_bb() const;
     void draw_scene(RenderContext *render_context) const;
+    
+    void select_object(Object3D* object);
+    void deselect();
 
     std::vector<Collider*>* get_colliders_in_bounding_box(StructBoundingBox *bounding_box) const;
 
@@ -36,6 +39,7 @@ public:
 
     std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const;
 
+    Handle *handle() const;
 private:
     std::unordered_set<PointLight*> scenePointLights;
     std::vector<Collider*> sceneColliders;
@@ -50,4 +54,9 @@ private:
 
     //name of the scene
     std::string name_;
+
+    bool has_selected_object = false;
+    Object3D *selected_object = nullptr;
+    
+    Handle *handle_; 
 };

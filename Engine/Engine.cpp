@@ -19,6 +19,8 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/SceneTree.h"
 
 #define WINDOW_HEIGHT (1080)
 #define WINDOW_WIDTH (1920)
@@ -49,7 +51,10 @@ ImGuiIO* io = nullptr;
 
 bool mouseCaptured;
 glm::vec2 mouseLockPos; //to store the mouse position where the cursor is fixed
-Handle *handle = nullptr;
+
+//TODO: this is temporary when there are multiple viewports this has to be managed dynamically 
+Scene* scene = nullptr;
+GUIManager *guiManager = nullptr;
 
 class Importer;
 
@@ -104,6 +109,7 @@ int main()
     ImGui_ImplOpenGL3_Init();
 
 
+
     // --- INITIALIZE ENGINE BACKEND FEATURES --- //
     
     //Init Global Context
@@ -124,8 +130,7 @@ int main()
     //Inti Scene Context
     //scene root
     //init scene context
-    auto scene = Scene(&global_context, "Test Scene");
-    handle = new Handle(&scene);
+    scene = new Scene(&global_context, "Test Scene");
     
     //initialize render context
     auto editorRenderContext = RenderContext{
@@ -140,7 +145,7 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    auto editor3DCamera = new Camera3D(scene.get_root(), &editorRenderContext);
+    auto editor3DCamera = new Camera3D(scene->get_root(), &editorRenderContext);
     double renderFrameStart;
 
     
@@ -213,19 +218,21 @@ int main()
 
     /////ADD SCENE GEOMETRY: 
     
-    auto mSphere1 = new Mesh3D(scene.get_root(),sphere);
+    auto mSphere1 = new Mesh3D(scene->get_root(),sphere);
     mSphere1->materials.push_back(worldPosMat);
     mSphere1->setPositionLocal(20,0,0);
     mSphere1->setRotationLocalDegrees(0,0,0);
     mSphere1->name = "sphere 1";
 
-    auto mSphere2 = new Mesh3D(scene.get_root(),sphere);
+    auto mSphere2 = new Mesh3D(scene->get_root(),sphere);
     mSphere2->setPositionLocal(0, 0, 10);
     mSphere2->name = "sphere 2";
 
     auto mSphere3 = new Mesh3D(mSphere2,sphere);
     mSphere3->setPositionLocal(0, 0, 5);
     mSphere3->name = "sphere 3";
+    
+    {
 /*
     auto plane1 = new Mesh3D(plane, &global_context);
     plane1->setScale(6,6,6);
@@ -327,12 +334,14 @@ int main()
     //test_texture_3d->initialize();
     ///////////////////////////////////////////////////////////////
     */
-
+    }
     //TODO: this call should be automatically called when changing the scene
-    scene.recalculate_from_root();
+    scene->recalculate_from_root();
 
     //WIDNOWS
-    bool scene_tree_active = true;
+    //INTI GUI MANAGER
+    guiManager = new GUIManager();
+    guiManager->addGUI(new SceneTree(scene));
 
     //// ------ RENDER LOOP ------ ////
     while (!glfwWindowShouldClose(window))
@@ -341,44 +350,26 @@ int main()
        
         renderFrameStart = glfwGetTime();
         glfwPollEvents(); //input events
-        processInput(editor3DCamera, &scene, window); //low level input processing
+        processInput(editor3DCamera, scene, window); //low level input processing
 
         
         //IMGUI 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::Text("Hello, world %d", 123);
-        /*
-        bool my_tool_active = true;
-        ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Open..", "Ctrl+O")) { }
-                if (ImGui::MenuItem("Save", "Ctrl+S"))   {  }
-                if (ImGui::MenuItem("Close", "Ctrl+W"))  { my_tool_active = false; }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMenuBar();
-        }
-        ImGui::End();
-        */
-        
-        ImGui::Begin("Scene Tree", &scene_tree_active, ImGuiWindowFlags_MenuBar);
-        scene.get_root()->ui_get_scene_structure_recursively(ImGuiTreeNodeFlags_DefaultOpen);
-        ImGui::End();
+
+        //draw engine UI
+        guiManager->tickGUI();
 
         
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
-        
+
         
         editor3DCamera->calculateView();
         
         //draw scene elements
-        scene.draw_scene(&editorRenderContext);
+        scene->draw_scene(&editorRenderContext);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -492,9 +483,9 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
        
         if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
         {
-            if (handle->is_moving_coord())
+            if (scene->handle()->is_moving_coord())
             {
-                handle->editor_release_handle();
+                scene->handle()->editor_release_handle();
             }
             else
             {
@@ -502,25 +493,25 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
                 RayCastHit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
                 if (a.hit)
                 {
-                    handle->attach_to_object(a.object_3d);
+                    scene->select_object(a.object_3d);
                 }
                 else
                 {
-                    handle->detach();
+                    scene->deselect();
                 }
             }
         }
         else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_LEFT])
         {
-            if (handle->is_attached())
+            if (scene->handle()->is_attached())
             {
-                if (handle->is_moving_coord())
+                if (scene->handle()->is_moving_coord())
                 {
-                    handle->editor_move_handle(ray_origin, ray_direction);
+                    scene->handle()->editor_move_handle(ray_origin, ray_direction);
                 }
                 else
                 {
-                    handle->editor_click_handle(ray_origin, ray_direction);
+                    scene->handle()->editor_click_handle(ray_origin, ray_direction);
                 }
             }
         }
