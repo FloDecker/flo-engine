@@ -63,8 +63,8 @@ void Scene::recalculate_from_root()
 
 void Scene::deselect()
 {
-	if (!has_selected_object) {return;}
-	has_selected_object = false;
+	if (!_has_selected_object) {return;}
+	_has_selected_object = false;
 	this->selected_object = nullptr;
 	handle_->detach();
     
@@ -73,7 +73,7 @@ void Scene::deselect()
 void Scene::select_object(Object3D* object)
 {
 	handle_->attach_to_object(object);
-	has_selected_object = true;
+	_has_selected_object = true;
 	this->selected_object = object;
 }
 
@@ -82,6 +82,15 @@ Handle* Scene::handle() const
 	return handle_;
 }
 
+Object3D* Scene::get_selected_object() const
+{
+	return selected_object;
+}
+
+bool Scene::has_selected_object() const
+{
+	return _has_selected_object;
+}
 
 
 void Scene::calculateColliderBoundingBoxes()

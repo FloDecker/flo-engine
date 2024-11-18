@@ -90,6 +90,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         glm::vec3(),
         glm::vec3()
     };
+    std::cout<<"CHECK X:\n";
     arrow_x_collider_->check_collision(camera_pos, ray_direction, 100000.0, true, &cast_hit);
     if (cast_hit.hit)
     {
@@ -97,6 +98,8 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         handler_status = move_global_x;
         return;
     }
+    std::cout<<"CHECK Y:\n";
+
     arrow_y_collider_->check_collision(camera_pos, ray_direction, 100000.0, true, &cast_hit);
     if (cast_hit.hit)
     {
@@ -104,6 +107,9 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         handler_status = move_global_y;
         return;
     }
+
+    std::cout<<"CHECK Z:\n";
+
     arrow_z_collider_->check_collision(camera_pos, ray_direction, 100000.0, true, &cast_hit);
     if (cast_hit.hit)
     {

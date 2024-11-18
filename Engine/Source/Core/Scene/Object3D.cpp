@@ -82,6 +82,11 @@ glm::vec3 Object3D::getLocalRotation()
     return rotation_;
 }
 
+glm::vec3 Object3D::getLocalRotationDegrees()
+{
+    return glm::degrees(rotation_);
+}
+
 glm::vec3 Object3D::getForwardVector()
 {
     glm::vec4 temp = transformGlobal * glm::vec4(forwardVectorLocal, 0);

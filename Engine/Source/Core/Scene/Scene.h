@@ -40,6 +40,8 @@ public:
     std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const;
 
     Handle *handle() const;
+    Object3D *get_selected_object() const;
+    bool has_selected_object() const;
 private:
     std::unordered_set<PointLight*> scenePointLights;
     std::vector<Collider*> sceneColliders;
@@ -55,7 +57,7 @@ private:
     //name of the scene
     std::string name_;
 
-    bool has_selected_object = false;
+    bool _has_selected_object = false;
     Object3D *selected_object = nullptr;
     
     Handle *handle_; 

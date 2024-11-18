@@ -6,9 +6,10 @@
 class SceneTree : public GUIBase
 {
 public:
-	SceneTree(Scene *scene);
+	SceneTree(Scene* scene);
+
 private:
-	Scene *scene_;
+	Scene* scene_;
 
 protected:
 	void gui_tick();

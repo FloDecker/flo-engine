@@ -88,6 +88,7 @@ public:
     glm::mat4 getGlobalTransformInverse();
     glm::vec3 getWorldPosition();
     glm::vec3 getLocalRotation();
+    glm::vec3 getLocalRotationDegrees();
 
     glm::vec3 getForwardVector();
     glm::vec3 getUpVector(); //TODO

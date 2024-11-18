@@ -20,6 +20,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
 
 #define WINDOW_HEIGHT (1080)
@@ -105,7 +106,7 @@ int main()
     io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);         
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
 
 
@@ -342,6 +343,7 @@ int main()
     //INTI GUI MANAGER
     guiManager = new GUIManager();
     guiManager->addGUI(new SceneTree(scene));
+    guiManager->addGUI(new ObjectInfo(scene));
 
     //// ------ RENDER LOOP ------ ////
     while (!glfwWindowShouldClose(window))
@@ -446,78 +448,79 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 //TODO: generalize this especially mouse capture
 void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 {
-    glm::vec2 cursorDelta;
-    //capture mouse when right-clicking in window
-    if (mouseButtonsClicked[GLFW_MOUSE_BUTTON_RIGHT])
+    if (!io->WantCaptureMouse)
     {
-        mouseLockPos = mousePos;
-        mouseCaptured = true;
-    }
-
-    if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_RIGHT])
-    {
-        mouseLockPos = {0, 0};
-        mouseCaptured = false;
-    }
-
-    if (mouseCaptured)
-    {
-        cursorDelta = mousePos - mouseLockPos;
-        glfwSetCursorPos(window, mouseLockPos.x, mouseLockPos.y);
-        camera3D->setRotationLocal(
-            glm::vec3(glm::radians(cursorDelta.y * CAMERA_ROTATION_SPEED),
-                      glm::radians(cursorDelta.x * CAMERA_ROTATION_SPEED), 0) + camera3D->getLocalRotation());
-    }
-    else
-    {
-        auto inverse_projection = glm::inverse(*(camera3D->getRenderContext()->camera.getProjection()));
-        auto inverse_view = camera3D->getGlobalTransform();
-
-        auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x * 2 - 1, -mouseNormalized.y * 2 + 1, 1.0,
-                                                         1.0);
-        ray_target.w = 0;
-
-        auto ray_direction = inverse_view * glm::normalize(ray_target);
-        auto ray_origin = camera3D->getWorldPosition();
-        
-       
-        if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
+        glm::vec2 cursorDelta;
+        //capture mouse when right-clicking in window
+        if (mouseButtonsClicked[GLFW_MOUSE_BUTTON_RIGHT])
         {
-            if (scene->handle()->is_moving_coord())
-            {
-                scene->handle()->editor_release_handle();
-            }
-            else
-            {
-                //if handle is active check first intersection with handle
-                RayCastHit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
-                if (a.hit)
-                {
-                    scene->select_object(a.object_3d);
-                }
-                else
-                {
-                    scene->deselect();
-                }
-            }
+            mouseLockPos = mousePos;
+            mouseCaptured = true;
         }
-        else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_LEFT])
+
+        if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_RIGHT])
         {
-            if (scene->handle()->is_attached())
+            mouseLockPos = {0, 0};
+            mouseCaptured = false;
+        }
+
+        if (mouseCaptured)
+        {
+            cursorDelta = mousePos - mouseLockPos;
+            glfwSetCursorPos(window, mouseLockPos.x, mouseLockPos.y);
+            camera3D->setRotationLocal(
+                glm::vec3(glm::radians(cursorDelta.y * CAMERA_ROTATION_SPEED),
+                          glm::radians(cursorDelta.x * CAMERA_ROTATION_SPEED), 0) + camera3D->getLocalRotation());
+        }
+        else
+        {
+            auto inverse_projection = glm::inverse(*(camera3D->getRenderContext()->camera.getProjection()));
+            auto inverse_view = camera3D->getGlobalTransform();
+
+            auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x * 2 - 1, -mouseNormalized.y * 2 + 1, 1.0,
+                                                             1.0);
+            ray_target.w = 0;
+
+            auto ray_direction = inverse_view * glm::normalize(ray_target);
+            auto ray_origin = camera3D->getWorldPosition();
+
+
+            if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
             {
                 if (scene->handle()->is_moving_coord())
                 {
-                    scene->handle()->editor_move_handle(ray_origin, ray_direction);
+                    scene->handle()->editor_release_handle();
                 }
                 else
                 {
-                    scene->handle()->editor_click_handle(ray_origin, ray_direction);
+                    //if handle is active check first intersection with handle
+                    RayCastHit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+                    if (a.hit)
+                    {
+                        scene->select_object(a.object_3d);
+                    }
+                    else
+                    {
+                        scene->deselect();
+                    }
+                }
+            }
+            else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_LEFT])
+            {
+                if (scene->handle()->is_attached())
+                {
+                    if (scene->handle()->is_moving_coord())
+                    {
+                        scene->handle()->editor_move_handle(ray_origin, ray_direction);
+                    }
+                    else
+                    {
+                        scene->handle()->editor_click_handle(ray_origin, ray_direction);
+                    }
                 }
             }
         }
-        
     }
-
     glm::vec2 cameraInput = glm::vec2(0, 0);
     if (keyPressed[GLFW_KEY_W]) cameraInput += glm::vec2(1, 0);
     if (keyPressed[GLFW_KEY_S]) cameraInput += glm::vec2(-1, 0);
