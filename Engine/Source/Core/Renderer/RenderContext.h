@@ -40,10 +40,16 @@ private:
 
 };
 
+struct RenderFlags
+{
+    bool visualize_hitboxes = false;
+};
+
 //holds the information needed to render the current frame 
 struct RenderContext {
     Camera camera;
     double deltaTime = 0;
+    RenderFlags flags;
 };
 
 #endif //ENGINE_RENDERCONTEXT_H

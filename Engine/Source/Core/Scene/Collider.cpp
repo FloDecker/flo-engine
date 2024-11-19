@@ -26,6 +26,19 @@ int Collider::get_collider_type()
     return -1;
 }
 
+void Collider::visualize_collider()
+{
+}
+
+int Collider::drawSelf()
+{
+    if (renderContext->flags.visualize_hitboxes)
+    {
+        visualize_collider();
+    }
+    return 1;
+}
+
 
 //Mesh Collider
 MeshCollider::MeshCollider(Object3D *parent,
@@ -118,6 +131,11 @@ void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direct
             }
         }
     }
+}
+
+void MeshCollider::visualize_collider()
+{
+    Collider::visualize_collider();
 }
 
 bool MeshCollider::is_in_proximity(glm::vec3 center_ws, float radius)

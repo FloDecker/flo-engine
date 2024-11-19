@@ -13,6 +13,8 @@ public:
     virtual bool is_in_proximity(glm::vec3 center_ws, float radius);
     virtual void calculate_world_space_bounding_box();
     virtual int get_collider_type();
+    virtual void visualize_collider(); //for debugging
+    int drawSelf() override;
     StructBoundingBox bounding_box;
 };
 
@@ -24,6 +26,7 @@ public:
     std::vector<struct_vertex_array*>* get_vertex_arrays();
     void check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length, bool ignore_back_face,
                          RayCastHit* ray_cast_hit) override;
+    void visualize_collider() override;
     bool is_in_proximity(glm::vec3 center_ws, float radius) override;
     int get_collider_type() override;
     bool is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id);

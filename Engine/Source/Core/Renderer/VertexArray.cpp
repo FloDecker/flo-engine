@@ -49,9 +49,22 @@ int VertexArray::draw() {
     }
 
     glBindVertexArray(VAO);
+    glPolygonMode(GL_FRONT_AND_BACK, mode_);
     glDrawElements(GL_TRIANGLES, vertex_array_.indices->size(), GL_UNSIGNED_INT, 0);
+    
     glBindVertexArray(0);
     return 1;
+}
+
+bool VertexArray::set_draw_mode(GLenum mode)
+{
+    if (mode != GL_POINT && mode !=  GL_LINE && mode !=  GL_FILL)
+    {
+        std::cout<<"Draw mode has to be of type: GL_POINT, GL_LINE or GL_FILL\n";
+        return false;
+    }
+    mode_ = mode;
+    return true;
 }
 
 struct_vertex_array *VertexArray::get_vertex_array()

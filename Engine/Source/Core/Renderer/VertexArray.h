@@ -18,17 +18,15 @@ private:
     unsigned int VAO = 0;
     unsigned int EBO = 0;
     bool loaded = false;
-
+    GLenum mode_ = GL_FILL;
+    
 public:
     VertexArray(std::vector<vertex> *vertices, std::vector<unsigned int> *indices);
     int load() override;
     int draw() override;
-
-    //temp uniforms
-    glm::mat4 *model;
-    glm::mat4 *view;
-    glm::mat4 *projection;
-
+    
+    
+    bool set_draw_mode(GLenum mode);
     struct_vertex_array* get_vertex_array();
 
 };
