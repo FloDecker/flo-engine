@@ -2,11 +2,21 @@
 // Created by flode on 02/03/2023.
 //
 #include "RenderContext.h"
+
 #include "gtc/matrix_transform.hpp"
-Camera::Camera(float width, float height) {
+Camera::Camera(float width, float height,  eventpp::CallbackList<void (glm::ivec2)> *camera_change_dispatcher) {
     view = glm::mat4 (1.0);
     setViewPortDimension(width,height);
+    camera_change_dispatcher->append([this](glm::ivec2 i) {
+        setViewPortDimension(i);
+});
 }
+
+void Camera::setViewPortDimension(glm::i16vec2 dimentions)
+{
+    setViewPortDimension(dimentions.x,dimentions.y);
+}
+
 
 void Camera::setViewPortDimension(float width, float height) {
     this->width_ = width;
@@ -29,6 +39,7 @@ void Camera::setFOV(float FOV) {
     recalculateProjection();
 }
 
+
 glm::mat4 *Camera::getProjection() {
     return &projection;
 }
@@ -36,6 +47,7 @@ glm::mat4 *Camera::getProjection() {
 glm::mat4 *Camera::getView() {
     return &view;
 }
+
 
 glm::vec3 *Camera::getWorldPosition()
 {

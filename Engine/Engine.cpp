@@ -22,9 +22,9 @@
 #include "Source/Core/GUI/GUIManager.h"
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
-
-#define WINDOW_HEIGHT (1080)
-#define WINDOW_WIDTH (1920)
+#include "Source/External/eventpp/include/eventpp/callbacklist.h"
+#define WINDOW_HEIGHT (100)
+#define WINDOW_WIDTH (1920-20)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -35,9 +35,13 @@
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void cursor_position_callback(GLFWwindow* window,double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void window_changed_callback(GLFWwindow* window,int width, int height);
 
+//input processing
 void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window);
 
+
+eventpp::CallbackList<void (glm::ivec2)> change_window_size_dispatcher;
 
 bool keyPressed[KEY_AMOUNT];
 bool keyClicked[KEY_AMOUNT];
@@ -48,6 +52,7 @@ bool mouseButtonsReleased[MOUSE_BUTTON_AMOUNT];
 
 glm::vec2 mousePos;
 glm::vec2 mouseNormalized;
+glm::ivec2 windowSize = glm::ivec2(WINDOW_WIDTH,WINDOW_HEIGHT);
 ImGuiIO* io = nullptr;
 
 bool mouseCaptured;
@@ -81,7 +86,7 @@ int main()
         glfwTerminate();
         return -1;
     }
-    
+
     glfwMakeContextCurrent(window);
     glewExperimental = GLFW_TRUE;
     glFrontFace(GL_CW);
@@ -127,15 +132,16 @@ int main()
     default_color_shader->loadFromFile("EngineContent/Shader/DebugColorChangable.glsl");
     default_color_shader->compileShader();
     global_context.default_color_debug_shader = default_color_shader;
+    
 
     //Inti Scene Context
     //scene root
     //init scene context
     scene = new Scene(&global_context, "Test Scene");
-    
+    auto scene_cam = new Camera(WINDOW_WIDTH, WINDOW_HEIGHT, &change_window_size_dispatcher);
     //initialize render context
-    auto editorRenderContext = RenderContext{
-        *new Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+    auto editorRenderContext = new RenderContext {
+        scene_cam
     };
 
     //register interaction callbacks
@@ -143,10 +149,11 @@ int main()
     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetWindowSizeCallback(window,window_changed_callback);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    auto editor3DCamera = new Camera3D(scene->get_root(), &editorRenderContext);
+    auto editor3DCamera = new Camera3D(scene->get_root(), editorRenderContext);
     double renderFrameStart;
 
     
@@ -183,6 +190,12 @@ int main()
     me_test_triangle->initializeVertexArrays();
 
     //init shaders
+
+    auto* normal_debug_shader = new ShaderProgram();
+    normal_debug_shader->loadFromFile("EngineContent/Shader/NormalVisualizer.glsl");
+    normal_debug_shader->compileShader();
+
+
     
     auto* textureMaterial = new ShaderProgram();
     textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
@@ -202,7 +215,7 @@ int main()
     lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
     lightTestMaterial->compileShader();
 
-
+    
     auto* worldPosMat = new ShaderProgram();
     worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
     worldPosMat->compileShader();
@@ -228,6 +241,10 @@ int main()
     auto mSphere2 = new Mesh3D(scene->get_root(),sphere);
     mSphere2->setPositionLocal(0, 0, 10);
     mSphere2->name = "sphere 2";
+    
+    auto test_triangle = new Mesh3D(scene->get_root(),me_test_triangle);
+    test_triangle->setPositionLocal(0, 0, -20);
+    test_triangle->name = "test_triangle";
 
     auto mSphere3 = new Mesh3D(mSphere2,sphere);
     mSphere3->setPositionLocal(0, 0, 5);
@@ -336,6 +353,16 @@ int main()
     ///////////////////////////////////////////////////////////////
     */
     }
+
+    auto engine_handler_arrow_model = loadModel("EngineContent/Arrow.fbx");
+    engine_handler_arrow_model->initializeVertexArrays();
+
+    auto handlertest = new Mesh3D(scene->get_root(),engine_handler_arrow_model);
+    handlertest->setPositionLocal(0,0,0);
+    handlertest->setRotationLocalDegrees(0,0,0);
+    handlertest->name = "handlertest";
+    handlertest->materials.push_back(normal_debug_shader);
+
     //TODO: this call should be automatically called when changing the scene
     scene->recalculate_from_root();
 
@@ -371,7 +398,7 @@ int main()
         editor3DCamera->calculateView();
         
         //draw scene elements
-        scene->draw_scene(&editorRenderContext);
+        scene->draw_scene(editorRenderContext);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -387,7 +414,7 @@ int main()
         memset(mouseButtonsClicked, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
         memset(mouseButtonsReleased, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 
-        editorRenderContext.deltaTime = glfwGetTime() - renderFrameStart;
+        editorRenderContext->deltaTime = glfwGetTime() - renderFrameStart;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -438,8 +465,17 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     mousePos = {xpos, ypos};
-    mouseNormalized = {xpos / WINDOW_WIDTH, ypos / WINDOW_HEIGHT};
+    mouseNormalized = {xpos / windowSize.x, ypos / windowSize.y};
+    //std::printf("mouse pos: %f , %f ", xpos, ypos);
     io->AddMousePosEvent(xpos,ypos);
+}
+
+void window_changed_callback(GLFWwindow* window, int width, int height)
+{
+    windowSize={width,height};
+    //std::printf("window changed %i, %i", width, height);
+    change_window_size_dispatcher(glm::ivec2(width, height));
+    glViewport(0, 0, width, height);
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable
@@ -474,7 +510,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
         }
         else
         {
-            auto inverse_projection = glm::inverse(*(camera3D->getRenderContext()->camera.getProjection()));
+            auto inverse_projection = glm::inverse(*(camera3D->getRenderContext()->camera->getProjection()));
             auto inverse_view = camera3D->getGlobalTransform();
 
             auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x * 2 - 1, -mouseNormalized.y * 2 + 1, 1.0,

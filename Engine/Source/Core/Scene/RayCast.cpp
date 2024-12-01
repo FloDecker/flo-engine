@@ -41,6 +41,10 @@ void RayCast::recurse_scene_model_ray_cast(RayCastHit* ray_cast_hit, std::string
         mesh_collider->check_collision(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
                                        ray_cast_hit);
     }
+    if (ray_cast_hit->hit)
+    {
+        return;
+    }
     for (auto child : object->get_children())
     {
         recurse_scene_model_ray_cast(ray_cast_hit, collision_tag, child, ray_cast_origin, ray_cast_direction_normalized,

@@ -20,12 +20,12 @@ int Line3D::drawSelf()
     global_context_->default_color_debug_shader->use();
     global_context_->default_color_debug_shader->setUniformMatrix4("mMatrix", glm::value_ptr(this->transformGlobal));
     global_context_->default_color_debug_shader->setUniformMatrix4(
-        "vMatrix", glm::value_ptr(*this->renderContext->camera.getView()));
+        "vMatrix", glm::value_ptr(*this->renderContext->camera->getView()));
     global_context_->default_color_debug_shader->setUniformMatrix4(
-        "pMatrix", glm::value_ptr(*this->renderContext->camera.getProjection()));
+        "pMatrix", glm::value_ptr(*this->renderContext->camera->getProjection()));
     global_context_->default_color_debug_shader->set_uniform_vec3_f("cameraPosWS",
                                                                  glm::value_ptr(
-                                                                     *this->renderContext->camera.getWorldPosition()));
+                                                                     *this->renderContext->camera->getWorldPosition()));
     global_context_->default_color_debug_shader->set_uniform_vec3_f("color", glm::value_ptr(color));
     line_->draw();
     return 1;

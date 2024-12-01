@@ -42,9 +42,9 @@ int Mesh3D::drawSelf()
         // set model view projection
         p->use();
         p->setUniformMatrix4("mMatrix", glm::value_ptr(this->transformGlobal));
-        p->setUniformMatrix4("vMatrix", glm::value_ptr(*this->renderContext->camera.getView()));
-        p->setUniformMatrix4("pMatrix", glm::value_ptr(*this->renderContext->camera.getProjection()));
-        p->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*this->renderContext->camera.getWorldPosition()));
+        p->setUniformMatrix4("vMatrix", glm::value_ptr(*this->renderContext->camera->getView()));
+        p->setUniformMatrix4("pMatrix", glm::value_ptr(*this->renderContext->camera->getProjection()));
+        p->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*this->renderContext->camera->getWorldPosition()));
         mesh->vertexArrays[i]->draw();
     }
     return 1;

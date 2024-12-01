@@ -1,5 +1,7 @@
 ﻿#include "Collider.h"
 
+#include <gtx/string_cast.hpp>
+
 
 Collider::Collider(Object3D *parent): Object3D(parent)
 {
@@ -72,7 +74,6 @@ void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direct
 
     glm::vec4 ray_cast_direction_vec4_local = global_inverse * glm::vec4(ray_direction_ws, 0);
     glm::vec3 ray_cast_direction_vec3_local = glm::vec3(ray_cast_direction_vec4_local);
-
     for (unsigned int a = 0; a < vertex_arrays_of_geometry->size(); a++)
     {
         struct_vertex_array* vertex_array = vertex_arrays_of_geometry->at(a);
