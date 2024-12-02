@@ -156,7 +156,7 @@
     <ClCompile Include="Source\Core\GUI\GUIManager.cpp" />
     <ClCompile Include="Source\Core\GUI\ObjectInfo.cpp" />
     <ClCompile Include="Source\Core\GUI\SceneTree.cpp" />
-    <ClCompile Include="Source\Core\PhysicsEngine\IntegrationMethods\Integrator.cpp" />
+    <ClCompile Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.cpp" />
     <ClCompile Include="Source\Core\PhysicsEngine\PhysicsEngine.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp" />
@@ -206,6 +206,7 @@
     <ClInclude Include="Source\Core\GUI\GUIManager.h" />
     <ClInclude Include="Source\Core\GUI\ObjectInfo.h" />
     <ClInclude Include="Source\Core\GUI\SceneTree.h" />
+    <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.h" />
     <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\Integrator.h" />
     <ClInclude Include="Source\Core\PhysicsEngine\PhysicsEngine.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h" />

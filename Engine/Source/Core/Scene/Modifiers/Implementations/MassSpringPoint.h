@@ -1,17 +1,19 @@
 ﻿#pragma once
 #include <vec3.hpp>
 
+#include "PhysicsObjectModifier.h"
 #include "../Modifier.h"
 
 class PhysicsEngine;
 
-class MassSpringPoint
+class MassSpringPoint : public PhysicsObjectModifier
 {
-	friend class PhysicsEngine; //direct access to acceleration and velocity members
 public:
 	MassSpringPoint(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);
-	void move(glm::vec3 increment) const;
+	
 private:
-	glm::vec3 acceleration_;
+	glm::vec3 force_;
 	glm::vec3 velocity_;
+	float mass_;
+	float damping_;
 };
