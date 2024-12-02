@@ -254,6 +254,25 @@ int main()
     mSphere3->setPositionLocal(0, 0, 5);
     mSphere3->name = "sphere 3";
     mSphere3->add_modifier(new PhysicsObjectModifier(mSphere3, physics_engine));
+
+    auto mSphere_phyics_1 = new Mesh3D(scene->get_root(),sphere);
+    mSphere_phyics_1->materials.push_back(worldPosMat);
+    mSphere_phyics_1->setPositionLocal(10,0,0);
+    mSphere_phyics_1->name = "mSphere_phyics_1";
+    auto spring1 = new mass_spring_point(mSphere_phyics_1, physics_engine);
+    spring1->is_fixed = true;
+    mSphere_phyics_1->add_modifier(spring1);
+
+    auto mSphere_phyics_2 = new Mesh3D(scene->get_root(),sphere);
+    mSphere_phyics_2->materials.push_back(worldPosMat);
+    mSphere_phyics_2->setPositionLocal(5,0,0);
+    mSphere_phyics_2->name = "mSphere_phyics_2";
+    auto spring2 = new mass_spring_point(mSphere_phyics_2, physics_engine);
+    spring2->damp = 1;
+    mSphere_phyics_2->add_modifier(spring2);
+    physics_engine->add_spring(spring1, spring2, 20.0);
+
+
     
     {
 /*

@@ -10,8 +10,8 @@ PhysicsObjectModifier::PhysicsObjectModifier(Object3D* parent_game_object_3d, Ph
 void PhysicsObjectModifier::calculate_forces()
 {
 	clear_force();
-	add_force(physics_constants::gravity_vector);
 }
+
 
 void PhysicsObjectModifier::clear_force()
 {
@@ -23,9 +23,24 @@ void PhysicsObjectModifier::add_force(const glm::vec3 force)
 	this->force_ += force;
 }
 
+
+glm::vec3 PhysicsObjectModifier::get_velocity() const
+{
+	return velocity_;
+}
+
+void PhysicsObjectModifier::calculate_acceleration()
+{
+	acceleration_ = (force_/mass);
+	if (gravity_enabled)
+	{
+		acceleration_+=physics_constants::gravity_vector;
+	}
+}
+
 void PhysicsObjectModifier::integrate_velocity(integrator *integrator, const float delta)
 {
-	velocity_ = integrator->integrate(velocity_,force_,delta);
+	velocity_ = integrator->integrate(velocity_,acceleration_,delta);
 }
 
 void PhysicsObjectModifier::integrate_position(integrator* integrator, float delta) const

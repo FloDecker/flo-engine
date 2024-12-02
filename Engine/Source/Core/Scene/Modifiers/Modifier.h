@@ -7,6 +7,7 @@ class Modifier
 {
 public:
 	Modifier(Object3D* parent_game_object_3d);
+	Object3D *get_parent() const;
 protected:
 	Object3D* parent;
 };
