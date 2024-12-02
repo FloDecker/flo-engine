@@ -224,6 +224,14 @@ void Object3D::add_modifier(Modifier* modifier)
     this->modifiers_.push_back(modifier);
 }
 
+void Object3D::draw_modifier_ui() const
+{
+    for (auto modifier : modifiers_)
+    {
+        modifier->draw_gui();
+    }
+}
+
 glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const
 {
     return transformGlobal * glm::vec4(vertex_in_local_space, 1);

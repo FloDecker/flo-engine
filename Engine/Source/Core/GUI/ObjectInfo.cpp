@@ -29,13 +29,20 @@ void ObjectInfo::gui_tick()
 		disabled  =true;
 	}
 	
-	//sceen tree
 	ImGui::Begin("Object info", &is_active, ImGuiWindowFlags_MenuBar);
 	ImGui::Text(name.c_str());
 	ImGui::SeparatorText("Transform");
 	ImGui::BeginDisabled(disabled);
 	ImGui::InputFloat3("WS Position",pos);
 	ImGui::InputFloat3("Rotation",rot);
+
+	
+	if (scene_->has_selected_object())
+	{
+		//draw modifier info
+		scene_->get_selected_object()->draw_modifier_ui();
+	}
+	
 	ImGui::EndDisabled();
 	ImGui::End();
 
@@ -44,4 +51,6 @@ void ObjectInfo::gui_tick()
 		scene_->get_selected_object()->set_position_global(pos[0],pos[1],pos[2]);
 		scene_->get_selected_object()->setRotationLocalDegrees(rot[0],rot[1],rot[2]);
 	}
+
+
 }

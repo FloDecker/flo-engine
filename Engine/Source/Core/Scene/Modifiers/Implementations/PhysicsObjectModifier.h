@@ -19,6 +19,7 @@ public:
 	void move(glm::vec3 increment) const;
 
 	glm::vec3 get_velocity() const;
+	void draw_gui() override;
 
 	float mass = 1.0f;
 	bool is_fixed = false;

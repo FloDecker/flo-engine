@@ -10,3 +10,9 @@ void mass_spring_point::calculate_forces()
 	add_force(-get_velocity()*damp);
 }
 
+void mass_spring_point::draw_gui()
+{
+	PhysicsObjectModifier::draw_gui();
+	
+}
+

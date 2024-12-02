@@ -29,6 +29,15 @@ glm::vec3 PhysicsObjectModifier::get_velocity() const
 	return velocity_;
 }
 
+void PhysicsObjectModifier::draw_gui()
+{
+	ImGui::SeparatorText("Physics Object");
+	ImGui::Checkbox("Fix object", &is_fixed);
+	ImGui::Checkbox("Gravity enabled", &gravity_enabled);
+	ImGui::InputFloat("Mass",&this->mass);
+
+}
+
 void PhysicsObjectModifier::calculate_acceleration()
 {
 	acceleration_ = (force_/mass);

@@ -86,6 +86,7 @@ public:
 
     //Modifiers
     void add_modifier(Modifier* modifier);
+    void draw_modifier_ui() const;
     //TODO: make modifiers removable
 
     //Transform Helper

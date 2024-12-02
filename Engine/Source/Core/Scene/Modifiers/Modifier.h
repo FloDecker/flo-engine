@@ -7,7 +7,9 @@ class Modifier
 {
 public:
 	Modifier(Object3D* parent_game_object_3d);
+	virtual void draw_gui();
 	Object3D *get_parent() const;
 protected:
 	Object3D* parent;
+	
 };
