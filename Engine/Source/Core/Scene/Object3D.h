@@ -7,6 +7,7 @@
 #include "vector"
 #include "../Editor/GlobalContext.h"
 #include "../Renderer/RenderContext.h"
+#include "Modifiers/Modifier.h"
 
 //Forward declaration
 class Scene;
@@ -26,7 +27,7 @@ class Object3D
 private:
     Object3D(); //friend class SceneRoot overwrites this since it's the only Object3D without parent
     std::vector<unsigned int> tags_; //tags associated with this object
-
+    std::vector<Modifier*> modifiers_; //modifiers of this game object
     //transforms
     glm::vec3 rotation_ = {0.0,0.0,0.0};
     glm::vec3 position_ = {0.0,0.0,0.0};
@@ -62,6 +63,8 @@ public:
     void setPositionLocal(glm::vec3 pos);
     void setPositionLocal(float x, float y, float z);
 
+    void move_local(glm::vec3 movement_vector);
+    
     void setRotationLocal(glm::vec3 rotation);
     void setRotationLocal(float x, float y, float z);
 
@@ -72,11 +75,18 @@ public:
     void setScale(float x, float y, float z);
     void setScale(glm::vec3 scale);
 
+    
+
     //transform global
     void set_position_global(const glm::vec3& pos);
     void set_position_global(float x, float y, float z);
+    void move_global(const glm::vec3& pos);
+    void move_global(float x, float y, float z);
     void recalculate_global_transform();
 
+    //Modifiers
+    void add_modifier(Modifier* modifier);
+    //TODO: make modifiers removable
 
     //Transform Helper
 

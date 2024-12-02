@@ -140,6 +140,11 @@ void Object3D::setPositionLocal(float x, float y, float z)
     setPositionLocal(glm::vec3(x, y, z));
 }
 
+void Object3D::move_local(glm::vec3 movement_vector)
+{
+    setPositionLocal(position_ + movement_vector);
+}
+
 void Object3D::setPositionLocal(glm::vec3 pos)
 {
     position_ = pos;
@@ -197,9 +202,26 @@ void Object3D::set_position_global(float x, float y, float z)
     set_position_global(glm::vec3(x, y, z));
 }
 
+//TODO : this can be optimized a lot
+void Object3D::move_global(float x, float y, float z)
+{
+    move_global(glm::vec3(x, y, z));
+}
+
+void Object3D::move_global(const glm::vec3& movement_vector)
+{
+    const auto transform_inverse = inverse(parent->getGlobalTransform());
+    move_local(transform_inverse * glm::vec4(movement_vector, 0));
+}
+
 void Object3D::recalculate_global_transform()
 {
     this->recalculateTransform();
+}
+
+void Object3D::add_modifier(Modifier* modifier)
+{
+    this->modifiers_.push_back(modifier);
 }
 
 glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const

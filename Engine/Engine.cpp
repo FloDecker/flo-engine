@@ -22,9 +22,10 @@
 #include "Source/Core/GUI/GUIManager.h"
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
+#include "Source/Core/PhysicsEngine/PhysicsEngine.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
-#define WINDOW_HEIGHT (100)
-#define WINDOW_WIDTH (1920-20)
+#define WINDOW_HEIGHT (1080/2)
+#define WINDOW_WIDTH (1920/2)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -144,6 +145,9 @@ int main()
         scene_cam
     };
 
+    //init physics engine
+    auto physics_engine = new PhysicsEngine();
+
     //register interaction callbacks
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -249,6 +253,7 @@ int main()
     auto mSphere3 = new Mesh3D(mSphere2,sphere);
     mSphere3->setPositionLocal(0, 0, 5);
     mSphere3->name = "sphere 3";
+    mSphere3->add_modifier(new PhysicsObjectModifier(mSphere3, physics_engine));
     
     {
 /*
@@ -394,6 +399,8 @@ int main()
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 
+        //run physics step
+        physics_engine->evaluate_physics_step(editorRenderContext->deltaTime);
         
         editor3DCamera->calculateView();
         

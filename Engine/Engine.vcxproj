@@ -156,6 +156,8 @@
     <ClCompile Include="Source\Core\GUI\GUIManager.cpp" />
     <ClCompile Include="Source\Core\GUI\ObjectInfo.cpp" />
     <ClCompile Include="Source\Core\GUI\SceneTree.cpp" />
+    <ClCompile Include="Source\Core\PhysicsEngine\IntegrationMethods\Integrator.cpp" />
+    <ClCompile Include="Source\Core\PhysicsEngine\PhysicsEngine.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp" />
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />
@@ -170,6 +172,9 @@
     <ClCompile Include="Source\Core\Scene\Handle.cpp" />
     <ClCompile Include="Source\Core\Scene\Lighting\PointLight.cpp" />
     <ClCompile Include="Source\Core\Scene\Mesh3D.cpp" />
+    <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\MassSpringPoint.cpp" />
+    <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\PhysicsObjectModifier.cpp" />
+    <ClCompile Include="Source\Core\Scene\Modifiers\Modifier.cpp" />
     <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
     <ClCompile Include="Source\Core\Scene\RayCast.cpp" />
     <ClCompile Include="Source\Core\Scene\Scene.cpp" />
@@ -201,6 +206,8 @@
     <ClInclude Include="Source\Core\GUI\GUIManager.h" />
     <ClInclude Include="Source\Core\GUI\ObjectInfo.h" />
     <ClInclude Include="Source\Core\GUI\SceneTree.h" />
+    <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\Integrator.h" />
+    <ClInclude Include="Source\Core\PhysicsEngine\PhysicsEngine.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Line.h" />
     <ClInclude Include="Source\Core\Renderer\renderable.h" />
@@ -218,6 +225,9 @@
     <ClInclude Include="Source\Core\Scene\Handle.h" />
     <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h" />
     <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
+    <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\MassSpringPoint.h" />
+    <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\PhysicsObjectModifier.h" />
+    <ClInclude Include="Source\Core\Scene\Modifiers\Modifier.h" />
     <ClInclude Include="Source\Core\Scene\Object3D.h" />
     <ClInclude Include="Source\Core\Scene\RayCast.h" />
     <ClInclude Include="Source\Core\Scene\Scene.h" />
