@@ -173,8 +173,8 @@
     <ClCompile Include="Source\Core\Scene\Lighting\PointLight.cpp" />
     <ClCompile Include="Source\Core\Scene\Mesh3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp" />
-    <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\PhysicsObjectModifier.cpp" />
-    <ClCompile Include="Source\Core\Scene\Modifiers\Modifier.cpp" />
+    <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.cpp" />
+    <ClCompile Include="Source\Core\Scene\Modifiers\modifier.cpp" />
     <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
     <ClCompile Include="Source\Core\Scene\RayCast.cpp" />
     <ClCompile Include="Source\Core\Scene\Scene.cpp" />
@@ -227,8 +227,8 @@
     <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h" />
     <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
     <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.h" />
-    <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\PhysicsObjectModifier.h" />
-    <ClInclude Include="Source\Core\Scene\Modifiers\Modifier.h" />
+    <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.h" />
+    <ClInclude Include="Source\Core\Scene\Modifiers\modifier.h" />
     <ClInclude Include="Source\Core\Scene\Object3D.h" />
     <ClInclude Include="Source\Core\Scene\RayCast.h" />
     <ClInclude Include="Source\Core\Scene\Scene.h" />

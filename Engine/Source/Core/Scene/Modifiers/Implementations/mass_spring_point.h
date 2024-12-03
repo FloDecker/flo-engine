@@ -2,8 +2,8 @@
 #include <vec3.hpp>
 #include <vector>
 
-#include "PhysicsObjectModifier.h"
-#include "../Modifier.h"
+#include "physics_object_modifier.h"
+#include "../modifier.h"
 
 class PhysicsEngine;
 class mass_spring_point;
@@ -16,7 +16,7 @@ struct spring
 };
 
 
-class mass_spring_point : public PhysicsObjectModifier
+class mass_spring_point final : public physics_object_modifier
 {
 public:
 	mass_spring_point(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);

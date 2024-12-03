@@ -1,15 +1,15 @@
 ﻿#pragma once
 #include <vec3.hpp>
 
-#include "../Modifier.h"
+#include "../modifier.h"
 #include "../../../PhysicsEngine/IntegrationMethods/Integrator.h"
 
 class PhysicsEngine;
 
-class PhysicsObjectModifier: public Modifier
+class physics_object_modifier: public modifier
 {
 public:
-	PhysicsObjectModifier(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);
+	physics_object_modifier(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);
 	virtual void calculate_forces();
 	void clear_force();
 	void add_force(glm::vec3 force);

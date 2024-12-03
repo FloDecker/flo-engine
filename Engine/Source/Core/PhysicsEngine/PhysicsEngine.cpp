@@ -33,7 +33,7 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 	}
 }
 
-void PhysicsEngine::register_physics_object(PhysicsObjectModifier* object)
+void PhysicsEngine::register_physics_object(physics_object_modifier* object)
 {
 	physics_objects_.push_back(object);
 }

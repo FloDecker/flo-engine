@@ -23,6 +23,7 @@
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
+#include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
@@ -253,8 +254,9 @@ int main()
     auto mSphere3 = new Mesh3D(mSphere2,sphere);
     mSphere3->setPositionLocal(0, 0, 5);
     mSphere3->name = "sphere 3";
-    mSphere3->add_modifier(new PhysicsObjectModifier(mSphere3, physics_engine));
+    mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
 
+    
     auto mSphere_phyics_1 = new Mesh3D(scene->get_root(),sphere);
     mSphere_phyics_1->materials.push_back(worldPosMat);
     mSphere_phyics_1->setPositionLocal(10,0,0);
@@ -270,7 +272,36 @@ int main()
     auto spring2 = new mass_spring_point(mSphere_phyics_2, physics_engine);
     spring2->damp = 1;
     mSphere_phyics_2->add_modifier(spring2);
-    physics_engine->add_spring(spring1, spring2, 20.0);
+
+
+    auto mSphere_phyics_3 = new Mesh3D(scene->get_root(),sphere);
+    mSphere_phyics_3->materials.push_back(worldPosMat);
+    mSphere_phyics_3->setPositionLocal(5,2,0);
+    mSphere_phyics_3->name = "mSphere_phyics_3";
+    auto spring3 = new mass_spring_point(mSphere_phyics_3, physics_engine);
+    spring3->damp = 1;
+    mSphere_phyics_3->add_modifier(spring3);
+    
+    auto mSphere_phyics_4 = new Mesh3D(scene->get_root(),sphere);
+    mSphere_phyics_4->materials.push_back(worldPosMat);
+    mSphere_phyics_4->setPositionLocal(10,2,0);
+    mSphere_phyics_4->name = "mSphere_phyics_4";
+    auto spring4 = new mass_spring_point(mSphere_phyics_4, physics_engine);
+    spring4->damp = 1;
+    spring4->is_fixed = true;
+    mSphere_phyics_4->add_modifier(spring4);
+
+
+
+
+
+    
+    physics_engine->add_spring(spring1, spring2, 200.0);
+    physics_engine->add_spring(spring2, spring3, 200.0);
+    physics_engine->add_spring(spring3, spring4, 200.0);
+    physics_engine->add_spring(spring4, spring1, 200.0);
+    physics_engine->add_spring(spring3, spring1, 200.0);
+    physics_engine->add_spring(spring2, spring4, 200.0);
 
 
     

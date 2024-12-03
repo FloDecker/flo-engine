@@ -219,7 +219,7 @@ void Object3D::recalculate_global_transform()
     this->recalculateTransform();
 }
 
-void Object3D::add_modifier(Modifier* modifier)
+void Object3D::add_modifier(modifier* modifier)
 {
     this->modifiers_.push_back(modifier);
 }
