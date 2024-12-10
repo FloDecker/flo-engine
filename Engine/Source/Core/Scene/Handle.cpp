@@ -129,7 +129,7 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
     case not_transforming:
         return;
     case move_global_x:
-        RayIntersectionHelper::RayPlaneIntersection(intersection,camera_pos,ray_direction,attached_object_3d_->getWorldPosition(),vecZ);
+        RayIntersectionHelper::RayPlaneIntersection(intersection,camera_pos,ray_direction,attached_object_3d_->getWorldPosition(),vec_z);
         if (intersection->intersected)
         {
             auto current_object_pos = attached_object_3d_->getWorldPosition();
@@ -139,7 +139,7 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         }
         return;
     case move_global_y:
-        RayIntersectionHelper::RayPlaneIntersection(intersection,camera_pos,ray_direction,attached_object_3d_->getWorldPosition(),vecZ);
+        RayIntersectionHelper::RayPlaneIntersection(intersection,camera_pos,ray_direction,attached_object_3d_->getWorldPosition(),vec_z);
         if (intersection->intersected)
         {
             auto current_object_pos = attached_object_3d_->getWorldPosition();
@@ -150,7 +150,7 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         }
         return;
     case move_global_z:
-        RayIntersectionHelper::RayPlaneIntersection(intersection,camera_pos,ray_direction,attached_object_3d_->getWorldPosition(),vecX);
+        RayIntersectionHelper::RayPlaneIntersection(intersection,camera_pos,ray_direction,attached_object_3d_->getWorldPosition(),vec_x);
         if (intersection->intersected)
         {
             auto current_object_pos = attached_object_3d_->getWorldPosition();

@@ -59,6 +59,6 @@ void processMesh(aiMesh *aimesh, const aiScene *scene, Mesh *mesh) {
             (*indices).push_back(face.mIndices[j]);
     }
 
-    auto *v = new VertexArray(vertices,indices);
+    auto *v = new vertex_array(vertices,indices);
     mesh->vertexArrays.push_back(v);
 }

@@ -1,17 +1,18 @@
 //
 // Created by flode on 28/02/2023.
 //
-#include "renderable.h"
-#include "Shader/ShaderProgram.h"
-#include <glm.hpp>
-#include <vector>
-#include "../CommonDataStructures/StructVertexArray.h"
-
 #ifndef ENGINE_VERTEXARRAY_H
 #define ENGINE_VERTEXARRAY_H
 
 
-class VertexArray : public Renderable {
+#include "primitive.h"
+#include "../Shader/ShaderProgram.h"
+#include <glm.hpp>
+#include <vector>
+#include "../../CommonDataStructures/StructVertexArray.h"
+
+
+class vertex_array : public primitive {
 private:
     struct_vertex_array vertex_array_;
     unsigned int VBO = 0;
@@ -21,7 +22,7 @@ private:
     GLenum mode_ = GL_FILL;
     
 public:
-    VertexArray(std::vector<vertex> *vertices, std::vector<unsigned int> *indices);
+    vertex_array(std::vector<vertex> *vertices, std::vector<unsigned int> *indices);
     int load() override;
     int draw() override;
     

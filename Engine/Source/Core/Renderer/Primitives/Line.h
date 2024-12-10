@@ -1,12 +1,11 @@
 ﻿#pragma once
 #include <GL/glew.h>
 
-#include "../renderable.h"
+#include "primitive.h"
 #include "../../CommonDataStructures/StructVertexArray.h"
 
 
-
-class Line : public Renderable
+class Line : public primitive
 {
 public:
     int load() override;

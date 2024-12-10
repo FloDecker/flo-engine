@@ -6,25 +6,30 @@
 #define ENGINE_MESH_H
 
 #include <vector>
-#include "../Core/Renderer/VertexArray.h"
+#include "../Core/Renderer/Primitives/vertex_array.h"
 #include "Material.h"
 
-class Mesh {
+class Mesh
+{
+    glm::vec3 center_of_mass_ = {0, 0, 0};
+    glm::mat3 inertia_tensor_ = glm::mat3(0);
+    bool mesh_calculation_ran_ = false;
+
 public:
-    Mesh(){
+    Mesh()
+    {
         vertexArrays = {};
         materials = {};
     }
-    std::vector<VertexArray *> vertexArrays;
-    std::vector<ShaderProgram *> materials;
-    void initializeVertexArrays();
+
+    std::vector<vertex_array*> vertexArrays;
+    std::vector<ShaderProgram*> materials;
+    void initializeVertexArrays() const;
+    
+    glm::vec3 get_center_of_mass();
+    glm::mat3 get_inertia_tensor();
+    void run_mesh_calculations();
+
 };
 
-inline void Mesh::initializeVertexArrays()
-{
-    for (auto element : vertexArrays)
-    {
-        element->load();
-    }
-}
 #endif //ENGINE_MESH_H

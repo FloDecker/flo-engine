@@ -1,6 +1,6 @@
 #pragma once
 #include "Object3D.h"
-#include "../Renderer/VertexArray.h"
+#include "../Renderer/Primitives/vertex_array.h"
 #include "../../Content/Mesh.h"
 #include "../Renderer/Shader/ShaderProgram.h"
 #include <gtc/type_ptr.hpp>

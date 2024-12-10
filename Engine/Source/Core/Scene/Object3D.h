@@ -2,19 +2,22 @@
 #include <glm.hpp>
 
 #include <string>
+#include <detail/type_quat.hpp>
 
 #include "imgui.h"
 #include "vector"
 #include "../Editor/GlobalContext.h"
 #include "../Renderer/RenderContext.h"
 #include "Modifiers/modifier.h"
+#include <gtx/quaternion.hpp>
+#include "../../Util/angle_utils.h"
 
 //Forward declaration
 class Scene;
 
-const glm::vec3 vecX = glm::vec3(1, 0, 0);
-const glm::vec3 vecY = glm::vec3(0, 1, 0);
-const glm::vec3 vecZ = glm::vec3(0, 0, 1);
+constexpr auto vec_x = glm::vec3(1, 0, 0);
+constexpr auto vec_y = glm::vec3(0, 1, 0);
+constexpr auto vec_z = glm::vec3(0, 0, 1);
 
 
 //an object is the most basic type in a Scene
@@ -30,6 +33,7 @@ private:
     std::vector<modifier*> modifiers_; //modifiers of this game object
     //transforms
     glm::vec3 rotation_ = {0.0,0.0,0.0};
+    glm::quat rotation_quat_ = glm::quat();
     glm::vec3 position_ = {0.0,0.0,0.0};
     glm::vec3 scale_ = {1.0,1.0,1.0};
 

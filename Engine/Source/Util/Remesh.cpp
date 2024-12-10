@@ -51,6 +51,6 @@ Remesh::remeshed_triangle Remesh::remesh_triangle(glm::vec3 triangles, unsigned 
 	};
 }
 
-void Remesh::remesh_until_distance(VertexArray* vertex_array, float min_vertex_distance_ws)
+void Remesh::remesh_until_distance(vertex_array* vertex_array, float min_vertex_distance_ws)
 {
 }

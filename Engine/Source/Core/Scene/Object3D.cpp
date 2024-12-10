@@ -79,12 +79,20 @@ glm::vec3 Object3D::getWorldPosition()
 
 glm::vec3 Object3D::getLocalRotation()
 {
+    auto print_me = angle_utils::normalize_angles_vec3(glm::eulerAngles(normalize(rotation_quat_)));
+    //return angle_utils::normalize_angles_vec3(a);
+    //glm::axis(rotation_quat_);
+    //auto print_me = glm::vec3 {a.x, a.y, a.z};
+    if (abs(rotation_.x) > 0.0001 ||  abs(rotation_.y) > 0.0001 || abs(rotation_.z) > 0.0001)
+    {
+            printf("rotation: [%f, %f , %f] ,  quaternion: [%f, %f , %f] \n", rotation_.x,rotation_.y,rotation_.z , print_me.x,print_me.y, print_me.z);
+    }
     return rotation_;
 }
 
 glm::vec3 Object3D::getLocalRotationDegrees()
 {
-    return glm::degrees(rotation_);
+    return glm::degrees(getLocalRotation());
 }
 
 glm::vec3 Object3D::getForwardVector()
@@ -168,6 +176,15 @@ void Object3D::setRotationLocalDegrees(float x, float y, float z)
 
 void Object3D::setRotationLocal(glm::vec3 rotation)
 {
+    // Y
+    auto q_y = angle_utils::vector_rotation_to_quat(vec_y, rotation.y);
+    // X
+    auto q_x = angle_utils::vector_rotation_to_quat(vec_x, rotation.x);
+    // Z
+    auto q_z = angle_utils::vector_rotation_to_quat(vec_z, rotation.z);
+    
+   // this->rotation_quat_ = q_z * q_y * q_x;
+    this->rotation_quat_ = glm::quat(rotation);
     rotation_ = rotation;
     recalculateTransform();
 }
@@ -249,10 +266,11 @@ void Object3D::recalculateTransform()
     transformLocal = glm::translate(transformLocal, position_);
 
     //apply rotation
-    transformLocal = glm::rotate(transformLocal, rotation_.y, vecY);
-    transformLocal = glm::rotate(transformLocal, rotation_.x, vecX);
-    transformLocal = glm::rotate(transformLocal, rotation_.z, vecZ);
+    //transformLocal = glm::rotate(transformLocal, rotation_.y, vec_y);
+    //transformLocal = glm::rotate(transformLocal, rotation_.x, vec_x);
+    //transformLocal = glm::rotate(transformLocal, rotation_.z, vec_z);
 
+    transformLocal = transformLocal * glm::toMat4(rotation_quat_);
     this->recalculateTransformGlobal();
 }
 

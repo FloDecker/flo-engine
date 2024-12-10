@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <GL/glew.h>
 
-#include "../renderable.h"
+#include "primitive.h"
 #include "../../CommonDataStructures/StructVertexArray.h"
 
 
-class Cube : public Renderable
+class Cube : public primitive
 {
 
 public:

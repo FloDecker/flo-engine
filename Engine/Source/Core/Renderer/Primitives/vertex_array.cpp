@@ -1,18 +1,18 @@
 //
 // Created by flode on 28/02/2023.
 //
-#include "VertexArray.h"
+#include "vertex_array.h"
 #include "gtx/string_cast.hpp"
 
 
-VertexArray::VertexArray(std::vector<vertex> *vertices, std::vector<unsigned int> *indices) {
+vertex_array::vertex_array(std::vector<vertex> *vertices, std::vector<unsigned int> *indices) {
     this->vertex_array_.vertices = vertices;
     this->vertex_array_.indices = indices;
 
 }
 
 
-int VertexArray::load() {
+int vertex_array::load() {
     if (loaded) {
         return 0;
     }
@@ -42,7 +42,7 @@ int VertexArray::load() {
 }
 
 //draws object with currently used shader
-int VertexArray::draw() {
+int vertex_array::draw() {
     if (!loaded) {
         std::cerr << "Draw-call issued for vertex array that hasn't been loaded yet" << '\n';
         return -1;
@@ -56,7 +56,7 @@ int VertexArray::draw() {
     return 1;
 }
 
-bool VertexArray::set_draw_mode(GLenum mode)
+bool vertex_array::set_draw_mode(GLenum mode)
 {
     if (mode != GL_POINT && mode !=  GL_LINE && mode !=  GL_FILL)
     {
@@ -67,7 +67,7 @@ bool VertexArray::set_draw_mode(GLenum mode)
     return true;
 }
 
-struct_vertex_array *VertexArray::get_vertex_array()
+struct_vertex_array *vertex_array::get_vertex_array()
 {
     return &vertex_array_;
 }

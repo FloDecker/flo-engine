@@ -2,7 +2,7 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Source/Core/Renderer/Shader/ShaderProgram.h"
-#include "Source/Core/Renderer/VertexArray.h"
+#include "Source/Core/Renderer/Primitives/vertex_array.h"
 #include "Source/Core/Scene/Object3D.h"
 #include "Source/Core/Scene/Mesh3D.h"
 #include "Source/Core/Renderer/RenderContext.h"
@@ -194,6 +194,9 @@ int main()
     auto me_test_triangle = loadModel("EngineContent/Triangle.fbx");
     me_test_triangle->initializeVertexArrays();
 
+    auto me_inertia_test = loadModel("EngineContent/inertiaTest.fbx");
+    me_inertia_test->initializeVertexArrays();
+
     //init shaders
 
     auto* normal_debug_shader = new ShaderProgram();
@@ -255,6 +258,18 @@ int main()
     mSphere3->setPositionLocal(0, 0, 5);
     mSphere3->name = "sphere 3";
     mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
+
+    auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
+    mSphere3->name = "mInertiaTest";
+
+    
+    auto i = mInertiaTest->get_mesh()->get_inertia_tensor();
+    auto xx = (vec_x * i * vec_x);
+    auto yy = (vec_y * i * vec_y);
+    auto zz = (vec_z * i * vec_z);
+    printf("%f, %f, %f",xx.x ,xx.y,xx.z );
+    printf("%f, %f, %f",yy.x ,yy.y,yy.z );
+    printf("%f, %f, %f",zz.x ,zz.y,zz.z );
 
     
     auto mSphere_phyics_1 = new Mesh3D(scene->get_root(),sphere);

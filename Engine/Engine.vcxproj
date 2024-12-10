@@ -151,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Source\Content\Mesh.cpp" />
     <ClCompile Include="Source\Core\Editor\GlobalContext.cpp" />
     <ClCompile Include="Source\Core\GUI\GUIBase.cpp" />
     <ClCompile Include="Source\Core\GUI\GUIManager.cpp" />
@@ -160,11 +161,85 @@
     <ClCompile Include="Source\Core\PhysicsEngine\PhysicsEngine.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp" />
     <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp" />
+    <ClCompile Include="Source\Core\Renderer\Primitives\vertex_array.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>x64\Debug\Engine\</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>x64\Debug\Engine\</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>x64\Debug\Engine\</ModuleDependenciesFile>
+      <ModuleOutputFile>x64\Debug\Engine\</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>x64\Debug\Engine\</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>x64\Debug\Engine\vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>x64\Debug\Engine\Engine.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>x64\Debug\Engine\</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>x64\Debug\Engine\Engine.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>x64\Debug\Engine\</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\Code\Engine\Dependencies\GLFW64\include;D:\Code\Engine\Dependencies\GLEW64\include;D:\Code\Engine\Dependencies\glm;D:\Code\Engine\Dependencies\assimp64\include;D:\Code\Engine\\Dependencies\stb_image;D:\Code\Engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
+      <LinkCompiled>true</LinkCompiled>
+    </ClCompile>
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />
     <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp" />
     <ClCompile Include="Source\Core\Renderer\Texture\Texture2D.cpp" />
     <ClCompile Include="Source\Core\Renderer\Texture\Texture3D.cpp" />
-    <ClCompile Include="Source\Core\Renderer\VertexArray.cpp" />
     <ClCompile Include="Source\Core\Scene\Camera3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Collider.cpp" />
     <ClCompile Include="Source\Core\Scene\DebugPrimitives\Cube3D.cpp" />
@@ -174,6 +249,7 @@
     <ClCompile Include="Source\Core\Scene\Mesh3D.cpp" />
     <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp" />
     <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.cpp" />
+    <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.cpp" />
     <ClCompile Include="Source\Core\Scene\Modifiers\modifier.cpp" />
     <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
     <ClCompile Include="Source\Core\Scene\RayCast.cpp" />
@@ -189,6 +265,7 @@
     <ClCompile Include="Source\External\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\External\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\External\stb_image.cpp" />
+    <ClCompile Include="Source\Util\angle_utils.cpp" />
     <ClCompile Include="Source\Util\AssetLoader.cpp" />
     <ClCompile Include="Source\Util\BoundingBoxHelper.cpp" />
     <ClCompile Include="Source\Util\RayIntersectionHelper.cpp" />
@@ -211,14 +288,14 @@
     <ClInclude Include="Source\Core\PhysicsEngine\PhysicsEngine.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h" />
     <ClInclude Include="Source\Core\Renderer\Primitives\Line.h" />
-    <ClInclude Include="Source\Core\Renderer\renderable.h" />
+    <ClInclude Include="Source\Core\Renderer\Primitives\primitive.h" />
+    <ClInclude Include="Source\Core\Renderer\Primitives\vertex_array.h" />
     <ClInclude Include="Source\Core\Renderer\RenderContext.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h" />
     <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h" />
     <ClInclude Include="Source\Core\Renderer\Texture\Texture.h" />
     <ClInclude Include="Source\Core\Renderer\Texture\Texture2D.h" />
     <ClInclude Include="Source\Core\Renderer\Texture\Texture3D.h" />
-    <ClInclude Include="Source\Core\Renderer\VertexArray.h" />
     <ClInclude Include="Source\Core\Scene\Camera3D.h" />
     <ClInclude Include="Source\Core\Scene\Collider.h" />
     <ClInclude Include="Source\Core\Scene\DebugPrimitives\Cube3D.h" />
@@ -228,6 +305,7 @@
     <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
     <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.h" />
     <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.h" />
+    <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.h" />
     <ClInclude Include="Source\Core\Scene\Modifiers\modifier.h" />
     <ClInclude Include="Source\Core\Scene\Object3D.h" />
     <ClInclude Include="Source\Core\Scene\RayCast.h" />
@@ -267,6 +345,7 @@
     <ClInclude Include="Source\External\imgui\imstb_rectpack.h" />
     <ClInclude Include="Source\External\imgui\imstb_textedit.h" />
     <ClInclude Include="Source\External\imgui\imstb_truetype.h" />
+    <ClInclude Include="Source\Util\angle_utils.h" />
     <ClInclude Include="Source\Util\AssetLoader.h" />
     <ClInclude Include="Source\Util\BoundingBoxHelper.h" />
     <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
