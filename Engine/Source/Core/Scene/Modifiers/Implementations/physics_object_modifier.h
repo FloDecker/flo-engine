@@ -29,5 +29,6 @@ private:
 	glm::vec3 force_ = glm::vec3(0, 0, 0);
 	glm::vec3 acceleration_ = glm::vec3(0, 0, 0);
 	glm::vec3 velocity_ = glm::vec3(0, 0, 0);
+	PhysicsEngine *physics_engine_;
 };
 

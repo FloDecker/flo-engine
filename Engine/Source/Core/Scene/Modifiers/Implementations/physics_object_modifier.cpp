@@ -4,7 +4,7 @@
 
 physics_object_modifier::physics_object_modifier(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine) : modifier(parent_game_object_3d)
 {
-	physics_engine->register_physics_object(this);
+	physics_engine_ = physics_engine;
 }
 
 void physics_object_modifier::calculate_forces()

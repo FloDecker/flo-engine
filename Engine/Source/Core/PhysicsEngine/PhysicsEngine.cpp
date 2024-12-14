@@ -7,9 +7,9 @@
 
 void PhysicsEngine::evaluate_physics_step(double delta_t)
 {
+	//calculate spring forces
 	for (auto spring : springs_)
 	{
-		//calculate spring forces
 		auto pos_1 = spring->point_1->get_parent()->getWorldPosition();
 		auto pos_2 = spring->point_2->get_parent()->getWorldPosition();
 		auto l = glm::distance(pos_1,pos_2);
@@ -19,23 +19,28 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 		spring->point_2->add_force(-force_direction*f);
 		
 	}
-	for (auto physics_object : physics_objects_)
+
+	//evaluate rigid body
+	
+
+	//evaluate mass spring system
+	for (auto mass_spring : mass_spring_objects_)
 	{
-		if (!physics_object->is_fixed)
+		if (!mass_spring->is_fixed)
 		{
-			physics_object->calculate_forces();
-			physics_object->calculate_acceleration();
-			physics_object->integrate_velocity(this->integrator_euler, delta_t);
-			physics_object->integrate_position(this->integrator_euler, delta_t);
-			physics_object->clear_force();
+			mass_spring->calculate_forces();
+			mass_spring->calculate_acceleration();
+			mass_spring->integrate_velocity(this->integrator_euler, delta_t);
+			mass_spring->integrate_position(this->integrator_euler, delta_t);
+			mass_spring->clear_force();
 		}
-		
 	}
+	
 }
 
-void PhysicsEngine::register_physics_object(physics_object_modifier* object)
+void PhysicsEngine::register_mass_spring_object(physics_object_modifier* object)
 {
-	physics_objects_.push_back(object);
+	mass_spring_objects_.push_back(object);
 }
 
 bool PhysicsEngine::add_spring(mass_spring_point* point_1, mass_spring_point* point_2, float stiffness)
