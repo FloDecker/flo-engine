@@ -2,6 +2,7 @@
 // Created by flode on 28/02/2023.
 //
 #include "vertex_array.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "gtx/string_cast.hpp"
 
 

@@ -1,7 +1,7 @@
 ﻿#include "Line.h"
 
 #include <iostream>
-#include <vec3.hpp>
+#include <glm.hpp>
 #include <GL/glew.h>
 
 bool Line::loaded = false;

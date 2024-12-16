@@ -1,3 +1,5 @@
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <iostream>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
@@ -30,7 +32,6 @@
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
-
 
 
 //low level input callbacks
@@ -428,10 +429,22 @@ int main()
     engine_handler_arrow_model->initializeVertexArrays();
 
     auto handlertest = new Mesh3D(scene->get_root(),engine_handler_arrow_model);
-    handlertest->setPositionLocal(0,0,0);
+    handlertest->setPositionLocal(20,0,0);
     handlertest->setRotationLocalDegrees(0,0,0);
     handlertest->name = "handlertest";
     handlertest->materials.push_back(normal_debug_shader);
+    
+    auto handlertest_2 = new Mesh3D(scene->get_root(),engine_handler_arrow_model);
+    handlertest_2->setPositionLocal(15,0,0);
+    handlertest_2->setRotationLocalDegrees(0,0,0);
+    handlertest_2->name = "handlertest_2";
+    handlertest_2->materials.push_back(normal_debug_shader);
+
+    auto handlertest_3 = new Mesh3D(scene->get_root(),engine_handler_arrow_model);
+    handlertest_3->setPositionLocal(10,0,0);
+    handlertest_3->setRotationLocalDegrees(0,0,0);
+    handlertest_3->name = "handlertest_2";
+    handlertest_3->materials.push_back(normal_debug_shader);
 
     //TODO: this call should be automatically called when changing the scene
     scene->recalculate_from_root();
@@ -466,6 +479,12 @@ int main()
 
         //run physics step
         physics_engine->evaluate_physics_step(editorRenderContext->deltaTime);
+
+        //TEST:
+        auto rot = glfwGetTime()*10;
+        //handlertest->setRotationLocalDegrees({rot,0,0});
+        //handlertest_2->setRotationLocalDegrees({0,rot,0});
+        //handlertest_3->setRotationLocalDegrees({0,0,rot});
         
         editor3DCamera->calculateView();
         

@@ -10,8 +10,10 @@ private:
 	Mesh *mesh_;
 
 	glm::vec3 center_of_mass_object_space_;
-	glm::mat3 inertia_tensor_object_space_;
 	glm::mat3 inverse_inertia_tensor_object_space_;
+	glm::vec3 inverse_inertia_tensor_world_space_;
+
+	void update_inverse_inertia_tensor_world_space();
 	
 public:
 	rigid_body(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine, Mesh *mesh)
@@ -19,11 +21,12 @@ public:
 	{
 		mesh_ = mesh;
 		center_of_mass_object_space_ = mesh_->get_center_of_mass();
-		inertia_tensor_object_space_ = mesh_->get_inertia_tensor();
-		inverse_inertia_tensor_object_space_ = glm::inverse(inertia_tensor_object_space_);
+		inverse_inertia_tensor_object_space_ = glm::inverse(mesh_->get_inertia_tensor());
 	}
-
+	
 	void calculate_forces() override;
 	void draw_gui() override;
 	~rigid_body() override;
+
+	
 };

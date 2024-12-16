@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <vec3.hpp>
 #include <vector>
 
 #include "../Texture/Texture.h"

@@ -4,8 +4,7 @@
 
 #include "ShaderProgram.h"
 
-#include <vec2.hpp>
-#include <vec3.hpp>
+#include <glm.hpp>
 #include <gtc/type_ptr.hpp>
 
 #include "ShaderHeaders.h"

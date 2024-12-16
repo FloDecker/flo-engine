@@ -2,6 +2,7 @@
 #include "Object3D.h"
 
 #include "imgui.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "gtx/string_cast.hpp"
 #include "Scene.h"
 
@@ -79,16 +80,13 @@ glm::vec3 Object3D::getWorldPosition()
 
 glm::vec3 Object3D::getLocalRotation()
 {
-    auto print_me = angle_utils::normalize_angles_vec3(glm::eulerAngles(normalize(rotation_quat_)));
-    //return angle_utils::normalize_angles_vec3(a);
-    //glm::axis(rotation_quat_);
-    //auto print_me = glm::vec3 {a.x, a.y, a.z};
-    if (abs(rotation_.x) > 0.0001 ||  abs(rotation_.y) > 0.0001 || abs(rotation_.z) > 0.0001)
-    {
-            printf("rotation: [%f, %f , %f] ,  quaternion: [%f, %f , %f] \n", rotation_.x,rotation_.y,rotation_.z , print_me.x,print_me.y, print_me.z);
-    }
+
+    //auto a = glm::eulerAngles(rotation_quat_);
+    //return glm::vec3(glm::pitch(rotation_quat_), glm::yaw(rotation_quat_), glm::roll(rotation_quat_));
+    //return a;
     return rotation_;
 }
+
 
 glm::vec3 Object3D::getLocalRotationDegrees()
 {
@@ -110,6 +108,11 @@ glm::vec3 Object3D::getRightVector()
 glm::vec3 Object3D::get_scale()
 {
     return scale_;
+}
+
+glm::quat Object3D::get_quaternion_rotation() const
+{
+    return rotation_quat_;
 }
 
 std::vector<Object3D*>& Object3D::get_children()
@@ -156,7 +159,7 @@ void Object3D::move_local(glm::vec3 movement_vector)
 void Object3D::setPositionLocal(glm::vec3 pos)
 {
     position_ = pos;
-    recalculateTransform();
+    recalculate_local_transform();
 }
 
 void Object3D::setRotationLocal(float x, float y, float z)
@@ -176,6 +179,7 @@ void Object3D::setRotationLocalDegrees(float x, float y, float z)
 
 void Object3D::setRotationLocal(glm::vec3 rotation)
 {
+    rotation.x = glm::clamp(rotation.x, -glm::pi<float>()/2.0f, glm::pi<float>()/2.0f);
     // Y
     auto q_y = angle_utils::vector_rotation_to_quat(vec_y, rotation.y);
     // X
@@ -183,10 +187,12 @@ void Object3D::setRotationLocal(glm::vec3 rotation)
     // Z
     auto q_z = angle_utils::vector_rotation_to_quat(vec_z, rotation.z);
     
-   // this->rotation_quat_ = q_z * q_y * q_x;
-    this->rotation_quat_ = glm::quat(rotation);
-    rotation_ = rotation;
-    recalculateTransform();
+    this->rotation_ = rotation;
+    this->rotation_quat_ = q_z * q_y * q_x;
+    auto a = getLocalRotation();
+    //printf("[%f %f %f] -> [%f %f %f]\n", rotation.x, rotation.y, rotation.z, a.x, a.y, a.z);
+
+    recalculate_local_transform();
 }
 
 void Object3D::setScale(float scale)
@@ -202,7 +208,7 @@ void Object3D::setScale(float x, float y, float z)
 void Object3D::setScale(glm::vec3 scale)
 {
     scale_ = scale;
-    recalculateTransform();
+    recalculate_local_transform();
 }
 
 void Object3D::set_position_global(const glm::vec3& pos)
@@ -231,10 +237,6 @@ void Object3D::move_global(const glm::vec3& movement_vector)
     move_local(transform_inverse * glm::vec4(movement_vector, 0));
 }
 
-void Object3D::recalculate_global_transform()
-{
-    this->recalculateTransform();
-}
 
 void Object3D::add_modifier(modifier* modifier)
 {
@@ -255,7 +257,7 @@ glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_l
 }
 
 
-void Object3D::recalculateTransform()
+void Object3D::recalculate_local_transform()
 {
     transformLocal = glm::mat4(1.0f);
 
@@ -271,18 +273,20 @@ void Object3D::recalculateTransform()
     //transformLocal = glm::rotate(transformLocal, rotation_.z, vec_z);
 
     transformLocal = transformLocal * glm::toMat4(rotation_quat_);
-    this->recalculateTransformGlobal();
+    this->recalculate_global_transform();
 }
 
-void Object3D::recalculateTransformGlobal()
+void Object3D::recalculate_global_transform()
 {
     this->transformGlobal = (parent) ? parent->transformGlobal * this->transformLocal : this->transformLocal;
     this->global_transform_inverse_ = glm::inverse(this->transformGlobal);
     for (auto child : this->children)
     {
-        child->recalculateTransformGlobal();
+        child->recalculate_global_transform();
     }
 }
+
+
 
 //tags
 

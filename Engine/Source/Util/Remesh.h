@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <vec3.hpp>
+#include <glm.hpp>
 
 #include "../Core/Renderer/Primitives/vertex_array.h"
 

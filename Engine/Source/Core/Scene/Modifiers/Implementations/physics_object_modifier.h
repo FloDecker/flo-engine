@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <vec3.hpp>
+#include <glm.hpp>
 
 #include "../modifier.h"
 #include "../../../PhysicsEngine/IntegrationMethods/Integrator.h"

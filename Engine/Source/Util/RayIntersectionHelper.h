@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <vec3.hpp>
+#include <glm.hpp>
 #include <vec4.hpp>
 
 #include "../Core/CommonDataStructures/StructBoundingBox.h"

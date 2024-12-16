@@ -4,9 +4,6 @@
 
 #ifndef ENGINE_RENDERABLE_H
 #define ENGINE_RENDERABLE_H
-#include <mat3x3.hpp>
-#include <vec3.hpp>
-#include <ext/matrix_transform.hpp>
 
 class primitive {
 private:

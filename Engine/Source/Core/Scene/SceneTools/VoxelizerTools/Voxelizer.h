@@ -1,11 +1,10 @@
 ﻿#pragma once
-#include <vec2.hpp>
 #include <vector>
 
 #include "AbstractVoxelizer.h"
 #include "../../Object3D.h"
 #include "../../Scene.h"
-#include <vec3.hpp>
+#include <glm.hpp>
 #include "../../RayCast.h"
 #include "../../../Scene/DebugPrimitives/Cube3D.h"
 

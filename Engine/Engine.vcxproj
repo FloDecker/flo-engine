@@ -80,7 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\nanogui\ext\eigen;$(SolutionDir)Dependencies\nanogui\ext\nanovg\src;$(SolutionDir)Dependencies\nanogui\include;$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\GLEW\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\assimp\include;$(SolutionDir)\Dependencies\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\nanogui\ext\eigen;$(SolutionDir)Dependencies\nanogui\ext\nanovg\src;$(SolutionDir)Dependencies\nanogui\include;$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\GLEW\include;$(SolutionDir)Dependencies\glm\glm;$(SolutionDir)Dependencies\assimp\include;$(SolutionDir)\Dependencies\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -97,7 +97,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\GLEW\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\assimp\include;$(SolutionDir)\Dependencies\nanogui\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)\Dependencies\nanogui\ext\eigen;$(SolutionDir)Dependencies\nanogui\ext\nanovg\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\GLEW\include;$(SolutionDir)Dependencies\glm\glm;$(SolutionDir)Dependencies\assimp\include;$(SolutionDir)\Dependencies\nanogui\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)\Dependencies\nanogui\ext\eigen;$(SolutionDir)Dependencies\nanogui\ext\nanovg\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -116,7 +116,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW64\include;$(SolutionDir)Dependencies\GLEW64\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\assimp64\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)Engine\Source\External\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW64\include;$(SolutionDir)Dependencies\GLEW64\include;$(SolutionDir)Dependencies\glm\glm;$(SolutionDir)Dependencies\assimp64\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)Engine\Source\External\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,7 +136,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\GLEW\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\assimp\include;$(SolutionDir)\Dependencies\nanogui\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)\Dependencies\nanogui\ext\eigen;$(SolutionDir)Dependencies\nanogui\ext\nanovg\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\GLEW\include;$(SolutionDir)Dependencies\glm\glm;$(SolutionDir)Dependencies\assimp\include;$(SolutionDir)\Dependencies\nanogui\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)\Dependencies\nanogui\ext\eigen;$(SolutionDir)Dependencies\nanogui\ext\nanovg\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
@@ -233,7 +233,7 @@
       <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Code\Engine\Dependencies\GLFW64\include;D:\Code\Engine\Dependencies\GLEW64\include;D:\Code\Engine\Dependencies\glm;D:\Code\Engine\Dependencies\assimp64\include;D:\Code\Engine\\Dependencies\stb_image;D:\Code\Engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Code\Engine\Dependencies\GLFW64\include;D:\Code\Engine\Dependencies\GLEW64\include;D:\Code\Engine\Dependencies\glm\glm;D:\Code\Engine\Dependencies\assimp64\include;D:\Code\Engine\\Dependencies\stb_image;D:\Code\Engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Source\Core\Renderer\RenderContext.cpp" />

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <vec3.hpp>
+#include <glm.hpp>
 #include <vector>
 
 #include "physics_object_modifier.h"

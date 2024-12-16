@@ -9,6 +9,8 @@
 #include "../Editor/GlobalContext.h"
 #include "../Renderer/RenderContext.h"
 #include "Modifiers/modifier.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
 #include <gtx/quaternion.hpp>
 #include "../../Util/angle_utils.h"
 
@@ -46,10 +48,11 @@ private:
 
     
     int draw_(struct RenderContext* parentRenderContext);
-    void recalculateTransform(); //should be called after changing location / scale / rotation
-    void recalculateTransformGlobal();
+    void recalculate_local_transform(); //should be called after changing location / scale / rotation
+    void recalculate_global_transform(); //called after recalculating local transform and calls child transform recalculation
 
-    
+    glm::vec3 transform_angles_engine_to_quat(glm::vec3 angles);
+    glm::vec3 transform_angles_glm_to_engine(glm::vec3 angles);
 
 public:
     Object3D(Object3D* parent);
@@ -86,7 +89,6 @@ public:
     void set_position_global(float x, float y, float z);
     void move_global(const glm::vec3& pos);
     void move_global(float x, float y, float z);
-    void recalculate_global_transform();
 
     //Modifiers
     void add_modifier(modifier* modifier);
@@ -103,6 +105,7 @@ public:
     glm::mat4 getGlobalTransformInverse();
     glm::vec3 getWorldPosition();
     glm::vec3 getLocalRotation();
+    glm::mat3 getWorldRotation();
     glm::vec3 getLocalRotationDegrees();
 
     glm::vec3 getForwardVector();
@@ -110,6 +113,8 @@ public:
     glm::vec3 getRightVector(); //TODO
 
     glm::vec3 get_scale();
+
+    glm::quat get_quaternion_rotation() const;
 
     ////////////
     void addChild(Object3D* child);
