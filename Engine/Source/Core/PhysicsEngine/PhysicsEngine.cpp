@@ -21,6 +21,14 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 	}
 
 	//evaluate rigid body
+	for (auto rigid_body : rigid_bodies_)
+	{
+		if (!rigid_body->is_fixed)
+		{
+			rigid_body->step(delta_t);
+			rigid_body->clear_force();
+		}
+	}
 	
 
 	//evaluate mass spring system
@@ -59,4 +67,9 @@ bool PhysicsEngine::add_spring(mass_spring_point* point_1, mass_spring_point* po
 	const auto new_spring = new spring(point_1, point_2, stiffness, distance);
 	springs_.push_back(new_spring);
 	return true;
+}
+
+void PhysicsEngine::register_rigid_body(rigid_body* rigid_body)
+{
+	this->rigid_bodies_.push_back(rigid_body);
 }

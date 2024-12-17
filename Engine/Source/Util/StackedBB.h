@@ -1,12 +1,14 @@
 ﻿#pragma once
 #include <chrono>
 #include <iostream>
-#include "../Core/Scene/Collider.h"
-
+#include "../Core/CommonDataStructures/StructBoundingBox.h"
 //ray trace acceleration structures
 
 //if child_0 = -1 -> child_1 indicates the position of the found collider in the sceneColliders array
 
+
+class Object3D;
+class Collider;
 
 struct kdTreeElement
 {

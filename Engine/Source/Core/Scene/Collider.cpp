@@ -2,15 +2,36 @@
 
 #include <gtx/string_cast.hpp>
 
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+
 
 Collider::Collider(Object3D *parent): Object3D(parent)
 {
     
 }
 
-void Collider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length,
-                               bool ignore_back_face,
-                               RayCastHit* ray_cast_hit)
+void Collider::check_collision_ws(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length,
+    bool ignore_back_face, RayCastHit* ray_cast_hit)
+{
+    auto global_inverse = glm::inverse(this->transformGlobal);
+    glm::vec4 ray_cast_origin_vec4_local = global_inverse * glm::vec4(ray_origin_ws, 1);
+    glm::vec3 ray_cast_origin_vec3_local = glm::vec3(ray_cast_origin_vec4_local);
+
+    glm::vec4 ray_cast_direction_vec4_local = global_inverse * glm::vec4(ray_direction_ws, 0);
+    glm::vec3 ray_cast_direction_vec3_local = glm::vec3(ray_cast_direction_vec4_local);
+    check_collision_ls(ray_cast_origin_vec3_local, ray_cast_direction_vec3_local, ray_length, ignore_back_face, ray_cast_hit);
+}
+
+void Collider::check_collision_ls(glm::vec3 ray_origin_ls, glm::vec3 ray_direction_ls, float ray_length,
+                                  bool ignore_back_face,
+                                  RayCastHit* ray_cast_hit)
 {
 }
 
@@ -28,6 +49,32 @@ int Collider::get_collider_type()
     return -1;
 }
 
+glm::vec3 Collider::get_center_of_mass()
+{
+    if (!center_of_mass_calculated_internal_)
+    {
+        center_of_mass_internal_ = calculate_center_of_mass_internal();
+        center_of_mass_calculated_internal_ = true;
+    }
+    return center_of_mass_internal_;
+}
+
+glm::mat3 Collider::get_inertia_tensor()
+{
+    if (!inertia_tensor_calculated_internal_)
+    {
+        inertia_tensor_internal_ = calculate_inertia_tensor_internal();
+        inertia_tensor_calculated_internal_ = true;
+    }
+    return inertia_tensor_internal_;
+}
+
+glm::vec3 Collider::calculate_center_of_mass_internal()
+{
+    return glm::vec3();
+}
+
+
 void Collider::visualize_collider()
 {
 }
@@ -41,6 +88,11 @@ int Collider::drawSelf()
     return 1;
 }
 
+
+glm::mat3 Collider::calculate_inertia_tensor_internal()
+{
+    return glm::mat3();
+}
 
 //Mesh Collider
 MeshCollider::MeshCollider(Object3D *parent,
@@ -63,17 +115,11 @@ std::vector<struct_vertex_array*>* MeshCollider::get_vertex_arrays()
     return &vertex_arrays_;
 }
 
-void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, float ray_length,
-                                   bool ignore_back_face,
-                                   RayCastHit* ray_cast_hit)
+void MeshCollider::check_collision_ls(glm::vec3 ray_origin_ls, glm::vec3 ray_direction_ls, float ray_length,
+                                      bool ignore_back_face,
+                                      RayCastHit* ray_cast_hit)
 {
-    auto global_inverse = glm::inverse(this->transformGlobal);
-    glm::vec4 ray_cast_origin_vec4_local = global_inverse * glm::vec4(ray_origin_ws, 1);
-    glm::vec3 ray_cast_origin_vec3_local = glm::vec3(ray_cast_origin_vec4_local);
     std::vector<struct_vertex_array*>* vertex_arrays_of_geometry = this->get_vertex_arrays();
-
-    glm::vec4 ray_cast_direction_vec4_local = global_inverse * glm::vec4(ray_direction_ws, 0);
-    glm::vec3 ray_cast_direction_vec3_local = glm::vec3(ray_cast_direction_vec4_local);
     for (unsigned int a = 0; a < vertex_arrays_of_geometry->size(); a++)
     {
         struct_vertex_array* vertex_array = vertex_arrays_of_geometry->at(a);
@@ -86,14 +132,14 @@ void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direct
 
             glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
 
-            if (ignore_back_face && glm::dot(face_normal, ray_cast_direction_vec3_local) > 0) continue;
+            if (ignore_back_face && glm::dot(face_normal, ray_direction_ls) > 0) continue;
 
             float d = -glm::dot(face_normal, v0.position);
             float t =
-                -((glm::dot(face_normal, ray_cast_origin_vec3_local) + d) /
-                    glm::dot(face_normal, ray_cast_direction_vec3_local));
+                -((glm::dot(face_normal, ray_origin_ls) + d) /
+                    glm::dot(face_normal, ray_direction_ls));
 
-            glm::vec3 hit_point = ray_cast_origin_vec3_local + t * ray_cast_direction_vec3_local;
+            glm::vec3 hit_point = ray_origin_ls + t * ray_direction_ls;
             auto c = glm::vec3();
 
             //if (!is_point_in_triangle(v0.position,v1.position,v2.position,hit_point)) continue;
@@ -118,7 +164,7 @@ void MeshCollider::check_collision(glm::vec3 ray_origin_ws, glm::vec3 ray_direct
             if (glm::dot(face_normal, c) < 0) continue; // P is on the right side
 
             auto hit_ws = glm::vec3(this->getGlobalTransform() * glm::vec4(hit_point, 1));
-            auto distance = glm::distance(hit_ws, ray_origin_ws);
+            auto distance = glm::distance(hit_ws, ray_origin_ls);
             // This ray hits the triangle
             if (ray_cast_hit->distance_from_origin > distance)
             {
@@ -279,4 +325,39 @@ void MeshCollider::calculate_world_space_bounding_box()
             &bounding_box,&temp_bb
             );
     }
+}
+
+glm::vec3 MeshCollider::calculate_center_of_mass_internal()
+{
+    auto center_of_mass = glm::vec3(0, 0, 0);
+    int vertices = 0;
+    for (unsigned int i = 0; i < vertex_arrays_.size(); i++)
+    {
+        auto vertex_array = this->vertex_arrays_.at(i);
+        vertices+=vertex_array->vertices->size();
+        for (unsigned int j = 0; j < vertex_array->vertices->size(); j++)
+        {
+            vertex v = vertex_array->vertices->at(j);
+            center_of_mass += v.position;
+        }
+    }
+    return center_of_mass / static_cast<float>(vertices);
+
+}
+
+glm::mat3 MeshCollider::calculate_inertia_tensor_internal()
+{
+    auto inertia_tensor = glm::mat3(0);
+    auto center_of_mass = get_center_of_mass();
+    for (unsigned int i = 0; i < vertex_arrays_.size(); i++)
+    {
+        auto vertex_array = this->vertex_arrays_.at(i);
+        for (unsigned int j = 0; j < vertex_array->vertices->size(); j++)
+        {
+            vertex v = vertex_array->vertices->at(j);
+            auto vec_to_point = v.position - center_of_mass;
+            inertia_tensor += glm::outerProduct(vec_to_point, vec_to_point);
+        }
+    }
+    return inertia_tensor;
 }

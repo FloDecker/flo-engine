@@ -70,6 +70,14 @@ glm::mat4 Object3D::getGlobalTransformInverse()
     return global_transform_inverse_;
 }
 
+glm::mat3 Object3D::get_global_rotation_matrix() const
+{
+    auto m_rot = glm::mat3(transformLocal);
+    m_rot[0] = glm::normalize(m_rot[0]);
+    m_rot[1] = glm::normalize(m_rot[1]);
+    m_rot[2] = glm::normalize(m_rot[2]);
+    return m_rot;
+}
 
 
 glm::vec3 Object3D::getWorldPosition()
@@ -167,6 +175,12 @@ void Object3D::setRotationLocal(float x, float y, float z)
     setRotationLocal(glm::vec3(x, y, z));
 }
 
+void Object3D::setRotationLocal(glm::quat quat)
+{
+    this->rotation_quat_ = glm::normalize(quat);
+    recalculate_local_transform();
+}
+
 void Object3D::setRotationLocalDegrees(glm::vec3 rotation)
 {
     setRotationLocal(glm::radians(rotation));
@@ -188,8 +202,7 @@ void Object3D::setRotationLocal(glm::vec3 rotation)
     auto q_z = angle_utils::vector_rotation_to_quat(vec_z, rotation.z);
     
     this->rotation_ = rotation;
-    this->rotation_quat_ = q_z * q_y * q_x;
-    auto a = getLocalRotation();
+    this->rotation_quat_ = glm::quat(rotation);//q_z * q_y * q_x;
     //printf("[%f %f %f] -> [%f %f %f]\n", rotation.x, rotation.y, rotation.z, a.x, a.y, a.z);
 
     recalculate_local_transform();

@@ -38,7 +38,7 @@ void RayCast::recurse_scene_model_ray_cast(RayCastHit* ray_cast_hit, std::string
     if (object->has_tag(*collision_tag) && object->visible)
     {
         auto mesh_collider = dynamic_cast<Collider*>(object);
-        mesh_collider->check_collision(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
+        mesh_collider->check_collision_ws(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
                                        ray_cast_hit);
     }
     if (ray_cast_hit->hit)

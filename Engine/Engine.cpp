@@ -27,6 +27,7 @@
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
+#include "Source/Core/Scene/Collider.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -261,10 +262,13 @@ int main()
     mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
 
     auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
-    mSphere3->name = "mInertiaTest";
+    mInertiaTest->name = "mInertiaTest";
 
-    
-    auto i = mInertiaTest->get_mesh()->get_inertia_tensor();
+    auto s = std::string("ENGINE_COLLIDER");
+    auto collider_test = dynamic_cast<MeshCollider*>(mInertiaTest->get_child_by_tag(&s));
+    auto rigid_body_mod = new rigid_body(mInertiaTest,physics_engine,collider_test);
+    mInertiaTest->add_modifier(rigid_body_mod);
+    auto i = collider_test->get_inertia_tensor();
     auto xx = (vec_x * i * vec_x);
     auto yy = (vec_y * i * vec_y);
     auto zz = (vec_z * i * vec_z);
@@ -318,8 +322,7 @@ int main()
     physics_engine->add_spring(spring4, spring1, 200.0);
     physics_engine->add_spring(spring3, spring1, 200.0);
     physics_engine->add_spring(spring2, spring4, 200.0);
-
-
+    
     
     {
 /*
@@ -455,6 +458,9 @@ int main()
     guiManager->addGUI(new SceneTree(scene));
     guiManager->addGUI(new ObjectInfo(scene));
 
+    
+    rigid_body_mod->apply_force_at_vertex(1,glm::vec3(100,0,0));
+
     //// ------ RENDER LOOP ------ ////
     while (!glfwWindowShouldClose(window))
     {
@@ -481,6 +487,7 @@ int main()
         physics_engine->evaluate_physics_step(editorRenderContext->deltaTime);
 
         //TEST:
+
         auto rot = glfwGetTime()*10;
         //handlertest->setRotationLocalDegrees({rot,0,0});
         //handlertest_2->setRotationLocalDegrees({0,rot,0});

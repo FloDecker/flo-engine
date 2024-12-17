@@ -9,6 +9,8 @@
 #include "../../Util/StackedBB.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
 
+class MeshCollider;
+
 class SceneRoot: public Object3D
 {
     public:

@@ -1,4 +1,5 @@
 ﻿#include "StackedBB.h"
+#include "../Core/Scene/Collider.h"
 
 StackedBB::StackedBB(std::vector<Collider*>* leafs)
 {

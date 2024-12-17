@@ -26,10 +26,6 @@ public:
     std::vector<ShaderProgram*> materials;
     void initializeVertexArrays() const;
     
-    glm::vec3 get_center_of_mass();
-    glm::mat3 get_inertia_tensor();
-    void run_mesh_calculations();
-
 };
 
 #endif //ENGINE_MESH_H

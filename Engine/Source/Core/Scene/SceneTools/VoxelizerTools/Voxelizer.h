@@ -7,6 +7,7 @@
 #include <glm.hpp>
 #include "../../RayCast.h"
 #include "../../../Scene/DebugPrimitives/Cube3D.h"
+#include "../../Collider.h"
 
 class Voxelizer : public AbstractVoxelizer
 {

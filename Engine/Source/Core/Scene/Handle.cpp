@@ -90,7 +90,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         glm::vec3(),
         glm::vec3()
     };
-    arrow_x_collider_->check_collision(camera_pos, ray_direction, 100000.0, true, &cast_hit);
+    arrow_x_collider_->check_collision_ws(camera_pos, ray_direction, 100000.0, true, &cast_hit);
     if (cast_hit.hit)
     {
         std::cout << "hitx";
@@ -98,7 +98,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
         return;
     }
 
-    arrow_y_collider_->check_collision(camera_pos, ray_direction, 100000.0, true, &cast_hit);
+    arrow_y_collider_->check_collision_ws(camera_pos, ray_direction, 100000.0, true, &cast_hit);
     if (cast_hit.hit)
     {
         std::cout << "hity";
@@ -107,7 +107,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
     }
 
 
-    arrow_z_collider_->check_collision(camera_pos, ray_direction, 100000.0, true, &cast_hit);
+    arrow_z_collider_->check_collision_ws(camera_pos, ray_direction, 100000.0, true, &cast_hit);
     if (cast_hit.hit)
     {
         std::cout << "hitz";

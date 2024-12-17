@@ -1,7 +1,7 @@
 ﻿#include "Scene.h"
 
 #include "Handle.h"
-
+#include "../Scene/Collider.h"
 
 SceneRoot::SceneRoot(GlobalContext * global_context, Scene *scene): Object3D()
 {

@@ -35,7 +35,7 @@ private:
     std::vector<modifier*> modifiers_; //modifiers of this game object
     //transforms
     glm::vec3 rotation_ = {0.0,0.0,0.0};
-    glm::quat rotation_quat_ = glm::quat();
+    glm::quat rotation_quat_ = glm::identity<glm::quat>();
     glm::vec3 position_ = {0.0,0.0,0.0};
     glm::vec3 scale_ = {1.0,1.0,1.0};
 
@@ -74,6 +74,7 @@ public:
     
     void setRotationLocal(glm::vec3 rotation);
     void setRotationLocal(float x, float y, float z);
+    void setRotationLocal(glm::quat quat);
 
     void setRotationLocalDegrees(glm::vec3 rotation);
     void setRotationLocalDegrees(float x, float y, float z);
@@ -103,6 +104,7 @@ public:
     //Getter
     glm::mat4 getGlobalTransform();
     glm::mat4 getGlobalTransformInverse();
+    glm::mat3 get_global_rotation_matrix() const;
     glm::vec3 getWorldPosition();
     glm::vec3 getLocalRotation();
     glm::mat3 getWorldRotation();

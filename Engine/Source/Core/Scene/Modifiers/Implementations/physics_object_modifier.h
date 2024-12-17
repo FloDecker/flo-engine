@@ -11,7 +11,7 @@ class physics_object_modifier: public modifier
 public:
 	physics_object_modifier(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);
 	virtual void calculate_forces();
-	void clear_force();
+	virtual void clear_force();
 	void add_force(glm::vec3 force);
 	void calculate_acceleration();
 	void integrate_velocity(integrator *integrator, float delta);
@@ -25,7 +25,7 @@ public:
 	bool is_fixed = false;
 	bool gravity_enabled = true;
 
-private:
+protected:
 	glm::vec3 force_ = glm::vec3(0, 0, 0);
 	glm::vec3 acceleration_ = glm::vec3(0, 0, 0);
 	glm::vec3 velocity_ = glm::vec3(0, 0, 0);
