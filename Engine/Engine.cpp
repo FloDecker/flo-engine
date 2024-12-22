@@ -67,7 +67,7 @@ Scene* scene = nullptr;
 GUIManager* guiManager = nullptr;
 
 //TEST: REMOVE ME
-static rigid_body *rigid_body_mod; 
+static rigid_body* rigid_body_mod;
 
 class Importer;
 
@@ -138,6 +138,11 @@ int main()
 	default_color_shader->loadFromFile("EngineContent/Shader/DebugColorChangable.glsl");
 	default_color_shader->compileShader();
 	global_context.default_color_debug_shader = default_color_shader;
+
+	global_context.debug_primitives = {
+		.cube = new Cube,
+		.line = new Line,
+	};
 
 
 	//Inti Scene Context
@@ -455,7 +460,7 @@ int main()
 	guiManager = new GUIManager();
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
-
+	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
 
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
@@ -602,18 +607,17 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 		}
 		else
 		{
-			
 			auto inverse_projection = inverse(*(camera3D->getRenderContext()->camera->getProjection()));
 			auto inverse_view = camera3D->getGlobalTransform();
-		
+
 			auto ray_target = inverse_projection * glm::vec4(mouseNormalized.x * 2 - 1, -mouseNormalized.y * 2 + 1, 1.0,
 			                                                 1.0);
 			ray_target.w = 0;
-		
+
 			auto ray_direction = inverse_view * normalize(ray_target);
 			auto ray_origin = camera3D->getWorldPosition();
-		
-		
+
+
 			if (mouseButtonsReleased[GLFW_MOUSE_BUTTON_LEFT])
 			{
 				if (scene->handle()->is_moving_coord())
@@ -651,7 +655,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 			else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_MIDDLE])
 			{
 				printf("middleclik");
-				rigid_body_mod->apply_force_ws(ray_direction, ray_origin,100);
+				rigid_body_mod->apply_force_ws(ray_direction, ray_origin, 100);
 			}
 		}
 	}

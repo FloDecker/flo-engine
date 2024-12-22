@@ -3,7 +3,7 @@
 #include "Handle.h"
 #include "../Scene/Collider.h"
 
-SceneRoot::SceneRoot(GlobalContext * global_context, Scene *scene): Object3D()
+SceneRoot::SceneRoot(GlobalContext* global_context, Scene* scene): Object3D()
 {
 	global_context_ = global_context;
 	this->scene_ = scene;
@@ -25,11 +25,12 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
 	engine_collider_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_COLLIDER");
 	scene_bb = new StackedBB(&sceneColliders);
-	scene_root_ = new SceneRoot(global_context,this);
+	scene_root_ = new SceneRoot(global_context, this);
 	scene_root_->name = name;
 	recalculate_from_root();
 	name_ = name;
 	handle_ = new Handle(this);
+	visual_debug_tools_ = new visual_debug_tools(this);
 }
 
 
@@ -63,11 +64,10 @@ void Scene::recalculate_from_root()
 
 void Scene::deselect()
 {
-	if (!_has_selected_object) {return;}
+	if (!_has_selected_object) { return; }
 	_has_selected_object = false;
 	this->selected_object = nullptr;
 	handle_->detach();
-    
 }
 
 void Scene::select_object(Object3D* object)
@@ -122,6 +122,11 @@ GlobalContext* Scene::get_global_context() const
 StackedBB* Scene::get_bb() const
 {
 	return scene_bb;
+}
+
+visual_debug_tools* Scene::get_debug_tools() const
+{
+	return visual_debug_tools_;
 }
 
 void Scene::draw_scene(RenderContext* render_context) const
@@ -179,9 +184,10 @@ std::vector<glm::vec3>* Scene::get_polygons_in_bounding_box(StructBoundingBox* b
 	return out;
 }
 
-std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* Scene::get_triangles_in_bounding_box(StructBoundingBox* bounding_box) const
+std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>* Scene::get_triangles_in_bounding_box(
+	StructBoundingBox* bounding_box) const
 {
-	auto out = new std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>;
+	auto out = new std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>;
 	std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box);
 	for (Collider* c : colliders_in_bb)
 	{
@@ -189,7 +195,7 @@ std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* Scene:
 		{
 			auto c_m = dynamic_cast<MeshCollider*>(c);
 			auto v_f_array = new std::vector<vertex_array_filter>;
-			for (int i = 0; i < c_m->get_vertex_arrays()->size();i++) //get vertices of mesh collider
+			for (int i = 0; i < c_m->get_vertex_arrays()->size(); i++) //get vertices of mesh collider
 			{
 				auto vertex_array = c_m->get_vertex_arrays()->at(i);
 				auto v_f = new vertex_array_filter;
@@ -209,16 +215,15 @@ std::vector<std::tuple<MeshCollider*,std::vector<vertex_array_filter>*>>* Scene:
 
 					//check if this vertex is in bounding box
 				}
-				if(!v_f->indices.empty())
+				if (!v_f->indices.empty())
 				{
 					v_f->vertex_array_id = i;
 					v_f_array->emplace_back(*v_f);
-					
 				}
 			}
-			if(!v_f_array->empty())
+			if (!v_f_array->empty())
 			{
-				auto temp = std::make_tuple(c_m,v_f_array);
+				auto temp = std::make_tuple(c_m, v_f_array);
 				out->emplace_back(temp);
 			}
 		}
