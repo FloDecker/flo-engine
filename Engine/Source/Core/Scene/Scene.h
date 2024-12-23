@@ -6,6 +6,7 @@
 #include "Object3D.h"
 #include "../Editor/GlobalContext.h"
 #include "Lighting/PointLight.h"
+#include "Lighting/direct_light.h"
 #include "../../Util/StackedBB.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
 #include "DebugPrimitives/visual_debug_tools.h"
@@ -19,12 +20,16 @@ public:
 	int draw_entry_point(RenderContext* render_context) const;
 };
 
+
+
+
 //scene context contains scene specific information
 class Scene
 {
 public:
 	Scene(GlobalContext* global_context, const std::string& name);
 	std::vector<PointLight*> get_scene_point_lights();
+	direct_light *get_scene_direct_light() const;
 	void recalculate_at(Object3D* parent);
 	void recalculate_from_root();
 	void calculateColliderBoundingBoxes();
@@ -33,7 +38,7 @@ public:
 	StackedBB* get_bb() const;
 	visual_debug_tools* get_debug_tools() const;
 	void draw_scene(RenderContext* render_context) const;
-
+	void light_pass() const;
 	void select_object(Object3D* object);
 	void deselect();
 
@@ -47,6 +52,9 @@ public:
 	Handle* handle() const;
 	Object3D* get_selected_object() const;
 	bool has_selected_object() const;
+
+	//register scene objects
+	void register_global_light(direct_light *direct_light);
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
@@ -69,4 +77,10 @@ private:
 	Handle* handle_;
 
 	visual_debug_tools* visual_debug_tools_;
+	bool has_direct_light_ = false;
+	direct_light *direct_light_ = nullptr;
+
+	RenderContext *light_pass_render_context_;
+
+
 };

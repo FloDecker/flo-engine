@@ -72,8 +72,8 @@ void rigid_body::step(float delta)
 	update_inverse_inertia_tensor_world_space();
 	update_angular_velocity();
 	
-	printf("velocity center of mass: %f at force: %f | angular momentum: %f,%f,%f \n" ,glm::length(velocity_center_of_mass_object_space_), glm::length(force_),
-		angular_momentum_.x,angular_momentum_.y,angular_momentum_.z);
+	//printf("velocity center of mass: %f at force: %f | angular momentum: %f,%f,%f \n" ,glm::length(velocity_center_of_mass_object_space_), glm::length(force_),
+		//angular_momentum_.x,angular_momentum_.y,angular_momentum_.z);
 	
 	auto r = parent->get_global_rotation_matrix();
 	parent->move_local(delta * velocity_center_of_mass_object_space_);

@@ -31,8 +31,16 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	name_ = name;
 	handle_ = new Handle(this);
 	visual_debug_tools_ = new visual_debug_tools(this);
+	
+	light_pass_render_context_ = new RenderContext();
+	light_pass_render_context_->pass = render_pass_lighting;
 }
 
+
+direct_light *Scene::get_scene_direct_light() const
+{
+	return direct_light_;
+}
 
 void Scene::recalculate_at(Object3D* parent)
 {
@@ -92,6 +100,17 @@ bool Scene::has_selected_object() const
 	return _has_selected_object;
 }
 
+void Scene::register_global_light(direct_light* direct_light)
+{
+	if (direct_light_ != nullptr)
+	{
+		std::cerr<<"Scene already has a direct light\n";
+		return;
+	}
+	has_direct_light_ = true;
+	direct_light_ = direct_light;
+}
+
 
 void Scene::calculateColliderBoundingBoxes()
 {
@@ -132,6 +151,17 @@ visual_debug_tools* Scene::get_debug_tools() const
 void Scene::draw_scene(RenderContext* render_context) const
 {
 	scene_root_->draw_entry_point(render_context);
+}
+
+void Scene::light_pass() const
+{
+	//direct light
+	if (has_direct_light_)
+	{
+		direct_light_->render_to_light_map();
+		light_pass_render_context_->light = direct_light_;
+		scene_root_->draw_entry_point(light_pass_render_context_);
+	}
 }
 
 std::vector<Collider*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const

@@ -14,6 +14,7 @@ private :
 
 protected:
     int drawSelf() override;
+    int draw_self_shadow_pass() override;
 
 public:
     explicit Mesh3D(Object3D* parent, Mesh* mesh);

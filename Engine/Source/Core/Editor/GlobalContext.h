@@ -34,4 +34,5 @@ struct GlobalContext
 
 	ShaderProgram* default_shader;
 	ShaderProgram* default_color_debug_shader;
+	ShaderProgram* light_pass_depth_only_shader;
 };

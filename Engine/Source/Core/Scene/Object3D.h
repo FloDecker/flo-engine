@@ -118,6 +118,8 @@ public:
 
 	glm::quat get_quaternion_rotation() const;
 
+	Scene * get_scene() const;
+
 	////////////
 	void addChild(Object3D* child);
 	Object3D* get_parent() const;
@@ -137,6 +139,8 @@ protected:
 	glm::vec3 upwardVectorLocal = glm::vec3(0, 1, 0);
 	glm::vec3 rightVectorLocal = glm::vec3(1, 0, 0);
 	virtual int drawSelf();
+	virtual int draw_self_shadow_pass();
+	virtual void on_transform_changed();
 
 	//FLAGS
 	bool IGNORE_IN_SCENE_TREE_VIEW = false;

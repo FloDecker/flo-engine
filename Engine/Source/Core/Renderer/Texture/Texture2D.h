@@ -8,16 +8,27 @@ class Texture2D: public Texture
 {
 private:
     unsigned int _texture;
-    bool _loaded = false;
+    bool initialized_ = false;
     std::string *_path;
+    void initialize_from_data(unsigned char *data);
 
     //dimentions
-    int _width = 0;
-    int _height = 0;
+    int width_ = 0;
+    int height_ = 0;
     int _channleAmount = 0;
 public:
-    void initialize(unsigned char *data);
+    void initialize_as_depth_map_render_target(unsigned int width,  unsigned int height );
     void use(unsigned int textureUnit) override;
-    unsigned int getTexture();
+    unsigned int get_texture() const;
     void loadFromDisk(std::string* path);
+
+    [[nodiscard]] int width() const
+    {
+        return width_;
+    }
+
+    [[nodiscard]] int height() const
+    {
+        return height_;
+    }
 };

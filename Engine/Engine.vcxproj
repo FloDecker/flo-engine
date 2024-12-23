@@ -159,6 +159,7 @@
         <ClCompile Include="Source\Core\GUI\SceneTree.cpp"/>
         <ClCompile Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.cpp"/>
         <ClCompile Include="Source\Core\PhysicsEngine\PhysicsEngine.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\framebuffer_object.cpp" />
         <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Primitives\vertex_array.cpp">
@@ -246,6 +247,8 @@
         <ClCompile Include="Source\Core\Scene\DebugPrimitives\Line3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\DebugPrimitives\visual_debug_tools.cpp"/>
         <ClCompile Include="Source\Core\Scene\Handle.cpp"/>
+        <ClCompile Include="Source\Core\Scene\Lighting\direct_light.cpp" />
+        <ClCompile Include="Source\Core\Scene\Lighting\light.cpp" />
         <ClCompile Include="Source\Core\Scene\Lighting\PointLight.cpp"/>
         <ClCompile Include="Source\Core\Scene\Mesh3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp"/>
@@ -288,6 +291,7 @@
         <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.h"/>
         <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\Integrator.h"/>
         <ClInclude Include="Source\Core\PhysicsEngine\PhysicsEngine.h"/>
+        <ClInclude Include="Source\Core\Renderer\framebuffer_object.h" />
         <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\Line.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\primitive.h"/>
@@ -304,6 +308,8 @@
         <ClInclude Include="Source\Core\Scene\DebugPrimitives\Line3D.h"/>
         <ClInclude Include="Source\Core\Scene\DebugPrimitives\visual_debug_tools.h"/>
         <ClInclude Include="Source\Core\Scene\Handle.h"/>
+        <ClInclude Include="Source\Core\Scene\Lighting\direct_light.h" />
+        <ClInclude Include="Source\Core\Scene\Lighting\light.h" />
         <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h"/>
         <ClInclude Include="Source\Core\Scene\Mesh3D.h"/>
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.h"/>
@@ -366,6 +372,7 @@
         <Content Include="EngineContent\cubeArray.fbx"/>
         <Content Include="EngineContent\Shader\DebugColorChangable.glsl"/>
         <Content Include="EngineContent\Shader\DefaultShader.glsl"/>
+        <Content Include="EngineContent\Shader\DepthOnlyLightpassShader.glsl" />
         <Content Include="EngineContent\Shader\HandlerBlue.glsl"/>
         <Content Include="EngineContent\Shader\HandlerGreen.glsl"/>
         <Content Include="EngineContent\Shader\HandlerRed.glsl"/>
@@ -374,6 +381,7 @@
         <Content Include="EngineContent\Shader\SkySphere.glsl"/>
         <Content Include="EngineContent\Shader\test.glsl"/>
         <Content Include="EngineContent\Shader\test2.glsl"/>
+        <Content Include="EngineContent\Shader\testVisualizeDepthMap.glsl" />
         <Content Include="EngineContent\Shader\TriangleVisualizer.glsl"/>
         <Content Include="EngineContent\Shader\VoxelGI.glsl"/>
         <Content Include="EngineContent\Shader\VoxelVisualizer.glsl"/>

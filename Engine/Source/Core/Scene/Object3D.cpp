@@ -23,7 +23,15 @@ int Object3D::draw_(struct RenderContext* parentRenderContext)
 	//set global  uniforms
 	renderContext = parentRenderContext;
 	if (!visible) return 0;
-	this->drawSelf();
+	if (parentRenderContext->pass == render_pass_lighting)
+	{
+		this->draw_self_shadow_pass();
+	}
+	else
+	{
+		this->drawSelf();
+	}
+	
 	for (auto& child : children)
 	{
 		child->draw_(parentRenderContext);
@@ -56,6 +64,15 @@ Object3D* Object3D::get_parent() const
 int Object3D::drawSelf()
 {
 	return 0;
+}
+
+int Object3D::draw_self_shadow_pass()
+{
+	return 0;
+}
+
+void Object3D::on_transform_changed()
+{
 }
 
 //getter
@@ -120,6 +137,11 @@ glm::vec3 Object3D::get_scale()
 glm::quat Object3D::get_quaternion_rotation() const
 {
 	return rotation_quat_;
+}
+
+Scene* Object3D::get_scene() const
+{
+	return scene_;
 }
 
 std::vector<Object3D*>& Object3D::get_children()
@@ -307,6 +329,7 @@ void Object3D::recalculate_global_transform()
 	{
 		child->recalculate_global_transform();
 	}
+	on_transform_changed();
 }
 
 

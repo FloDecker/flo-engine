@@ -51,6 +51,7 @@ public:
     void initTextureUnits();
     void addTexture(Texture *texture, const GLchar *samplerName);
     void addVoxelField(Texture3D *texture, const GLchar *samplerName);
+    bool include_default_shader_headers = true; //disable for engine internal shaders 
 
     //returns true if recompiles
     bool recompile_if_changed();

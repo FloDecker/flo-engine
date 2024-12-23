@@ -139,11 +139,16 @@ int main()
 	default_color_shader->compileShader();
 	global_context.default_color_debug_shader = default_color_shader;
 
+	auto light_pass_shader = new ShaderProgram();
+	light_pass_shader->include_default_shader_headers = false;
+	light_pass_shader->loadFromFile("EngineContent/Shader/DepthOnlyLightpassShader.glsl");
+	light_pass_shader->compileShader();
+	global_context.light_pass_depth_only_shader = light_pass_shader;
+	
 	global_context.debug_primitives = {
 		.cube = new Cube,
 		.line = new Line,
 	};
-
 
 	//Inti Scene Context
 	//scene root
@@ -455,6 +460,21 @@ int main()
 	//TODO: this call should be automatically called when changing the scene
 	scene->recalculate_from_root();
 
+	//ADD DIRECT LIGHT
+	auto direct_scene_light = new direct_light(scene->get_root(), 1024,1024);
+	direct_scene_light->intensity = 1000;
+
+
+	//depth map visualizer
+	auto* visualize_light_map = new ShaderProgram();
+	visualize_light_map->loadFromFile("EngineContent/Shader/testVisualizeDepthMap.glsl");
+	visualize_light_map->compileShader();
+	visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
+
+	auto visualizer_depth = new Mesh3D(scene->get_root(), plane);
+	visualizer_depth->materials.push_back(visualize_light_map);
+
+	
 	//WIDNOWS
 	//INTI GUI MANAGER
 	guiManager = new GUIManager();
@@ -468,9 +488,14 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		renderFrameStart = glfwGetTime();
+
+		//lightpass 
+		scene->light_pass(); 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, windowSize.x, windowSize.y);
+		
 		glfwPollEvents(); //input events
 		processInput(editor3DCamera, scene, window); //low level input processing
-
 
 		//IMGUI 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -492,9 +517,8 @@ int main()
 		//handlertest->setRotationLocalDegrees({rot,0,0});
 		//handlertest_2->setRotationLocalDegrees({0,rot,0});
 		//handlertest_3->setRotationLocalDegrees({0,0,rot});
-
+		
 		editor3DCamera->calculateView();
-
 		//draw scene elements
 		scene->draw_scene(editorRenderContext);
 
@@ -572,7 +596,6 @@ void window_changed_callback(GLFWwindow* window, int width, int height)
 	windowSize = {width, height};
 	//std::printf("window changed %i, %i", width, height);
 	change_window_size_dispatcher(glm::ivec2(width, height));
-	glViewport(0, 0, width, height);
 }
 
 #define CAMERA_SPEED 10 //TODO: make runtime changeable

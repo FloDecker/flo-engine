@@ -1,10 +1,9 @@
 ﻿#pragma once
-#include "../Object3D.h"
+#include "light.h"
 
-class PointLight: public Object3D
+class PointLight: public light
 {
 public:
     PointLight(Object3D *parent);
-    float intensity;
-    glm::vec3 color;
+
 };

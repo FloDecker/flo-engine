@@ -10,6 +10,8 @@
 #include "../../Engine/Source/External/eventpp/include/eventpp/eventqueue.h"
 //camera logic
 
+class light;
+
 class Camera
 {
 public:
@@ -40,17 +42,25 @@ private:
 	glm::mat4 projection;
 };
 
+enum render_pass
+{
+	render_pass_main,
+	render_pass_lighting,
+};
+
 struct RenderFlags
 {
-	bool visualize_hitboxes = false;
+	bool visualize_hitboxes = false; //TODO: not really a render flag
 };
 
 //holds the information needed to render the current frame 
 struct RenderContext
 {
-	Camera *camera;
+	Camera *camera = nullptr;
+	light *light = nullptr;
 	double deltaTime = 0;
 	RenderFlags flags;
+	render_pass pass = render_pass_main;
 };
 
 struct RenderWindow
