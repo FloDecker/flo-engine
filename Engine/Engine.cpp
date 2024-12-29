@@ -140,7 +140,7 @@ int main()
 	global_context.default_color_debug_shader = default_color_shader;
 
 	auto light_pass_shader = new ShaderProgram();
-	light_pass_shader->include_default_shader_headers = false;
+	light_pass_shader->set_shader_header_include(DEFAULT_HEADERS, false);
 	light_pass_shader->loadFromFile("EngineContent/Shader/DepthOnlyLightpassShader.glsl");
 	light_pass_shader->compileShader();
 	global_context.light_pass_depth_only_shader = light_pass_shader;
@@ -234,6 +234,7 @@ int main()
 
 	auto* lightTestMaterial = new ShaderProgram();
 	lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
+	lightTestMaterial->set_shader_header_include(DYNAMIC_DIRECTIONAL_LIGHT,true);
 	lightTestMaterial->compileShader();
 
 
@@ -462,7 +463,7 @@ int main()
 
 	//ADD DIRECT LIGHT
 	auto direct_scene_light = new direct_light(scene->get_root(), 1024,1024);
-	direct_scene_light->intensity = 1000;
+	direct_scene_light->intensity = 1;
 
 
 	//depth map visualizer
@@ -481,14 +482,14 @@ int main()
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
 	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
-
+	
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
-
+	
 	//// ------ RENDER LOOP ------ ////
 	while (!glfwWindowShouldClose(window))
 	{
 		renderFrameStart = glfwGetTime();
-
+	
 		//lightpass 
 		scene->light_pass(); 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -512,7 +513,7 @@ int main()
 		physics_engine->evaluate_physics_step(editorRenderContext->deltaTime);
 
 		//TEST:
-
+		lightTestMaterial->recompile_if_changed();
 		auto rot = glfwGetTime() * 10;
 		//handlertest->setRotationLocalDegrees({rot,0,0});
 		//handlertest_2->setRotationLocalDegrees({0,rot,0});

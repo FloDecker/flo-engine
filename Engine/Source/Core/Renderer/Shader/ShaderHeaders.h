@@ -1,17 +1,31 @@
 ﻿#pragma once
+#include <format>
+
+const char* name_direct_light_texture_sampler = "direct_light_texture_sampler";
+const char* name_direct_light_direction = "direct_light_direction";
+const char* name_direct_light_intensity = "direct_light_intensity";
+const char* name_direct_light_color = "direct_light_color";
+
 
 //header for standard vertex shader
 const char* VERTEX_SHADER_HEADER_BASE =
-"#version 330 core \n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec3 aNormal;\n"
-"layout (location = 2) in vec2 aUV;\n"
-"uniform mat4 mMatrix;\n"
-"uniform mat4 vMatrix;\n"
-"uniform mat4 pMatrix;\n"
-"uniform vec3 cameraPosWS;\n";
+	"#version 330 core \n"
+	"layout (location = 0) in vec3 aPos;\n"
+	"layout (location = 1) in vec3 aNormal;\n"
+	"layout (location = 2) in vec2 aUV;\n"
+	"uniform mat4 mMatrix;\n"
+	"uniform mat4 vMatrix;\n"
+	"uniform mat4 pMatrix;\n"
+	"uniform vec3 cameraPosWS;\n";
 
 //header for standard fragment shader
 const char* FRAGMENT_SHADER_HEADER_BASE =
-"#version 330 core\n"
-"out vec4 FragColor;\n";
+	"#version 330 core\n"
+	"out vec4 FragColor;\n";
+
+//header for direct light fragment shader
+const char* FRAGMENT_SHADER_HEADER_DIRECT_LIGHT =
+	"#define DIRECT_LIGHT\n"
+	"uniform vec3 direct_light_direction;\n"
+	"uniform vec3 direct_light_color;\n"
+	"uniform float direct_light_intensity;\n";

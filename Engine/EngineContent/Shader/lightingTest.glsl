@@ -17,7 +17,7 @@ in vec3 vertexPosWs;
 in vec3 normalWS;
 
 //static for testing
-vec3 _lightPos = vec3(0.0, 0.5, -4.0);
+//vec3 _lightPos = vec3(0.0, 0.5, -4.0);
 float _diffuseMaterialConstant = 0.3;
 float _specularMaterialConstant = 0.6;
 float _ambientMaterialConstant = 0.1;
@@ -32,14 +32,15 @@ vec3 _reflection_vector(vec3 lightDirection) {
 }
 
 void main() {
-    vec3 lightDir = normalize(_lightPos-vertexPosWs);
+    vec3 lightDir = normalize(direct_light_direction);
     vec3 viewDir = normalize(cameraPosWs-vertexPosWs);
 
     //light intensity
-    float intensity = _lightIntensity/pow(distance(vertexPosWs,_lightPos),2);
-
+    //float intensity = _lightIntensity/pow(distance(vertexPosWs,_lightPos),2);
+    
+    
     //diffuse
-    float _light_diffuse_intensity = _diffuseMaterialConstant * max(dot(normalWS,lightDir),0.0) * intensity;
+    float _light_diffuse_intensity = _diffuseMaterialConstant * max(dot(normalWS,lightDir),0.0) * direct_light_intensity;
     
     //specular
     vec3 halfDir = normalize(lightDir + viewDir);
@@ -49,9 +50,10 @@ void main() {
     float specIntensity  = pow(specAngle, _specularExponent)*diffEase; 
 
 
-    float in_light = float(dot(normalWS,_lightPos - vertexPosWs) > 0);
+    float in_light = float(dot(normalWS,lightDir) > 0);
     FragColor = vec4(vec3(
     _light_diffuse_intensity * in_light
     + specIntensity * in_light
     + _ambientLightIntensity * _ambientMaterialConstant),1.0);
+    
 }

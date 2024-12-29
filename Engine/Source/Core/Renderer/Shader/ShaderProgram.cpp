@@ -8,6 +8,9 @@
 #include <gtc/type_ptr.hpp>
 
 #include "ShaderHeaders.h"
+#include "../../Scene/Object3D.h"
+#include "../RenderContext.h"
+#include "../../Scene/Scene.h"
 
 
 class Texture;
@@ -16,7 +19,7 @@ const char* fragmentShaderTag = "[fragment]";
 
 void ShaderProgram::createVertexShaderInstruction(std::string* strPointer) const
 {
-	if (include_default_shader_headers)
+	if (flag_include_default_header_)
 	{
 		strPointer->append(VERTEX_SHADER_HEADER_BASE);
 		strPointer->append("\n");
@@ -26,9 +29,15 @@ void ShaderProgram::createVertexShaderInstruction(std::string* strPointer) const
 
 void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) const
 {
-	if (include_default_shader_headers)
+	if (flag_include_default_header_)
 	{
 		strPointer->append(FRAGMENT_SHADER_HEADER_BASE);
+		strPointer->append("\n");
+	}
+
+	if (flag_include_dynamic_directional_light_)
+	{
+		strPointer->append(FRAGMENT_SHADER_HEADER_DIRECT_LIGHT);
 		strPointer->append("\n");
 	}
 	strPointer->append(this->fragmentShader_);
@@ -233,6 +242,24 @@ void ShaderProgram::initTextureUnits()
 	}
 }
 
+void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* renderContext)
+{
+	if (flag_include_default_header_)
+	{
+		this->setUniformMatrix4("mMatrix", glm::value_ptr(object_3d->getGlobalTransform()));
+		this->setUniformMatrix4("vMatrix", glm::value_ptr(*renderContext->camera->getView()));
+		this->setUniformMatrix4("pMatrix", glm::value_ptr(*renderContext->camera->getProjection()));
+		this->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*renderContext->camera->getWorldPosition()));
+	}
+
+	if (flag_include_dynamic_directional_light_)
+	{
+		this->set_uniform_vec3_f(name_direct_light_direction, glm::value_ptr(object_3d->get_scene()->get_scene_direct_light()->getForwardVector()));
+		this->set_uniform_vec3_f(name_direct_light_color, glm::value_ptr(object_3d->get_scene()->get_scene_direct_light()->color));
+		this->set_uniform_float(name_direct_light_intensity, object_3d->get_scene()->get_scene_direct_light()->intensity);
+	}
+}
+
 //TODO: this can also be added before compilation
 void ShaderProgram::addTexture(Texture* texture, const GLchar* samplerName)
 {
@@ -253,6 +280,20 @@ void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
 	setUniformInt("voxel_field_depth", texture->get_depth());
 	setUniformInt("voxel_field_height", texture->get_height());
 	setUniformInt("voxel_field_height", texture->get_height());
+}
+
+void ShaderProgram::set_shader_header_include(shader_header_includes include, bool include_header)
+{
+	switch (include)
+	{
+	case DEFAULT_HEADERS:
+		flag_include_default_header_ = include_header;
+		break;
+	case DYNAMIC_DIRECTIONAL_LIGHT:
+		flag_include_dynamic_directional_light_ = include_header;
+		break;
+	}
+	if (compiled) compileShader(true);
 }
 
 bool ShaderProgram::recompile_if_changed()

@@ -9,6 +9,9 @@
 #include "../Texture/Texture.h"
 #include "../Texture/Texture3D.h"
 
+struct RenderContext;
+class Object3D;
+
 struct Sampler
 {
     Sampler(Texture* texture, const GLchar *sampler_name)
@@ -19,6 +22,12 @@ struct Sampler
 
     Texture *texture;
     const  GLchar *samplerName;
+};
+
+enum shader_header_includes
+{
+    DEFAULT_HEADERS,
+    DYNAMIC_DIRECTIONAL_LIGHT
 };
 
 class ShaderProgram
@@ -35,8 +44,12 @@ private:
     void createVertexShaderInstruction(std::string *strPointer) const;
     void createFragmentShaderInstruction(std::string *strPointer) const;
 
-    time_t mod_time_ = 0; 
-    
+    time_t mod_time_ = 0;
+
+    //flags
+    bool flag_include_default_header_ = true;
+    bool flag_include_dynamic_directional_light_ = false;
+
 
 public:
     enum shaderType { NONE, FRAGMENT, VERTEX };
@@ -49,10 +62,11 @@ public:
     bool is_compiled();
     int use();
     void initTextureUnits();
-    void addTexture(Texture *texture, const GLchar *samplerName);
-    void addVoxelField(Texture3D *texture, const GLchar *samplerName);
-    bool include_default_shader_headers = true; //disable for engine internal shaders 
+    void add_header_uniforms(Object3D *object_3d, RenderContext* renderContext);
 
+
+    void set_shader_header_include(shader_header_includes include, bool include_header);
+    
     //returns true if recompiles
     bool recompile_if_changed();
     
@@ -61,7 +75,8 @@ public:
     void set_uniform_vec3_f(const GLchar* name, const GLfloat value[3]);
     void setUniformMatrix4(const GLchar* name, const GLfloat* value);
     void set_uniform_float(const GLchar *name, const GLfloat value);
-
+    void addTexture(Texture *texture, const GLchar *samplerName);
+    void addVoxelField(Texture3D *texture, const GLchar *samplerName);
     void setUniformInt(const GLchar *name, GLint value);
 };
 

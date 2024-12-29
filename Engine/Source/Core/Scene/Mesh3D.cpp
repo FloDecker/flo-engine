@@ -41,10 +41,7 @@ int Mesh3D::drawSelf()
 		//TODO: projection doesen't have to be set at runtime -> only on projection changes
 		// set model view projection
 		p->use();
-		p->setUniformMatrix4("mMatrix", glm::value_ptr(this->transformGlobal));
-		p->setUniformMatrix4("vMatrix", glm::value_ptr(*this->renderContext->camera->getView()));
-		p->setUniformMatrix4("pMatrix", glm::value_ptr(*this->renderContext->camera->getProjection()));
-		p->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*this->renderContext->camera->getWorldPosition()));
+		p->add_header_uniforms(this, this->renderContext);
 		mesh->vertexArrays[i]->draw();
 	}
 	return 1;
