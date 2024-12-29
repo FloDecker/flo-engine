@@ -242,6 +242,7 @@
         <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Texture\Texture2D.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Texture\Texture3D.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\uniform_buffer_object.cpp" />
         <ClCompile Include="Source\Core\Scene\Camera3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\Collider.cpp"/>
         <ClCompile Include="Source\Core\Scene\DebugPrimitives\Cube3D.cpp"/>
@@ -283,6 +284,7 @@
     <ItemGroup>
         <ClInclude Include="Source\Content\Material.h"/>
         <ClInclude Include="Source\Content\Mesh.h"/>
+        <ClInclude Include="Source\Core\CommonDataStructures\StructColorRange.h" />
         <ClInclude Include="Source\Core\CommonDataStructures\StructMeshTriangleFilter.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h"/>
@@ -306,6 +308,7 @@
         <ClInclude Include="Source\Core\Renderer\Texture\Texture.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture2D.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture3D.h"/>
+        <ClInclude Include="Source\Core\Renderer\uniform_buffer_object.h" />
         <ClInclude Include="Source\Core\Scene\Camera3D.h"/>
         <ClInclude Include="Source\Core\Scene\Collider.h"/>
         <ClInclude Include="Source\Core\Scene\DebugPrimitives\Cube3D.h"/>

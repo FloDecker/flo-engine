@@ -127,7 +127,8 @@ public:
 	Object3D* get_child_by_tag(std::string* tag);
 
 	//UI
-	void ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags) const;
+	void ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags);
+	virtual void draw_object_specific_ui();
 
 protected:
 	Scene* scene_;

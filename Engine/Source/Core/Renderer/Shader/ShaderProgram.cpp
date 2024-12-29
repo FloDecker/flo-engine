@@ -40,6 +40,13 @@ void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) con
 		strPointer->append(FRAGMENT_SHADER_HEADER_DIRECT_LIGHT);
 		strPointer->append("\n");
 	}
+
+	if (flag_include_dynamic_ambient_light_)
+	{
+		strPointer->append(FRAGMENT_SHADER_HEADER_AMBIENT_LIGHT);
+		strPointer->append("\n");
+	}
+	
 	strPointer->append(this->fragmentShader_);
 }
 
@@ -258,6 +265,12 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 		this->set_uniform_vec3_f(name_direct_light_color, glm::value_ptr(object_3d->get_scene()->get_scene_direct_light()->color));
 		this->set_uniform_float(name_direct_light_intensity, object_3d->get_scene()->get_scene_direct_light()->intensity);
 	}
+	if (flag_include_dynamic_ambient_light_)
+	{
+		StructColorRange *color_range = object_3d->get_scene()->get_ao_color_at(0,glm::vec3(0,0,0));
+		this->set_uniform_array_float(name_ambient_light_colors_sample_positions, &color_range->sample_points);
+		this->set_uniform_array_vec3_f(name_u_ambient_light_colors, &color_range->colors);
+	}
 }
 
 //TODO: this can also be added before compilation
@@ -291,6 +304,9 @@ void ShaderProgram::set_shader_header_include(shader_header_includes include, bo
 		break;
 	case DYNAMIC_DIRECTIONAL_LIGHT:
 		flag_include_dynamic_directional_light_ = include_header;
+		break;
+	case DYNAMIC_AMBIENT_LIGHT:
+		flag_include_dynamic_ambient_light_ = include_header;
 		break;
 	}
 	if (compiled) compileShader(true);
@@ -326,6 +342,17 @@ void ShaderProgram::set_uniform_vec3_f(const GLchar* name, const GLfloat value[3
 	glUniform3fv(location, 1, value);
 }
 
+void ShaderProgram::set_uniform_array_vec3_f(const GLchar* name, const std::vector<glm::vec3>* color_array)
+{
+	if (!compiled)
+	{
+		std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+	}
+	
+	GLint location = glGetUniformLocation(shaderProgram_, name);
+	glUniform3fv(location, color_array->size(), glm::value_ptr(color_array->at(0)));
+}
+
 void ShaderProgram::setUniformMatrix4(const GLchar* name, const GLfloat* value)
 {
 	if (!compiled)
@@ -344,6 +371,17 @@ void ShaderProgram::set_uniform_float(const GLchar* name, const GLfloat value)
 	}
 	GLint location = glGetUniformLocation(shaderProgram_, name);
 	glUniform1f(location, value);
+}
+
+void ShaderProgram::set_uniform_array_float(const GLchar* name, const std::vector<float>* float_array)
+{
+	if (!compiled)
+	{
+		std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+	}
+	
+	GLint location = glGetUniformLocation(shaderProgram_, name);
+	glUniform1fv(location, float_array->size(), float_array->data());
 }
 
 void ShaderProgram::setUniformInt(const GLchar* name, GLint value)

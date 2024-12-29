@@ -37,8 +37,12 @@ void ObjectInfo::gui_tick()
 	ImGui::InputFloat3("Rotation",rot);
 
 	
+
+	
 	if (scene_->has_selected_object())
 	{
+		//draw object info info
+		scene_->get_selected_object()->draw_object_specific_ui();
 		//draw modifier info
 		scene_->get_selected_object()->draw_modifier_ui();
 	}

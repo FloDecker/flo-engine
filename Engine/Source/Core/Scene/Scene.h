@@ -8,6 +8,7 @@
 #include "Lighting/PointLight.h"
 #include "Lighting/direct_light.h"
 #include "../../Util/StackedBB.h"
+#include "../CommonDataStructures/StructColorRange.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
@@ -54,6 +55,9 @@ public:
 	Object3D* get_selected_object() const;
 	bool has_selected_object() const;
 
+	//returns an approximation of the ao color at a given position in world space
+	StructColorRange* get_ao_color_at(int samples, glm::vec3 ws_pos) const;
+
 	//register scene objects
 	void register_global_light(direct_light *direct_light);
 	void register_sky_box(sky_box *skybox);
@@ -79,8 +83,14 @@ private:
 	Handle* handle_;
 
 	visual_debug_tools* visual_debug_tools_;
+
+	//direct light
 	bool has_direct_light_ = false;
 	direct_light *direct_light_ = nullptr;
+
+	//skybox
+	bool has_sky_box = false;
+	sky_box *sky_box_ = nullptr;
 
 	RenderContext *light_pass_render_context_;
 

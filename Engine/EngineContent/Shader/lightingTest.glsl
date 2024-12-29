@@ -19,17 +19,59 @@ in vec3 normalWS;
 
 //static for testing
 //vec3 _lightPos = vec3(0.0, 0.5, -4.0);
-float _diffuseMaterialConstant = 0.3;
-float _specularMaterialConstant = 0.6;
-float _ambientMaterialConstant = 0.1;
+float _diffuseMaterialConstant = 0.6;
+float _specularMaterialConstant = 0.2;
+float _ambientMaterialConstant = 0.2;
 
 float _specularExponent = 16;
 
-float _ambientLightIntensity = 0.4;
-float _lightIntensity = 20.0;
+float _ambientLightIntensity = 0.8;
+float _lightIntensity = 10.0;
+
+vec3 _object_color = vec3(1.0);
 
 vec3 _reflection_vector(vec3 lightDirection) {
     return 2.0 * dot(lightDirection,normalWS) * normalWS - lightDirection;
+}
+
+
+
+vec3 sampleColorRange(float x, vec3 color0, vec3 color1, vec3 color2,
+float pos0, float pos1, float pos2) {
+    // Ensure positions are sorted and x is within [0, 1]
+    x = clamp(x, 0.0, 1.0);
+
+    vec3 startColor;
+    vec3 endColor;
+    float startPos;
+    float endPos;
+
+    // Determine which segment x lies in
+    if (x < pos1) {
+        startColor = color0;
+        endColor = color1;
+        startPos = pos0;
+        endPos = pos1;
+    } else if (x < pos2) {
+        startColor = color1;
+        endColor = color2;
+        startPos = pos1;
+        endPos = pos2;
+    } else {
+        // Fallback in case x is slightly out of bounds due to precision
+        return color2;
+    }
+
+    // Normalize x within the segment and interpolate
+    float t = (x - startPos) / (endPos - startPos);
+    return mix(startColor, endColor, t);
+}
+
+vec3 get_ao_color(){
+    float heigt = normalWS.y * 0.5 + 0.5;
+    vec3 color_mix = sampleColorRange(heigt,u_ambient_light_colors[0] , u_ambient_light_colors[1] , u_ambient_light_colors[2],
+    u_ambient_light_colors_sample_positions[0], u_ambient_light_colors_sample_positions[1], u_ambient_light_colors_sample_positions[2]);
+    return color_mix;
 }
 
 void main() {
@@ -53,8 +95,7 @@ void main() {
 
     float in_light = float(dot(normalWS,lightDir) > 0);
     FragColor = vec4(vec3(
-    _light_diffuse_intensity * in_light
-    + specIntensity * in_light
-    + _ambientLightIntensity * _ambientMaterialConstant),1.0);
-    
+    _light_diffuse_intensity * in_light * _object_color
+    + specIntensity * in_light 
+    + _ambientLightIntensity * _ambientMaterialConstant * get_ao_color()),1.0);
 }

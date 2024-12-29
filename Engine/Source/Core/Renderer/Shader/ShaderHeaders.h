@@ -7,6 +7,10 @@ const char* name_direct_light_intensity = "direct_light_intensity";
 const char* name_direct_light_color = "direct_light_color";
 
 
+const char* name_u_ambient_light_colors = "u_ambient_light_colors";
+const char* name_ambient_light_colors_sample_positions = "u_ambient_light_colors_sample_positions";
+
+
 //header for standard vertex shader
 const char* VERTEX_SHADER_HEADER_BASE =
 	"#version 330 core \n"
@@ -22,6 +26,16 @@ const char* VERTEX_SHADER_HEADER_BASE =
 const char* FRAGMENT_SHADER_HEADER_BASE =
 	"#version 330 core\n"
 	"out vec4 FragColor;\n";
+
+
+
+//header for ambient light fragment shader
+const char* FRAGMENT_SHADER_HEADER_AMBIENT_LIGHT =
+	"#define AMBIENT_LIGHT\n"
+	"#define AMBIENT_LIGHT_SAMPLES 3\n"
+	"uniform vec3 u_ambient_light_colors[AMBIENT_LIGHT_SAMPLES];\n"
+	"uniform float u_ambient_light_colors_sample_positions[AMBIENT_LIGHT_SAMPLES];\n";
+
 
 //header for direct light fragment shader
 const char* FRAGMENT_SHADER_HEADER_DIRECT_LIGHT =

@@ -27,7 +27,8 @@ struct Sampler
 enum shader_header_includes
 {
     DEFAULT_HEADERS,
-    DYNAMIC_DIRECTIONAL_LIGHT
+    DYNAMIC_DIRECTIONAL_LIGHT,
+    DYNAMIC_AMBIENT_LIGHT
 };
 
 class ShaderProgram
@@ -49,6 +50,7 @@ private:
     //flags
     bool flag_include_default_header_ = true;
     bool flag_include_dynamic_directional_light_ = false;
+    bool flag_include_dynamic_ambient_light_ = false;
 
 
 public:
@@ -73,8 +75,10 @@ public:
 
     //uniforms
     void set_uniform_vec3_f(const GLchar* name, const GLfloat value[3]);
+    void set_uniform_array_vec3_f(const GLchar* name, const std::vector<glm::vec3>* color_array);
     void setUniformMatrix4(const GLchar* name, const GLfloat* value);
     void set_uniform_float(const GLchar *name, const GLfloat value);
+    void set_uniform_array_float(const GLchar *name, const std::vector<float>* float_array);
     void addTexture(Texture *texture, const GLchar *samplerName);
     void addVoxelField(Texture3D *texture, const GLchar *samplerName);
     void setUniformInt(const GLchar *name, GLint value);

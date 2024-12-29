@@ -43,9 +43,6 @@ direct_light *Scene::get_scene_direct_light() const
 	return direct_light_;
 }
 
-void Scene::register_sky_box(sky_box* skybox)
-{
-}
 
 void Scene::recalculate_at(Object3D* parent)
 {
@@ -105,6 +102,11 @@ bool Scene::has_selected_object() const
 	return _has_selected_object;
 }
 
+StructColorRange* Scene::get_ao_color_at(int samples, glm::vec3 ws_pos) const
+{
+	return sky_box_->get_sky_box_ao_color_range();
+}
+
 void Scene::register_global_light(direct_light* direct_light)
 {
 	if (direct_light_ != nullptr)
@@ -114,6 +116,17 @@ void Scene::register_global_light(direct_light* direct_light)
 	}
 	has_direct_light_ = true;
 	direct_light_ = direct_light;
+}
+
+void Scene::register_sky_box(sky_box* skybox)
+{
+	if (direct_light_ != nullptr)
+	{
+		std::cerr<<"Scene already has a skybox light\n";
+		return;
+	}
+	has_sky_box = true;
+	sky_box_ = skybox;
 }
 
 

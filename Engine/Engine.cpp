@@ -236,6 +236,7 @@ int main()
 	auto* lightTestMaterial = new ShaderProgram();
 	lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
 	lightTestMaterial->set_shader_header_include(DYNAMIC_DIRECTIONAL_LIGHT,true);
+	lightTestMaterial->set_shader_header_include(DYNAMIC_AMBIENT_LIGHT,true);
 	lightTestMaterial->compileShader();
 
 
@@ -243,11 +244,7 @@ int main()
 	worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
 	worldPosMat->compileShader();
 
-
-	auto* m_sky_sphere = new ShaderProgram();
-	m_sky_sphere->loadFromFile("EngineContent/Shader/SkySphere.glsl");
-	m_sky_sphere->compileShader();
-
+	
 
 	plane->materials.push_back(lightTestMaterial);
 	sphere->materials.push_back(lightTestMaterial);

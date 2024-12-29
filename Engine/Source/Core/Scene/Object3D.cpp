@@ -158,17 +158,25 @@ Object3D* Object3D::get_child_by_tag(std::string* tag)
 	return nullptr;
 }
 
-void Object3D::ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags) const
+void Object3D::ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags)
 {
 	if (IGNORE_IN_SCENE_TREE_VIEW) return;
 	if (ImGui::TreeNodeEx((this->name.empty()) ? "..." : this->name.c_str(), flags))
 	{
+		if (ImGui::IsItemClicked())
+		{
+			scene_->select_object(this);
+		}
 		for (auto& child : this->children)
 		{
 			child->ui_get_scene_structure_recursively(flags);
 		}
 		ImGui::TreePop();
 	}
+}
+
+void Object3D::draw_object_specific_ui()
+{
 }
 
 //setter for transform
