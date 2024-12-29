@@ -12,6 +12,7 @@ void main() {
 }
 
 [fragment]
+
 in vec3 cameraPosWs;
 in vec3 vertexPosWs;
 in vec3 normalWS;

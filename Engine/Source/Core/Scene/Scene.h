@@ -11,6 +11,7 @@
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
+class sky_box;
 class MeshCollider;
 
 class SceneRoot : public Object3D
@@ -55,6 +56,7 @@ public:
 
 	//register scene objects
 	void register_global_light(direct_light *direct_light);
+	void register_sky_box(sky_box *skybox);
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;

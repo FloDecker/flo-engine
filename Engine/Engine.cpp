@@ -28,6 +28,7 @@
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
 #include "Source/Core/Scene/Collider.h"
+#include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -252,7 +253,7 @@ int main()
 	sphere->materials.push_back(lightTestMaterial);
 
 
-	/////ADD SCENE GEOMETRY: 
+	/////ADD SCENE GEOMETRY:
 
 	auto mSphere1 = new Mesh3D(scene->get_root(), sphere);
 	mSphere1->materials.push_back(worldPosMat);
@@ -275,6 +276,8 @@ int main()
 
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
+
+	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
 
 	auto s = std::string("ENGINE_COLLIDER");
 	auto collider_test = dynamic_cast<MeshCollider*>(mInertiaTest->get_child_by_tag(&s));
@@ -364,12 +367,7 @@ int main()
 		    triangle->name = "triangle";
 		    triangle->materials.push_back(triangle_visualizer_material);
 		
-		
-		    //auto o_sky_sphere = new Mesh3D(me_sky_sphere,&global_context);
-		    //o_sky_sphere->materials.push_back(m_sky_sphere);
-		    //o_sky_sphere->setScale(512,512,512);
-		    //root->addChild(o_sky_sphere);
-		
+
 		    auto test_building = new Mesh3D(me_test_building,&global_context);
 		    root->addChild(test_building);
 		    test_building->set_position_global(0,2,0);

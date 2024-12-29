@@ -2,6 +2,7 @@
 
 #include "Handle.h"
 #include "../Scene/Collider.h"
+#include "Lighting/SkyBox/sky_box.h"
 
 SceneRoot::SceneRoot(GlobalContext* global_context, Scene* scene): Object3D()
 {
@@ -40,6 +41,10 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 direct_light *Scene::get_scene_direct_light() const
 {
 	return direct_light_;
+}
+
+void Scene::register_sky_box(sky_box* skybox)
+{
 }
 
 void Scene::recalculate_at(Object3D* parent)

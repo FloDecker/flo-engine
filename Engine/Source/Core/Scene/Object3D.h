@@ -138,9 +138,9 @@ protected:
 	glm::vec3 forwardVectorLocal = glm::vec3(0, 0, 1);
 	glm::vec3 upwardVectorLocal = glm::vec3(0, 1, 0);
 	glm::vec3 rightVectorLocal = glm::vec3(1, 0, 0);
-	virtual int drawSelf();
-	virtual int draw_self_shadow_pass();
-	virtual void on_transform_changed();
+	virtual int drawSelf(); //implement drawing code here,its executed when traversing the scene tree every frame 
+	virtual int draw_self_shadow_pass(); //called when running shadow pass
+	virtual void on_transform_changed(); //called whenever the objects transforms change
 
 	//FLAGS
 	bool IGNORE_IN_SCENE_TREE_VIEW = false;
