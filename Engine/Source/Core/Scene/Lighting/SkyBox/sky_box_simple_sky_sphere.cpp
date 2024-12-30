@@ -7,23 +7,22 @@ void sky_box_simple_sky_sphere::recalculate_colors()
 	sky_box_ao_color_range_->colors.at(1) = color_horizon;
 	sky_box_ao_color_range_->colors.at(2) = color_zenith;
 
-	sky_box_ao_color_range_->sample_points.at(0) = 0.0;
-	sky_box_ao_color_range_->sample_points.at(1) = 0.5;
-	sky_box_ao_color_range_->sample_points.at(2) = 1.0;
+	sky_box_ao_color_range_->sample_points.at(0) = color_ground_range;
+	sky_box_ao_color_range_->sample_points.at(1) = color_horizon_range;
+	sky_box_ao_color_range_->sample_points.at(2) = color_zenith_range;
 }
 
 void sky_box_simple_sky_sphere::draw_object_specific_ui()
 {
-	float c_0[3] = { color_ground.x,color_ground.y,color_ground.z };
-	float c_1[3] = { color_horizon.x,color_horizon.y,color_horizon.z };
-	float c_2[3] = { color_zenith.x,color_zenith.y,color_zenith.z };
-	ImGui::ColorPicker3("Bottom color",c_0);
-	ImGui::ColorPicker3("Horizon color",c_1);
-	ImGui::ColorPicker3("Zenith color",c_2);
-	color_ground = glm::vec3(c_0[0],c_0[1],c_0[2]);
-	color_horizon = glm::vec3(c_1[0],c_1[1],c_1[2]);
-	color_zenith = glm::vec3(c_2[0],c_2[1],c_2[2]);
-	recalculate_colors();
+	bool changed = false;
+	changed = changed || ImGui::ColorPicker3("Bottom color",&color_ground[0]);
+	changed = changed || ImGui::SliderFloat("Bottom color",&color_ground_range,0,1);
+	changed = changed || ImGui::ColorPicker3("Horizon color",&color_horizon[0]);
+	changed = changed || ImGui::SliderFloat("Horizon color",&color_horizon_range,0,1);
+	changed = changed || ImGui::ColorPicker3("Zenith color",&color_zenith[0]);
+	changed = changed || ImGui::SliderFloat("Zenith color",&color_zenith_range,0,1);
+
+	if (changed) recalculate_colors();
 }
 
 int sky_box_simple_sky_sphere::drawSelf()

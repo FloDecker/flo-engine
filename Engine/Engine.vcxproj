@@ -253,6 +253,7 @@
         <ClCompile Include="Source\Core\Scene\Lighting\light.cpp" />
         <ClCompile Include="Source\Core\Scene\Lighting\PointLight.cpp"/>
         <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box.cpp" />
+        <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.cpp" />
         <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.cpp" />
         <ClCompile Include="Source\Core\Scene\Mesh3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp"/>
@@ -319,6 +320,7 @@
         <ClInclude Include="Source\Core\Scene\Lighting\light.h" />
         <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box.h" />
+        <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.h" />
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.h" />
         <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.h" />
@@ -379,7 +381,7 @@
         <Content Include="EngineContent\Cube.fbx" />
         <Content Include="EngineContent\Cube.obj" />
         <Content Include="EngineContent\cubeArray.fbx" />
-        <Content Include="EngineContent\Shader\BasicSkySphere.glsl" />
+        <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl" />
         <Content Include="EngineContent\Shader\DebugColorChangable.glsl" />
         <Content Include="EngineContent\Shader\DefaultShader.glsl" />
         <Content Include="EngineContent\Shader\DepthOnlyLightpassShader.glsl" />

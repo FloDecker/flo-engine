@@ -28,6 +28,7 @@
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
 #include "Source/Core/Scene/Collider.h"
+#include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
@@ -200,9 +201,6 @@ int main()
 	auto cube = loadModel("EngineContent/Cube.fbx");
 	cube->initializeVertexArrays();
 
-	auto me_sky_sphere = loadModel("EngineContent/SkySphere.fbx");
-	me_sky_sphere->initializeVertexArrays();
-
 	auto me_test_building = loadModel("EngineContent/closedSpaceTest.fbx");
 	me_test_building->initializeVertexArrays();
 
@@ -274,7 +272,8 @@ int main()
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
 
-	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
+	//auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
+	auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
 
 	auto s = std::string("ENGINE_COLLIDER");
 	auto collider_test = dynamic_cast<MeshCollider*>(mInertiaTest->get_child_by_tag(&s));

@@ -68,7 +68,7 @@ vec2 scatterDepthInt(vec3 o, vec3 d, float L, float steps) {
 vec2 totalDepthRM;
 vec3 I_R, I_M;
 
-vec3 sundir = normalize(vec3(0.0,1.0,1.0));
+vec3 sundir = normalize(direct_light_direction);
 
 // Calculate in-scattering for ray starting at point `o` in direction `d` for length `L`
 // Perform `steps` steps of integration
@@ -92,7 +92,7 @@ void scatterIn(vec3 o, vec3 d, float L, float steps) {
         // Calculate sum of optical depths. totalDepthRM is T(P_i -> O)
         // scatterDepthInt calculates integral part for T(A -> P_i)
         // So depthRMSum becomes sum of both optical depths
-        vec2 depthRMsum = totalDepthRM + scatterDepthInt(p, sundir, escape(p, sundir, Ra), 4.);
+        vec2 depthRMsum = totalDepthRM + scatterDepthInt(p, sundir, escape(p, sundir, Ra), 8.);
 
         // Calculate e^(T(A -> P_i) + T(P_i -> O)
         vec3 A = exp(-bR * depthRMsum.x - bMe * depthRMsum.y);
