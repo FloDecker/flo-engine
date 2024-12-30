@@ -152,6 +152,8 @@ int main()
 		.line = new Line,
 	};
 
+	global_context.uniform_buffer_object = new uniform_buffer_object();
+
 	//Inti Scene Context
 	//scene root
 	//init scene context

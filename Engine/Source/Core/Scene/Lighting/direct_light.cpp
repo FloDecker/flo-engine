@@ -25,9 +25,23 @@ void direct_light::render_to_light_map()
 	light_map_fbo_->render_to_framebuffer();
 }
 
+void direct_light::draw_object_specific_ui()
+{
+	light::draw_object_specific_ui();
+}
+
 void direct_light::on_light_changed()
 {
 	glm::mat4 light_projection = glm::ortho(-size_, size_, -size_, size_, near_plane_, far_plane_);
 	auto light_pos = glm::toMat4(this->get_quaternion_rotation());
 	light_matrix_ = light_projection * light_pos;
+
+	auto l = global_context_->uniform_buffer_object->ubo_direct_light;
+	l->light_direction = getForwardVector();
+	l->light_intensity = intensity;
+	l->light_color = color;
+	l->light_angle = angle;
+	
+	global_context_->uniform_buffer_object->update_direct_light();
+	
 }

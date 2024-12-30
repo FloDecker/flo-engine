@@ -95,7 +95,7 @@ void main() {
 
     float in_light = float(dot(normalWS,lightDir) > 0);
     FragColor = vec4(vec3(
-    _light_diffuse_intensity * in_light * _object_color
-    + specIntensity * in_light 
+    _light_diffuse_intensity * in_light * _object_color * direct_light_color
+    + specIntensity * in_light * direct_light_color * direct_light_intensity
     + _ambientLightIntensity * _ambientMaterialConstant * get_ao_color()),1.0);
 }

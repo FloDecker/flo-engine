@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include "../Renderer/uniform_buffer_object.h"
 #include "../Renderer/Primitives/Cube.h"
 #include "../Renderer/Primitives/Line.h"
 #include "../Renderer/Shader/ShaderProgram.h"
@@ -31,7 +32,9 @@ struct GlobalContext
 {
 	TagManager tag_manager;
 	debug_primitives debug_primitives;
-
+	uniform_buffer_object *uniform_buffer_object;
+	
+	//global shaders
 	ShaderProgram* default_shader;
 	ShaderProgram* default_color_debug_shader;
 	ShaderProgram* light_pass_depth_only_shader;

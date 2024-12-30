@@ -13,7 +13,7 @@ const char* name_ambient_light_colors_sample_positions = "u_ambient_light_colors
 
 //header for standard vertex shader
 const char* VERTEX_SHADER_HEADER_BASE =
-	"#version 330 core \n"
+	"#version 420 core \n"
 	"layout (location = 0) in vec3 aPos;\n"
 	"layout (location = 1) in vec3 aNormal;\n"
 	"layout (location = 2) in vec2 aUV;\n"
@@ -24,7 +24,7 @@ const char* VERTEX_SHADER_HEADER_BASE =
 
 //header for standard fragment shader
 const char* FRAGMENT_SHADER_HEADER_BASE =
-	"#version 330 core\n"
+	"#version 420 core\n"
 	"out vec4 FragColor;\n";
 
 
@@ -40,6 +40,14 @@ const char* FRAGMENT_SHADER_HEADER_AMBIENT_LIGHT =
 //header for direct light fragment shader
 const char* FRAGMENT_SHADER_HEADER_DIRECT_LIGHT =
 	"#define DIRECT_LIGHT\n"
-	"uniform vec3 direct_light_direction;\n"
-	"uniform vec3 direct_light_color;\n"
-	"uniform float direct_light_intensity;\n";
+	//"uniform vec3 direct_light_direction;\n"
+	//"uniform vec3 direct_light_color;\n"
+	//"uniform float direct_light_intensity;\n";
+	"layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS\n"
+	"{\n"
+	"	vec3 direct_light_direction;\n"
+	"	float direct_light_intensity;\n"
+	"	vec3 direct_light_color;\n"
+	"	float direct_light_light_angle;\n"
+	"	//uniform sampler2D light_map_texture;\n"
+	"};\n";
