@@ -25,6 +25,7 @@
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
+#include "Source/Core/Renderer/Primitives/quad_fill_screen.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
 #include "Source/Core/Scene/Collider.h"
@@ -163,6 +164,7 @@ int main()
 	auto editorRenderContext = new RenderContext{
 		scene_cam
 	};
+	editorRenderContext->pass = render_pass_main;
 
 	//init physics engine
 	auto physics_engine = new PhysicsEngine();
@@ -467,7 +469,6 @@ int main()
 	visualize_light_map->loadFromFile("EngineContent/Shader/testVisualizeDepthMap.glsl");
 	visualize_light_map->compileShader();
 	visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
-
 	auto visualizer_depth = new Mesh3D(scene->get_root(), plane);
 	visualizer_depth->materials.push_back(visualize_light_map);
 
@@ -480,6 +481,27 @@ int main()
 	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
 	
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
+
+
+	//INIT TEXTURES FOR RENDER
+	auto framebuffer_texture_color = new Texture2D();
+	framebuffer_texture_color->initialize_as_frame_buffer(windowSize.x, windowSize.y);
+	
+	auto framebuffer_texture_depth = new Texture2D();
+	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
+
+	auto color_render_target = framebuffer_object();
+	color_render_target.attach_texture_as_color_buffer(framebuffer_texture_color);
+	color_render_target.attach_texture_as_depth_buffer(framebuffer_texture_depth);
+
+	auto pp_shader = new ShaderProgram();
+	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
+	pp_shader->set_shader_header_include(DEFAULT_HEADERS,false);
+	pp_shader->compileShader();
+	pp_shader->addTexture(framebuffer_texture_color, "color_framebuffer");
+	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
+	auto quad_screen = new quad_fill_screen();
+	quad_screen->load();
 	
 	//// ------ RENDER LOOP ------ ////
 	while (!glfwWindowShouldClose(window))
@@ -510,6 +532,7 @@ int main()
 
 		//TEST:
 		lightTestMaterial->recompile_if_changed();
+		pp_shader->recompile_if_changed();
 		auto rot = glfwGetTime() * 10;
 		//handlertest->setRotationLocalDegrees({rot,0,0});
 		//handlertest_2->setRotationLocalDegrees({0,rot,0});
@@ -517,7 +540,20 @@ int main()
 		
 		editor3DCamera->calculateView();
 		//draw scene elements
+		color_render_target.render_to_framebuffer();
 		scene->draw_scene(editorRenderContext);
+		
+
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+		//post-processing
+		
+		pp_shader->use();
+		quad_screen->draw();
+		glEnable(GL_DEPTH_TEST);
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

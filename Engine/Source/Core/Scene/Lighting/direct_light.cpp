@@ -8,7 +8,8 @@ direct_light::direct_light(Object3D* parent, unsigned int light_map_width, unsig
 	set_light_settings(10, 0.1, 100);
 	light_map_ = new Texture2D();
 	light_map_->initialize_as_depth_map_render_target(light_map_width, light_map_height);
-	light_map_fbo_ = new framebuffer_object(light_map_, ATTACH_AS_DEPTH_BUFFER);
+	light_map_fbo_ = new framebuffer_object();
+	light_map_fbo_->attach_texture_as_depth_buffer(light_map_);
 	this->name = "direct_light";
 }
 

@@ -162,6 +162,7 @@
         <ClCompile Include="Source\Core\Renderer\framebuffer_object.cpp" />
         <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\Primitives\quad_fill_screen.cpp" />
         <ClCompile Include="Source\Core\Renderer\Primitives\uv_sphere.cpp" />
         <ClCompile Include="Source\Core\Renderer\Primitives\vertex_array.cpp">
             <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
@@ -301,6 +302,7 @@
         <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\Line.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\primitive.h"/>
+        <ClInclude Include="Source\Core\Renderer\Primitives\quad_fill_screen.h" />
         <ClInclude Include="Source\Core\Renderer\Primitives\uv_sphere.h" />
         <ClInclude Include="Source\Core\Renderer\Primitives\vertex_array.h"/>
         <ClInclude Include="Source\Core\Renderer\RenderContext.h"/>
@@ -381,6 +383,7 @@
         <Content Include="EngineContent\Cube.fbx" />
         <Content Include="EngineContent\Cube.obj" />
         <Content Include="EngineContent\cubeArray.fbx" />
+        <Content Include="EngineContent\Shader\PostProcessing.glsl" />
         <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl" />
         <Content Include="EngineContent\Shader\DebugColorChangable.glsl" />
         <Content Include="EngineContent\Shader\DefaultShader.glsl" />

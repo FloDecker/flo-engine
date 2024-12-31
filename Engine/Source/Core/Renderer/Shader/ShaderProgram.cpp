@@ -281,6 +281,7 @@ void ShaderProgram::addTexture(Texture* texture, const GLchar* samplerName)
 	textures.emplace_back(texture, samplerName);
 }
 
+
 void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
 {
 	addTexture(texture, samplerName);
@@ -323,6 +324,12 @@ bool ShaderProgram::recompile_if_changed()
 			std::cout << "recompiling " << material_path_.c_str() << "\n";
 			loadFromFile(material_path_);
 			compileShader(true);
+			//add textures
+			use();
+			for (int i = 0; i < textures.size(); ++i)
+			{
+				setUniformInt(textures.at(i).samplerName, i);
+			}
 			return true;
 		}
 	}
