@@ -159,6 +159,7 @@
         <ClCompile Include="Source\Core\GUI\SceneTree.cpp"/>
         <ClCompile Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.cpp"/>
         <ClCompile Include="Source\Core\PhysicsEngine\PhysicsEngine.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\camera.cpp" />
         <ClCompile Include="Source\Core\Renderer\framebuffer_object.cpp" />
         <ClCompile Include="Source\Core\Renderer\Primitives\Cube.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Primitives\Line.cpp"/>
@@ -298,6 +299,7 @@
         <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.h"/>
         <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\Integrator.h"/>
         <ClInclude Include="Source\Core\PhysicsEngine\PhysicsEngine.h"/>
+        <ClInclude Include="Source\Core\Renderer\camera.h" />
         <ClInclude Include="Source\Core\Renderer\framebuffer_object.h" />
         <ClInclude Include="Source\Core\Renderer\Primitives\Cube.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\Line.h"/>

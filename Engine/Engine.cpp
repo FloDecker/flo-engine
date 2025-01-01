@@ -159,7 +159,7 @@ int main()
 	//scene root
 	//init scene context
 	scene = new Scene(&global_context, "Test Scene");
-	auto scene_cam = new Camera(WINDOW_WIDTH, WINDOW_HEIGHT, &change_window_size_dispatcher);
+	auto scene_cam = new camera(WINDOW_WIDTH, WINDOW_HEIGHT, &change_window_size_dispatcher);
 	//initialize render context
 	auto editorRenderContext = new RenderContext{
 		scene_cam
