@@ -19,6 +19,7 @@ public:
     void setRenderContext(RenderContext *renderContext);
     RenderContext *getRenderContext();
     void calculateView();
+    camera *get_camera() const;
 protected:
     int drawSelf() override;
 };

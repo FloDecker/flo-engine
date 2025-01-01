@@ -18,12 +18,31 @@ void camera::setViewPortDimension(glm::i16vec2 dimentions)
 	setViewPortDimension(dimentions.x, dimentions.y);
 }
 
+void camera::set_render_target(framebuffer_object* target)
+{
+	camera_render_target_ = target;
+	has_attached_render_target_ = true;
+}
+
+void camera::use() const
+{
+	if (has_attached_render_target_)
+	{
+		camera_render_target_->render_to_framebuffer();
+	}
+}
+
 
 void camera::setViewPortDimension(float width, float height)
 {
 	this->width_ = width;
 	this->height_ = height;
 	recalculateProjection();
+	//update render target if attached
+	if (has_attached_render_target_)
+	{
+		camera_render_target_->resize_attach_textures(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+	}
 }
 
 void camera::recalculateProjection()

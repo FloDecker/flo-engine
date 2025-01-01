@@ -179,6 +179,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	auto editor3DCamera = new Camera3D(scene->get_root(), editorRenderContext);
+	
 	double renderFrameStart;
 
 
@@ -494,6 +495,9 @@ int main()
 	color_render_target.attach_texture_as_color_buffer(framebuffer_texture_color);
 	color_render_target.attach_texture_as_depth_buffer(framebuffer_texture_depth);
 
+
+	editorRenderContext->camera->set_render_target(&color_render_target);
+
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
 	pp_shader->set_shader_header_include(DEFAULT_HEADERS,false);
@@ -539,8 +543,8 @@ int main()
 		//handlertest_3->setRotationLocalDegrees({0,0,rot});
 		
 		editor3DCamera->calculateView();
+		editorRenderContext->camera->use();
 		//draw scene elements
-		color_render_target.render_to_framebuffer();
 		scene->draw_scene(editorRenderContext);
 		
 

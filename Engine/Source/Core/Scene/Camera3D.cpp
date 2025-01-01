@@ -22,6 +22,11 @@ void Camera3D::calculateView() {
     this->renderContext_->camera->calculateView(this->transformGlobal, this->getWorldPosition(), this->getForwardVector());
 }
 
+camera* Camera3D::get_camera() const
+{
+    return this->renderContext_->camera;
+}
+
 int Camera3D::drawSelf() {
     return 0;
 }
