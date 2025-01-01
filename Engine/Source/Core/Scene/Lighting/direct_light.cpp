@@ -42,6 +42,7 @@ void direct_light::on_light_changed()
 	l->light_intensity = intensity;
 	l->light_color = color;
 	l->light_angle = angle;
+	l->direct_light_light_space_matrix = light_matrix_;
 	
 	global_context_->uniform_buffer_object->update_direct_light();
 	

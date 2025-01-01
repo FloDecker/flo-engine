@@ -53,6 +53,8 @@ class Object3D
 	glm::vec3 transform_angles_engine_to_quat(glm::vec3 angles);
 	glm::vec3 transform_angles_glm_to_engine(glm::vec3 angles);
 
+	
+
 public:
 	Object3D(Object3D* parent);
 	bool visible = true;

@@ -22,7 +22,7 @@ const float Ra = 6380e3; // Earth atmosphere top raduis
 const vec3 bR = vec3(58e-7, 135e-7, 331e-7); // Rayleigh scattering coefficient
 const vec3 bMs = vec3(2e-5); // Mie scattering coefficients
 const vec3 bMe = bMs * 1.1;
-const float I = 10.; // Sun intensity
+const float I = direct_light_intensity; // Sun intensity
 const vec3 C = vec3(0., -R0, 0.); // Earth center point
 
 // Calculate densities $\rho$.

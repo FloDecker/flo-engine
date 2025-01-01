@@ -28,15 +28,15 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
 	std::string engine_handle_collider_tag = "ENGINE_HANDLE_COLLIDER";
 
 	arrow_x = new Mesh3D(this, engine_handler_arrow_model);
-	arrow_x->materials.push_back(handler_red);
+	arrow_x->add_material(handler_red);
 	arrow_x->setRotationLocalDegrees(0, 90, 0);
 
 	arrow_y = new Mesh3D(this, engine_handler_arrow_model);
-	arrow_y->materials.push_back(handler_green);
+	arrow_y->add_material(handler_green);
 	arrow_y->setRotationLocalDegrees(-90, 0, 0);
 
 	arrow_z = new Mesh3D(this, engine_handler_arrow_model);
-	arrow_z->materials.push_back(handler_blue);
+	arrow_z->add_material(handler_blue);
 
 	arrow_x_collider_ = dynamic_cast<Collider*>(arrow_x->get_child_by_tag(&engine_collider_tag));
 	arrow_y_collider_ = dynamic_cast<Collider*>(arrow_y->get_child_by_tag(&engine_collider_tag));

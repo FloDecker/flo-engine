@@ -71,6 +71,11 @@ public:
     
     //returns true if recompiles
     bool recompile_if_changed();
+
+    bool receives_dynamic_directional_light() const
+    {
+        return flag_include_dynamic_directional_light_;
+    };
     
 
     //uniforms

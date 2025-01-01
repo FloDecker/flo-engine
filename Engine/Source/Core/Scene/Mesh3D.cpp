@@ -8,11 +8,27 @@ Mesh3D::Mesh3D(Object3D* parent, Mesh* mesh) : Object3D(parent)
 	this->mesh = mesh;
 	auto m = new MeshCollider(this, this);
 	m->add_tag("ENGINE_COLLIDER");
+
+	
 }
 
 Mesh* Mesh3D::get_mesh() const
 {
 	return mesh;
+}
+
+bool Mesh3D::add_material(ShaderProgram* material)
+{
+	if (material == nullptr)
+	{
+		return false;
+	}
+	materials.push_back(material);
+	if (material->receives_dynamic_directional_light() && scene_->get_scene_direct_light() != nullptr)
+	{
+		material->addTexture(scene_->get_scene_direct_light()->light_map(),"direct_light_map_texture");
+	}
+	return true;
 }
 
 int Mesh3D::drawSelf()

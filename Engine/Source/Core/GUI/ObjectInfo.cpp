@@ -10,6 +10,7 @@ void ObjectInfo::gui_tick()
 	std::string name = "Name: ";
 	float pos[3] = {0,0,0};
 	float rot[3] = {0,0,0};
+	float scale[3] = {0,0,0};
 	bool disabled;
 	if (scene_->has_selected_object())
 	{
@@ -23,6 +24,10 @@ void ObjectInfo::gui_tick()
 		rot[0] = scene_->get_selected_object()->getLocalRotationDegrees().x;
 		rot[1] = scene_->get_selected_object()->getLocalRotationDegrees().y;
 		rot[2] = scene_->get_selected_object()->getLocalRotationDegrees().z;
+		
+		scale[0] = scene_->get_selected_object()->get_scale().x;
+		scale[1] = scene_->get_selected_object()->get_scale().y;
+		scale[2] = scene_->get_selected_object()->get_scale().z;
 	} else
 	{
 		name+= "None selected";
@@ -35,6 +40,7 @@ void ObjectInfo::gui_tick()
 	ImGui::BeginDisabled(disabled);
 	ImGui::InputFloat3("WS Position",pos);
 	ImGui::InputFloat3("Rotation",rot);
+	ImGui::InputFloat3("Scale",scale);
 
 	
 
@@ -54,6 +60,7 @@ void ObjectInfo::gui_tick()
 	{
 		scene_->get_selected_object()->set_position_global(pos[0],pos[1],pos[2]);
 		scene_->get_selected_object()->setRotationLocalDegrees(rot[0],rot[1],rot[2]);
+		scene_->get_selected_object()->setScale(scale[0],scale[1],scale[2]);
 	}
 
 

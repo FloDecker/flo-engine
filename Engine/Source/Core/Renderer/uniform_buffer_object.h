@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "glm.hpp"
 #include <vec3.hpp>
 #include <GL/glew.h>
 
@@ -8,7 +9,8 @@ struct ubo_direct_light
 	alignas(4) float light_intensity;
 	alignas(16)glm::vec3 light_color;
 	alignas(4) float light_angle;
-	alignas(4) GLint light_map_texture;
+	alignas(16) glm::mat4 direct_light_light_space_matrix;
+
 };
 
 class uniform_buffer_object

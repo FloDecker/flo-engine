@@ -11,6 +11,7 @@ class Mesh3D : public Object3D
 {
 private :
     Mesh* mesh;
+    std::vector<ShaderProgram *> materials;
 
 protected:
     int drawSelf() override;
@@ -20,5 +21,6 @@ public:
     explicit Mesh3D(Object3D* parent, Mesh* mesh);
     bool receive_light = true;
     Mesh* get_mesh() const;
-    std::vector<ShaderProgram *> materials;
+
+    bool add_material(ShaderProgram *material);
 };

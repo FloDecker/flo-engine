@@ -40,14 +40,12 @@ const char* FRAGMENT_SHADER_HEADER_AMBIENT_LIGHT =
 //header for direct light fragment shader
 const char* FRAGMENT_SHADER_HEADER_DIRECT_LIGHT =
 	"#define DIRECT_LIGHT\n"
-	//"uniform vec3 direct_light_direction;\n"
-	//"uniform vec3 direct_light_color;\n"
-	//"uniform float direct_light_intensity;\n";
+	"uniform sampler2D direct_light_map_texture;\n"
 	"layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS\n"
 	"{\n"
 	"	vec3 direct_light_direction;\n"
 	"	float direct_light_intensity;\n"
 	"	vec3 direct_light_color;\n"
 	"	float direct_light_light_angle;\n"
-	"	//uniform sampler2D light_map_texture;\n"
+	"	mat4 direct_light_light_space_matrix;\n"
 	"};\n";

@@ -2,6 +2,8 @@
 out vec3 cameraPosWs;
 out vec3 vertexPosWs;
 out vec3 normalWS;
+out vec4 FragPosLightSpace;
+
 
 void main() {
     cameraPosWs = cameraPosWS;
@@ -30,11 +32,31 @@ float _lightIntensity = 10.0;
 
 vec3 _object_color = vec3(1.0);
 
+float in_light_map_shadow() {
+    vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
+    vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float bias = 0.01;
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(direct_light_map_texture, 0);
+    float currentDepth = projCoords.z;
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(direct_light_map_texture, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+    
+    return shadow;
+}
+
 vec3 _reflection_vector(vec3 lightDirection) {
     return 2.0 * dot(lightDirection,normalWS) * normalWS - lightDirection;
 }
-
-
 
 vec3 sampleColorRange(float x, vec3 color0, vec3 color1, vec3 color2,
 float pos0, float pos1, float pos2) {
@@ -92,8 +114,9 @@ void main() {
     float diffEase = 1 - pow(1 - _light_diffuse_intensity, 3);
     float specIntensity  = pow(specAngle, _specularExponent)*diffEase; 
 
-
-    float in_light = float(dot(normalWS,lightDir) > 0);
+    float test = texture(direct_light_map_texture,vertexPosWs.xy).r;
+    
+    float in_light = float(dot(normalWS,lightDir) > 0) * (1-in_light_map_shadow());
     FragColor = vec4(vec3(
     _light_diffuse_intensity * in_light * _object_color * direct_light_color
     + specIntensity * in_light * direct_light_color * direct_light_intensity

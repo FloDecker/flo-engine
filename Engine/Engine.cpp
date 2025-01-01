@@ -256,13 +256,13 @@ int main()
 	/////ADD SCENE GEOMETRY:
 
 	auto mSphere1 = new Mesh3D(scene->get_root(), sphere);
-	mSphere1->materials.push_back(worldPosMat);
+	mSphere1->add_material(worldPosMat);
 	mSphere1->setPositionLocal(20, 0, 0);
 	mSphere1->setRotationLocalDegrees(0, 0, 0);
 	mSphere1->name = "sphere 1";
 
 	auto mSphere2 = new Mesh3D(scene->get_root(), sphere);
-	mSphere2->setPositionLocal(0, 0, 10);
+	mSphere2->setPositionLocal(0, -1.5, -10);
 	mSphere2->name = "sphere 2";
 
 	auto test_triangle = new Mesh3D(scene->get_root(), me_test_triangle);
@@ -270,7 +270,7 @@ int main()
 	test_triangle->name = "test_triangle";
 
 	auto mSphere3 = new Mesh3D(mSphere2, sphere);
-	mSphere3->setPositionLocal(0, 0, 5);
+	mSphere3->setPositionLocal(0.9, -0.55, -4.3);
 	mSphere3->name = "sphere 3";
 	mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
 
@@ -295,7 +295,7 @@ int main()
 
 
 	auto mSphere_phyics_1 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_1->materials.push_back(worldPosMat);
+	mSphere_phyics_1->add_material(worldPosMat);
 	mSphere_phyics_1->setPositionLocal(10, 0, 0);
 	mSphere_phyics_1->name = "mSphere_phyics_1";
 	auto spring1 = new mass_spring_point(mSphere_phyics_1, physics_engine);
@@ -303,7 +303,7 @@ int main()
 	mSphere_phyics_1->add_modifier(spring1);
 
 	auto mSphere_phyics_2 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_2->materials.push_back(worldPosMat);
+	mSphere_phyics_2->add_material(worldPosMat);
 	mSphere_phyics_2->setPositionLocal(5, 0, 0);
 	mSphere_phyics_2->name = "mSphere_phyics_2";
 	auto spring2 = new mass_spring_point(mSphere_phyics_2, physics_engine);
@@ -312,7 +312,7 @@ int main()
 
 
 	auto mSphere_phyics_3 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_3->materials.push_back(worldPosMat);
+	mSphere_phyics_3->add_material(worldPosMat);
 	mSphere_phyics_3->setPositionLocal(5, 2, 0);
 	mSphere_phyics_3->name = "mSphere_phyics_3";
 	auto spring3 = new mass_spring_point(mSphere_phyics_3, physics_engine);
@@ -320,7 +320,7 @@ int main()
 	mSphere_phyics_3->add_modifier(spring3);
 
 	auto mSphere_phyics_4 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_4->materials.push_back(worldPosMat);
+	mSphere_phyics_4->add_material(worldPosMat);
 	mSphere_phyics_4->setPositionLocal(10, 2, 0);
 	mSphere_phyics_4->name = "mSphere_phyics_4";
 	auto spring4 = new mass_spring_point(mSphere_phyics_4, physics_engine);
@@ -443,19 +443,19 @@ int main()
 	handlertest->setPositionLocal(20, 0, 0);
 	handlertest->setRotationLocalDegrees(0, 0, 0);
 	handlertest->name = "handlertest";
-	handlertest->materials.push_back(normal_debug_shader);
+	handlertest->add_material(normal_debug_shader);
 
 	auto handlertest_2 = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
 	handlertest_2->setPositionLocal(15, 0, 0);
 	handlertest_2->setRotationLocalDegrees(0, 0, 0);
 	handlertest_2->name = "handlertest_2";
-	handlertest_2->materials.push_back(normal_debug_shader);
+	handlertest_2->add_material(normal_debug_shader);
 
 	auto handlertest_3 = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
 	handlertest_3->setPositionLocal(10, 0, 0);
 	handlertest_3->setRotationLocalDegrees(0, 0, 0);
 	handlertest_3->name = "handlertest_2";
-	handlertest_3->materials.push_back(normal_debug_shader);
+	handlertest_3->add_material(normal_debug_shader);
 
 	//TODO: this call should be automatically called when changing the scene
 	scene->recalculate_from_root();
@@ -466,13 +466,17 @@ int main()
 
 
 	//depth map visualizer
-	auto* visualize_light_map = new ShaderProgram();
-	visualize_light_map->loadFromFile("EngineContent/Shader/testVisualizeDepthMap.glsl");
-	visualize_light_map->compileShader();
-	visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
-	auto visualizer_depth = new Mesh3D(scene->get_root(), plane);
-	visualizer_depth->materials.push_back(visualize_light_map);
-
+	//auto* visualize_light_map = new ShaderProgram();
+	//visualize_light_map->loadFromFile("EngineContent/Shader/testVisualizeDepthMap.glsl");
+	//visualize_light_map->compileShader();
+	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
+	auto object_plane = new Mesh3D(scene->get_root(), plane);
+	object_plane->name = "plane_light";
+	object_plane->add_material(lightTestMaterial);
+	object_plane->set_position_global(0, 0, -15);
+	object_plane->setScale(5,5,1);
+	
+	//object_plane->setScale(20);
 	
 	//WIDNOWS
 	//INTI GUI MANAGER

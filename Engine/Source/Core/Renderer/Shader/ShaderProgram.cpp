@@ -261,8 +261,6 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 
 	//if (flag_include_dynamic_directional_light_)
 	//{
-	//	this->set_uniform_vec3_f(name_direct_light_direction, glm::value_ptr(object_3d->get_scene()->get_scene_direct_light()->getForwardVector()));
-	//	this->set_uniform_vec3_f(name_direct_light_color, glm::value_ptr(object_3d->get_scene()->get_scene_direct_light()->color));
 	//	this->set_uniform_float(name_direct_light_intensity, object_3d->get_scene()->get_scene_direct_light()->intensity);
 	//}
 	if (flag_include_dynamic_ambient_light_)
