@@ -48,6 +48,18 @@ void framebuffer_object::attach_texture_as_color_buffer(Texture2D *color_texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void framebuffer_object::resize_attach_textures(unsigned int width, unsigned int height) const
+{
+	if (has_color_attachment_)
+	{
+		color_texture_->resize(width, height);
+	}
+	if (has_depth_attachment_)
+	{
+		depth_texture_->resize(width, height);
+	}
+}
+
 
 void framebuffer_object::generate_framebuffer()
 {

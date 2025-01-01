@@ -546,6 +546,7 @@ int main()
 
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+		glViewport(0, 0, windowSize.x, windowSize.y);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);

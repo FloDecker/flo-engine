@@ -20,14 +20,56 @@ in vec2 TexCoords;
 uniform sampler2D color_framebuffer;
 uniform sampler2D dpeth_framebuffer;
 
+
+
+float kernel[9] = float[](
+1.0 / 16, 2.0 / 16, 1.0 / 16,
+2.0 / 16, 4.0 / 16, 2.0 / 16,
+1.0 / 16, 2.0 / 16, 1.0 / 16
+);
+
+vec3 get_distance_blur(float distance) {
+
+
+    float offset = 1.0 / distance;
+
+    vec2 offsets[9] = vec2[](
+    vec2(-offset,  offset),
+    vec2( 0.0f,    offset),
+    vec2( offset,  offset),
+    vec2(-offset,  0.0f),
+    vec2( 0.0f,    0.0f),
+    vec2( offset,  0.0f),
+    vec2(-offset, -offset),
+    vec2( 0.0f,   -offset),
+    vec2( offset, -offset)
+    );
+
+    vec3 sampleTex[9];
+    for(int i = 0; i < 9; i++)
+    {
+        sampleTex[i] = vec3(texture(color_framebuffer, TexCoords.st + offsets[i]));
+    }
+    vec3 col = vec3(0.0);
+    for(int i = 0; i < 9; i++) {
+        col += sampleTex[i] * kernel[i];
+    }
+    return col;
+}
+
 void main()
 {
     float d = texture(dpeth_framebuffer, TexCoords).x;
+    //vec3 color = vec3(texture(color_framebuffer, TexCoords));
+    //vec3 color = get_distance_blur(100);
     vec3 color = vec3(texture(color_framebuffer, TexCoords));
-    if(TexCoords.x < 0.5 ){
-        FragColor = vec4(vec3(color),1.0);
-    }else {
-        FragColor = vec4(vec3(pow(d,100)),1.0);
-    }
+    //color = vec3(d);
+   
+    FragColor = vec4(vec3(color),1.0);
+    //if(TexCoords.x < 0.5 ){
+    //    FragColor = vec4(vec3(color),1.0);
+    //}else {
+    //    FragColor = vec4(vec3(pow(d,100)),1.0);
+    //}
     //FragColor = vec4(0.4);
 }
