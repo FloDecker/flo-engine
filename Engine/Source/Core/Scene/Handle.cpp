@@ -87,16 +87,16 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 	arrow_x_collider_->check_collision_ws(camera_pos, ray_direction, 100000.0, true, &cast_hit);
 	if (cast_hit.hit)
 	{
-		std::cout << "hitx";
 		handler_status = move_global_x;
+		offset_ = glm::vec3(cast_hit.hit_local.z,0,0);
 		return;
 	}
 
 	arrow_y_collider_->check_collision_ws(camera_pos, ray_direction, 100000.0, true, &cast_hit);
 	if (cast_hit.hit)
 	{
-		std::cout << "hity";
 		handler_status = move_global_y;
+		offset_ = glm::vec3(0,cast_hit.hit_local.z,0);
 		return;
 	}
 
@@ -104,8 +104,8 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 	arrow_z_collider_->check_collision_ws(camera_pos, ray_direction, 100000.0, true, &cast_hit);
 	if (cast_hit.hit)
 	{
-		std::cout << "hitz";
 		handler_status = move_global_z;
+		offset_ = glm::vec3(0,0,cast_hit.hit_local.z);
 	}
 }
 
@@ -129,8 +129,9 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
 			current_object_pos.x = intersection->intersection_point.x;
-			attached_object_3d_->set_position_global(current_object_pos);
-			this->set_position_global(current_object_pos);
+			auto pos = current_object_pos - offset_;
+			attached_object_3d_->set_position_global(pos);
+			this->set_position_global(pos);
 		}
 		return;
 	case move_global_y:
@@ -140,8 +141,10 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
 			current_object_pos.y = intersection->intersection_point.y;
-			attached_object_3d_->set_position_global(current_object_pos);
-			this->set_position_global(current_object_pos);
+			auto pos = current_object_pos - offset_;
+
+			attached_object_3d_->set_position_global(pos);
+			this->set_position_global(pos);
 		}
 		return;
 	case move_global_z:
@@ -151,8 +154,10 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
 			current_object_pos.z = intersection->intersection_point.z;
-			attached_object_3d_->set_position_global(current_object_pos);
-			this->set_position_global(current_object_pos);
+			auto pos = current_object_pos - offset_;
+
+			attached_object_3d_->set_position_global(pos);
+			this->set_position_global(pos);
 		}
 		return;
 	}

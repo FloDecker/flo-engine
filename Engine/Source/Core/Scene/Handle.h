@@ -35,6 +35,8 @@ private:
     bool attached_ = false;
     bool handle_mode_global_ = true;
     HandlerType handler_status = not_transforming;
+
+    glm::vec3 offset_;
     //-1 not attached
     //0 = x
     //1 = y
