@@ -116,6 +116,9 @@ glm::vec3 Object3D::getLocalRotation()
 	//auto a = glm::eulerAngles(rotation_quat_);
 	//return glm::vec3(glm::pitch(rotation_quat_), glm::yaw(rotation_quat_), glm::roll(rotation_quat_));
 	//return a;
+	//auto v_x = glm::vec3(0, 0, 1);
+	//printf(glm::to_string(rotation_quat_ * v_x).c_str());
+	//printf("roll: %f", glm::roll(rotation_quat_));
 	return rotation_;
 }
 
@@ -238,7 +241,7 @@ void Object3D::setRotationLocal(glm::vec3 rotation)
 	auto q_z = angle_utils::vector_rotation_to_quat(vec_z, rotation.z);
 
 	this->rotation_ = rotation;
-	this->rotation_quat_ = glm::quat(rotation); //q_z * q_y * q_x;
+	this->rotation_quat_ =q_y * q_x * q_z;
 	//printf("[%f %f %f] -> [%f %f %f]\n", rotation.x, rotation.y, rotation.z, a.x, a.y, a.z);
 
 	recalculate_local_transform();
@@ -264,9 +267,7 @@ void Object3D::set_position_global(const glm::vec3& pos)
 {
 	const auto transform_inverse = inverse(parent->getGlobalTransform());
 	const auto pos_new = transform_inverse * glm::vec4(pos, 1);
-	auto scale_inverse = new glm::mat4(1.0);
-	setPositionLocal(glm::vec3(pos_new * scale(*scale_inverse, glm::vec3(1, 1, 1) / scale_)));
-	free(scale_inverse);
+	setPositionLocal(glm::vec3(pos_new));
 }
 
 void Object3D::set_position_global(float x, float y, float z)
@@ -323,17 +324,19 @@ void Object3D::recalculate_local_transform()
 	transformLocal = glm::mat4(1.0f);
 
 	//apply scale
+	transformLocal = translate(transformLocal, position_);
+
+	transformLocal = transformLocal * toMat4(rotation_quat_);
+
 	transformLocal = scale(transformLocal, scale_);
 
 	//apply transform
-	transformLocal = translate(transformLocal, position_);
 
 	//apply rotation
 	//transformLocal = glm::rotate(transformLocal, rotation_.y, vec_y);
 	//transformLocal = glm::rotate(transformLocal, rotation_.x, vec_x);
 	//transformLocal = glm::rotate(transformLocal, rotation_.z, vec_z);
 
-	transformLocal = transformLocal * toMat4(rotation_quat_);
 	this->recalculate_global_transform();
 }
 

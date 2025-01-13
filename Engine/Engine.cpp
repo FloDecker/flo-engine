@@ -276,14 +276,15 @@ int main()
 
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
+	mInertiaTest->add_material(lightTestMaterial);
 
-	//auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
-	auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
+	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
+	//auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
 
 	auto s = std::string("ENGINE_COLLIDER");
 	auto collider_test = dynamic_cast<MeshCollider*>(mInertiaTest->get_child_by_tag(&s));
 	rigid_body_mod = new rigid_body(mInertiaTest, physics_engine, collider_test);
-	rigid_body_mod->mass = 2000;
+	rigid_body_mod->mass = 20;
 	mInertiaTest->add_modifier(rigid_body_mod);
 	auto i = collider_test->get_inertia_tensor();
 	auto xx = (vec_x * i * vec_x);
@@ -719,7 +720,6 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 			}
 			else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_MIDDLE])
 			{
-				printf("middleclik");
 				rigid_body_mod->apply_force_ws(ray_direction, ray_origin, 100);
 			}
 		}
