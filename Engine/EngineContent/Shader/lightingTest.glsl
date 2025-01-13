@@ -14,7 +14,7 @@ void main() {
 }
 
 [fragment]
-
+#define PI 3.14159265359
 in vec3 cameraPosWs;
 in vec3 vertexPosWs;
 in vec3 normalWS;
@@ -32,6 +32,26 @@ float _lightIntensity = 10.0;
 
 vec3 _object_color = vec3(1.0);
 
+float random (vec2 st, float seed) {
+    return fract(sin(dot(st.xy,
+    vec2(12.9898,78.233)))*
+    seed);
+}
+
+
+vec2 random_vector(vec2 st, float scale) {
+    float random_angle = PI * 2 * random(st,  4378.5453123f);
+    
+    return vec2(cos(random_angle),sin(random_angle))
+    * random(st, 5458.24) * scale;
+}
+
+float light_map_at(vec2 coords) {
+    float a = texture(direct_light_map_texture, coords.xy).r;
+    return a;
+    return (a>0)?a:1.0;
+}
+
 float in_light_map_shadow() {
     vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
     vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
@@ -41,15 +61,26 @@ float in_light_map_shadow() {
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(direct_light_map_texture, 0);
     float currentDepth = projCoords.z;
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(direct_light_map_texture, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-        }
+    int samples = 8;
+    float d = currentDepth+.01 - light_map_at(projCoords.xy);
+    for (int i = 0; i < samples; i++) {
+        vec2 random_vec = random_vector(vertexPosWs.xy+float(i), 6.0);
+        float pcfDepth = light_map_at(projCoords.xy + random_vec * texelSize);
+        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
     }
-    shadow /= 9.0;
+    
+    shadow /= float(samples);
+    //for(int x = -1; x <= 1; ++x)
+    //{
+    //    for(int y = -1; y <= 1; ++y)
+    //    {
+    //        float pcfDepth = texture(direct_light_map_texture, projCoords.xy + vec2(x,y) * texelSize).r;
+    //        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    //    }
+    //}
+    
+    //float pcfDepth = texture(direct_light_map_texture, projCoords.xy).r;
+    //shadow = currentDepth - bias > pcfDepth ? 1.0 : 0.0;
     
     return shadow;
 }

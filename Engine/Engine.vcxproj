@@ -385,6 +385,7 @@
         <Content Include="EngineContent\Cube.fbx" />
         <Content Include="EngineContent\Cube.obj" />
         <Content Include="EngineContent\cubeArray.fbx" />
+        <Content Include="EngineContent\Shader\GBuffers.glsl" />
         <Content Include="EngineContent\Shader\PostProcessing.glsl" />
         <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl" />
         <Content Include="EngineContent\Shader\DebugColorChangable.glsl" />

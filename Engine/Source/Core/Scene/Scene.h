@@ -40,7 +40,8 @@ public:
 	StackedBB* get_bb() const;
 	visual_debug_tools* get_debug_tools() const;
 	void draw_scene(RenderContext* render_context) const;
-	void light_pass() const;
+	void light_pass(camera* current_camera) const;
+	void custom_pass(RenderContext* render_context) const;
 	void select_object(Object3D* object);
 	void deselect();
 

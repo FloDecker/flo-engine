@@ -517,7 +517,7 @@ int main()
 		renderFrameStart = glfwGetTime();
 	
 		//lightpass 
-		scene->light_pass(); 
+		scene->light_pass(editor3DCamera->get_camera()); 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, windowSize.x, windowSize.y);
 		

@@ -171,13 +171,15 @@ void Scene::draw_scene(RenderContext* render_context) const
 	scene_root_->draw_entry_point(render_context);
 }
 
-void Scene::light_pass() const
+void Scene::light_pass(camera* current_camera) const
 {
 	//direct light
 	if (has_direct_light_)
 	{
+		direct_light_->set_light_center_position(*current_camera->getWorldPosition());
 		direct_light_->render_to_light_map();
 		light_pass_render_context_->light = direct_light_;
+		light_pass_render_context_->camera = current_camera;
 		scene_root_->draw_entry_point(light_pass_render_context_);
 	}
 }

@@ -8,11 +8,13 @@
 #include "camera.h"
 
 class light;
+class ShaderProgram;
 
 enum render_pass
 {
 	render_pass_main,
 	render_pass_lighting,
+	render_pass_custom,
 };
 
 struct RenderFlags
@@ -28,6 +30,7 @@ struct RenderContext
 	double deltaTime = 0;
 	RenderFlags flags;
 	render_pass pass = render_pass_main;
+	ShaderProgram *custom_shader = nullptr;
 };
 
 struct RenderWindow

@@ -26,6 +26,9 @@ int Object3D::draw_(struct RenderContext* parentRenderContext)
 	if (parentRenderContext->pass == render_pass_lighting)
 	{
 		this->draw_self_shadow_pass();
+	} else if (parentRenderContext->pass == render_pass_custom)
+	{
+		this->draw_self_custom_pass(parentRenderContext->custom_shader);
 	}
 	else
 	{
@@ -67,6 +70,11 @@ int Object3D::drawSelf()
 }
 
 int Object3D::draw_self_shadow_pass()
+{
+	return 0;
+}
+
+int Object3D::draw_self_custom_pass(ShaderProgram* shader_program)
 {
 	return 0;
 }

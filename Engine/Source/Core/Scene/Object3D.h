@@ -143,6 +143,7 @@ protected:
 	glm::vec3 rightVectorLocal = glm::vec3(1, 0, 0);
 	virtual int drawSelf(); //implement drawing code here,its executed when traversing the scene tree every frame 
 	virtual int draw_self_shadow_pass(); //called when running shadow pass
+	virtual int draw_self_custom_pass(ShaderProgram *shader_program); //called when running custom pass
 	virtual void on_transform_changed(); //called whenever the objects transforms change
 
 	//FLAGS

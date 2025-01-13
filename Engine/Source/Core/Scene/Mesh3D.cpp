@@ -76,3 +76,14 @@ int Mesh3D::draw_self_shadow_pass()
 	}
 	return 1;
 }
+
+int Mesh3D::draw_self_custom_pass(ShaderProgram* shader_program)
+{
+	for (int i = 0; i < mesh->vertexArrays.size(); ++i)
+	{
+		shader_program->use();
+		shader_program->add_header_uniforms(this, this->renderContext);
+		mesh->vertexArrays[i]->draw();
+	}
+	return 1;
+}
