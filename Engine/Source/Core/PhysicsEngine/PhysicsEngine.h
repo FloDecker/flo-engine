@@ -4,6 +4,7 @@
 #include "../Scene/Modifiers/Implementations/mass_spring_point.h"
 #include "../Scene/Modifiers/Implementations/physics_object_modifier.h"
 #include "../Scene/Modifiers/Implementations/rigid_body.h"
+#include "../Scene/Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "IntegrationMethods/euler_integrator.h"
 
 
@@ -26,6 +27,9 @@ public:
 	//rigid body
 	void register_rigid_body(rigid_body* rigid_body);
 
+	//register collider
+	void register_collider(collider_modifier* collider);
+
 
 	//integration methods
 	euler_integrator* integrator_euler = new euler_integrator();
@@ -36,5 +40,6 @@ private:
 	std::vector<spring*> springs_; //springs for mass spring systems
 
 	std::vector<rigid_body*> rigid_bodies_;
+	std::vector<collider_modifier*> colliders_;
 	
 };

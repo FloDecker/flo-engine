@@ -258,6 +258,8 @@
         <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.cpp" />
         <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.cpp" />
         <ClCompile Include="Source\Core\Scene\Mesh3D.cpp"/>
+        <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\Colliders\box_collider.cpp" />
+        <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\Colliders\collider_modifier.cpp" />
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.cpp"/>
@@ -327,6 +329,8 @@
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.h" />
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.h" />
         <ClInclude Include="Source\Core\Scene\Mesh3D.h" />
+        <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\Colliders\box_collider.h" />
+        <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\Colliders\collider_modifier.h" />
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.h" />
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.h" />
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.h" />

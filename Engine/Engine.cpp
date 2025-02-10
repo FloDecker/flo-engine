@@ -31,6 +31,7 @@
 #include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
+#include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -274,8 +275,22 @@ int main()
 	mSphere3->name = "sphere 3";
 	mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
 
+
+	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
+	collision_test_cube_1->name = "collision_test_cube_1";
+	collision_test_cube_1->add_material(lightTestMaterial);
+	collision_test_cube_1->add_modifier(new box_collider(collision_test_cube_1, physics_engine));
+
+	auto collision_test_cube_2 = new Mesh3D(scene->get_root(), cube);
+	collision_test_cube_2->name = "collision_test_cube_2";
+	collision_test_cube_2->add_material(lightTestMaterial);
+	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2, physics_engine));
+	
+	
+	
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
+	mInertiaTest->set_position_global(20,20,20);
 	mInertiaTest->add_material(lightTestMaterial);
 
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
