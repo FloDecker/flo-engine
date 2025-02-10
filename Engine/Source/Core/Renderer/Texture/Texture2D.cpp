@@ -39,8 +39,8 @@ void Texture2D::initialize_as_depth_map_render_target(const unsigned int width, 
 	glBindTexture(GL_TEXTURE_2D, _texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 	             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	type_ = FRAME_BUFFER_DEPTH;
@@ -112,4 +112,10 @@ void Texture2D::resize(unsigned int width, unsigned int height)
 	case IMAGE_TEXTURE:
 		std::cerr << "Can't resize texture\n";
 	}
+}
+
+void Texture2D::generate_mip_map() const
+{
+	glBindTexture(GL_TEXTURE_2D, _texture);
+	glGenerateMipmap(GL_TEXTURE_2D);
 }

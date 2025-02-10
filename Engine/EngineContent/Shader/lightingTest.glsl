@@ -32,6 +32,9 @@ float _lightIntensity = 10.0;
 
 vec3 _object_color = vec3(1.0);
 
+float bias = 0.01;
+
+
 float random (vec2 st, float seed) {
     return fract(sin(dot(st.xy,
     vec2(12.9898,78.233)))*
@@ -46,43 +49,78 @@ vec2 random_vector(vec2 st, float scale) {
     * random(st, 5458.24) * scale;
 }
 
-float light_map_at(vec2 coords) {
-    float a = texture(direct_light_map_texture, coords.xy).r;
+float light_map_at(vec2 coords, float mipmap) {
+    float a = texture(direct_light_map_texture, coords.xy,mipmap).r;
     return a;
     return (a>0)?a:1.0;
+}
+
+float sample_at_random(float currentDepth, vec2 coords, int samples, float distance) {
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(direct_light_map_texture, 0);
+
+    for (int i = 0; i < samples; i++) {
+        vec2 random_vec = random_vector(vertexPosWs.xy+i, 50.0* distance);
+        float pcfDepth = light_map_at(coords + random_vec * texelSize,0);
+        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    }
+
+    shadow /= float(samples);
+    return shadow;
+}
+
+
+float occluder_distance_estimation(float currentDepth, vec2 coords) {
+    int kernel_widht_height = 2;
+    vec2 texelSize = 1.0 / textureSize(direct_light_map_texture, 0);
+
+    float avg_distance = 0.0;
+    float ocluder_hits = 0.0;
+    float max_distance = 0.0;
+    for (int x = -kernel_widht_height; x < kernel_widht_height; x++) {
+        for (int y = -kernel_widht_height; y < kernel_widht_height; y++) {
+            vec2 random_vec = random_vector(vertexPosWs.xy, 1);
+
+            vec2 offset_vec = vec2(x,y);// + random_vec;
+
+            float pcfDepth = light_map_at(coords + offset_vec*texelSize ,0);
+            if (currentDepth - bias > pcfDepth) {
+                ocluder_hits+=1;
+                avg_distance+= (currentDepth - pcfDepth);
+            }
+            
+        }
+    }
+    
+    return avg_distance/(kernel_widht_height*kernel_widht_height);
+}
+
+float sample_box(float currentDepth, vec2 coords, int kernel_widht_height, float distance){
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(direct_light_map_texture, 0);
+    int kernel_widht_height_half = (kernel_widht_height - 1 )/ 2;
+    for (int x = -kernel_widht_height_half; x <= kernel_widht_height_half; x++) {
+        for (int y = -kernel_widht_height_half; y < kernel_widht_height_half; y++) {
+            vec2 offset_vec = vec2(x,y);
+            float pcfDepth = light_map_at(coords + offset_vec * texelSize * 0.5,0);
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+
+    shadow /= float(kernel_widht_height * kernel_widht_height);
+    return shadow;
 }
 
 float in_light_map_shadow() {
     vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
     vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
     projCoords = projCoords * 0.5 + 0.5;
-
-    float bias = 0.01;
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(direct_light_map_texture, 0);
+    
     float currentDepth = projCoords.z;
-    int samples = 8;
-    float d = currentDepth+.01 - light_map_at(projCoords.xy);
-    for (int i = 0; i < samples; i++) {
-        vec2 random_vec = random_vector(vertexPosWs.xy+float(i), 6.0);
-        float pcfDepth = light_map_at(projCoords.xy + random_vec * texelSize);
-        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-    }
     
-    shadow /= float(samples);
-    //for(int x = -1; x <= 1; ++x)
-    //{
-    //    for(int y = -1; y <= 1; ++y)
-    //    {
-    //        float pcfDepth = texture(direct_light_map_texture, projCoords.xy + vec2(x,y) * texelSize).r;
-    //        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-    //    }
-    //}
-    
-    //float pcfDepth = texture(direct_light_map_texture, projCoords.xy).r;
-    //shadow = currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-    
-    return shadow;
+    float distance = occluder_distance_estimation(currentDepth, projCoords.xy);
+    if (distance <= 0) return 0;
+    return sample_box(currentDepth, projCoords.xy,7,distance*0.1);
 }
 
 vec3 _reflection_vector(vec3 lightDirection) {
@@ -147,9 +185,19 @@ void main() {
 
     float test = texture(direct_light_map_texture,vertexPosWs.xy).r;
     
-    float in_light = float(dot(normalWS,lightDir) > 0) * (1-in_light_map_shadow());
+    float in_light = float(dot(normalWS,lightDir) > 0) * clamp(1.-in_light_map_shadow(),0.0,1.0);
     FragColor = vec4(vec3(
     _light_diffuse_intensity * in_light * _object_color * direct_light_color
     + specIntensity * in_light * direct_light_color * direct_light_intensity
     + _ambientLightIntensity * _ambientMaterialConstant * get_ao_color()),1.0);
+    
+    
+    ///////
+    vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
+    vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float currentDepth = projCoords.z;
+
+    //FragColor = vec4(vec3((occluder_distance_estimation(currentDepth, projCoords.xy))),1.0);
 }

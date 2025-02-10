@@ -181,6 +181,7 @@ void Scene::light_pass(camera* current_camera) const
 		light_pass_render_context_->light = direct_light_;
 		light_pass_render_context_->camera = current_camera;
 		scene_root_->draw_entry_point(light_pass_render_context_);
+		direct_light_->light_map()->generate_mip_map();
 	}
 }
 

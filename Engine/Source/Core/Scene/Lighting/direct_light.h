@@ -3,6 +3,8 @@
 #include "../../Renderer/Texture/Texture2D.h"
 #include "../../Renderer/framebuffer_object.h"
 
+class Line3D;
+
 class direct_light : public light
 {
 private:
@@ -14,7 +16,8 @@ private:
 
 	//this is the position the light uses as center during the light pass
 	glm::vec3 light_center_position_ = {0,0,0};
-	
+
+	Line3D *debug_line_;
 public:
 	explicit direct_light(Object3D* parent, unsigned int light_map_width,  unsigned int light_map_height );
 	void set_light_settings(float size, float near_plane, float far_plane);
@@ -23,6 +26,10 @@ public:
 	float light_pos_update_interval = 1.0f;
 	void draw_object_specific_ui() override;
 
+protected:
+	void on_light_changed() override;
+
+public:
 	//this should be before the light pass to update the lights position
 	void set_light_center_position(glm::vec3 position);
 
@@ -30,7 +37,4 @@ public:
 	{
 		return light_map_;
 	}
-
-protected:
-	void on_light_changed() override;
 };

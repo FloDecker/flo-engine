@@ -230,6 +230,11 @@ void Object3D::setRotationLocalDegrees(float x, float y, float z)
 	setRotationLocalDegrees(glm::vec3(x, y, z));
 }
 
+void Object3D::look_at_local(glm::vec3 pos_local_space)
+{
+	this->setRotationLocal(glm::quatLookAt(glm::normalize(position_ - pos_local_space),vec_y));
+}
+
 void Object3D::setRotationLocal(glm::vec3 rotation)
 {
 	rotation.x = glm::clamp(rotation.x, -glm::pi<float>() / 2.0f, glm::pi<float>() / 2.0f);

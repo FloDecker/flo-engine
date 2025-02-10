@@ -7,6 +7,11 @@ unsigned int Cube::VBO = 0;
 unsigned int Cube::VAO = 0;
 
 
+Cube::Cube()
+{
+    Cube::load();
+}
+
 int Cube::load()
 {
     if (loaded)

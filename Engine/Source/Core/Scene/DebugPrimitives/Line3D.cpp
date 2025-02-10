@@ -3,7 +3,7 @@
 #include <gtc/type_ptr.hpp>
 #include <gtx/dual_quaternion.hpp>
 
-Line3D::Line3D(Object3D* parent, Line* line, glm::vec3 pos_0, glm::vec3 pos_1): Object3D(
+Line3D::Line3D(Object3D* parent, glm::vec3 pos_0, glm::vec3 pos_1): Object3D(
 	parent)
 {
 	this->pos_0 = pos_0;
@@ -11,8 +11,6 @@ Line3D::Line3D(Object3D* parent, Line* line, glm::vec3 pos_0, glm::vec3 pos_1): 
 	//TODO add directly to root
 	//scene_root->addChild(this);
 	set_positions(pos_0, pos_1);
-	line_ = line;
-	line_->load();
 }
 
 int Line3D::drawSelf()
@@ -28,7 +26,7 @@ int Line3D::drawSelf()
 		                                                                *this->renderContext->camera->
 		                                                                       getWorldPosition()));
 	global_context_->default_color_debug_shader->set_uniform_vec3_f("color", value_ptr(color));
-	line_->draw();
+	global_context_->debug_primitives.line->draw();
 	return 1;
 }
 

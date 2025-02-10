@@ -79,6 +79,7 @@ public:
 
 	void setRotationLocalDegrees(glm::vec3 rotation);
 	void setRotationLocalDegrees(float x, float y, float z);
+	void look_at_local(glm::vec3 pos_local_space);
 
 	void setScale(float scale);
 	void setScale(float x, float y, float z);

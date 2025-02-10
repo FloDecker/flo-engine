@@ -7,6 +7,12 @@
 bool Line::loaded = false;
 unsigned int Line::VBO = 0;
 unsigned int Line::VAO = 0;
+
+Line::Line()
+{
+    Line::load();
+}
+
 int Line::load()
 {
     if (loaded)

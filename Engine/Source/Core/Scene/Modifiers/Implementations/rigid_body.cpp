@@ -32,12 +32,10 @@ rigid_body::rigid_body(Object3D* parent_game_object_3d, PhysicsEngine* physics_e
 void rigid_body::calculate_torque_and_force()
 {
 	torque_ = glm::vec3(0, 0, 0);
-	force_ = glm::vec3(0, 0, 0);
 	for (unsigned int i = 0; i < force_on_vertices_.size(); i++)
 	{
 		auto force_at_vertex = force_on_vertices_.at(i);
 		torque_ += cross(distances_to_center_of_mass_.at(i), force_at_vertex);
-		force_ += force_at_vertex;
 	}
 }
 
@@ -53,22 +51,21 @@ void rigid_body::update_angular_velocity()
 	angular_velocity_ = inverse_inertia_tensor_world_space_ * angular_momentum_;
 }
 
-
 void rigid_body::step(float delta)
 {
 	calculate_torque_and_force();
 	pos_center_of_mass_object_space_ += delta * velocity_center_of_mass_object_space_; //x_cm = x_cm + h * v_cm
 	velocity_center_of_mass_object_space_ += delta * force_ / mass; //v_cm = v_cm + h * F/M
 
-	
-	//calculate rotation
+	//
+	// //calculate rotation
 	auto parent_rot = parent->get_quaternion_rotation();
 	auto rot = parent_rot + (delta / 2) * (glm::quat(0, angular_velocity_.x, angular_velocity_.y, angular_velocity_.z) *
 		parent_rot);
 	parent->setRotationLocal(rot);
-
+	
 	angular_momentum_ += delta * torque_;
-
+	
 	update_inverse_inertia_tensor_world_space();
 	update_angular_velocity();
 	
@@ -76,7 +73,9 @@ void rigid_body::step(float delta)
 		//angular_momentum_.x,angular_momentum_.y,angular_momentum_.z);
 	
 	auto r = parent->get_global_rotation_matrix();
+	
 	parent->move_local(delta * velocity_center_of_mass_object_space_);
+	force_ = glm::vec3(0, 0, 0);
 }
 
 void rigid_body::apply_force_at_vertex(unsigned int vertex_id, glm::vec3 force)
@@ -86,6 +85,8 @@ void rigid_body::apply_force_at_vertex(unsigned int vertex_id, glm::vec3 force)
 
 void rigid_body::apply_force_ws(glm::vec3 direction_ws, glm::vec3 pos_ws, float force)
 {
+	force_ += normalize(direction_ws) * force;
+
 	auto direction_local_space = normalize(parent->transform_vector_to_local_space(direction_ws));
 	auto pos_local_space = parent->transform_position_to_local_space(pos_ws);
 	auto cast_hit = ray_cast_hit();

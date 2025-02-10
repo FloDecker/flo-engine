@@ -442,21 +442,9 @@ int main()
 
 	auto handlertest = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
 	handlertest->setPositionLocal(20, 0, 0);
-	handlertest->setRotationLocalDegrees(0, 0, 0);
 	handlertest->name = "handlertest";
 	handlertest->add_material(normal_debug_shader);
 
-	auto handlertest_2 = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
-	handlertest_2->setPositionLocal(15, 0, 0);
-	handlertest_2->setRotationLocalDegrees(0, 0, 0);
-	handlertest_2->name = "handlertest_2";
-	handlertest_2->add_material(normal_debug_shader);
-
-	auto handlertest_3 = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
-	handlertest_3->setPositionLocal(10, 0, 0);
-	handlertest_3->setRotationLocalDegrees(0, 0, 0);
-	handlertest_3->name = "handlertest_2";
-	handlertest_3->add_material(normal_debug_shader);
 
 	//TODO: this call should be automatically called when changing the scene
 	scene->recalculate_from_root();
@@ -543,9 +531,8 @@ int main()
 		lightTestMaterial->recompile_if_changed();
 		pp_shader->recompile_if_changed();
 		auto rot = glfwGetTime() * 10;
-		//handlertest->setRotationLocalDegrees({rot,0,0});
-		//handlertest_2->setRotationLocalDegrees({0,rot,0});
-		//handlertest_3->setRotationLocalDegrees({0,0,rot});
+		handlertest->look_at_local(mSphere1->getWorldPosition());
+		
 		
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();

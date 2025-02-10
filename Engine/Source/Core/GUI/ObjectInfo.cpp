@@ -38,9 +38,9 @@ void ObjectInfo::gui_tick()
 	ImGui::Text(name.c_str());
 	ImGui::SeparatorText("Transform");
 	ImGui::BeginDisabled(disabled);
-	ImGui::InputFloat3("WS Position",pos);
-	ImGui::InputFloat3("Rotation",rot);
-	ImGui::InputFloat3("Scale",scale);
+	ImGui::InputFloat3("WS Position",pos,"%.3f", ImGuiInputTextFlags_CharsDecimal);
+	ImGui::InputFloat3("Rotation",rot,"%.3f", ImGuiInputTextFlags_CharsDecimal);
+	ImGui::InputFloat3("Scale",scale,"%.3f", ImGuiInputTextFlags_CharsDecimal);
 
 	
 

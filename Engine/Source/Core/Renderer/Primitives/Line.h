@@ -8,6 +8,7 @@
 class Line : public primitive
 {
 public:
+    explicit Line();
     int load() override;
     int draw() override;
     static bool loaded;

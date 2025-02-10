@@ -9,6 +9,7 @@ class Cube : public primitive
 {
 
 public:
+    explicit Cube();
     static bool loaded;
     static unsigned int VBO;
     static unsigned int VAO;

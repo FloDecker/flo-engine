@@ -63,6 +63,7 @@ void main()
     //vec3 color = vec3(texture(color_framebuffer, TexCoords));
     //vec3 color = get_distance_blur(100);
     vec3 color = vec3(texture(color_framebuffer, TexCoords));
+
     //color = vec3(d);
    
     FragColor = vec4(vec3(color),1.0);

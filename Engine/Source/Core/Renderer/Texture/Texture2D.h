@@ -33,7 +33,7 @@ public:
     unsigned int get_texture() const;
     void loadFromDisk(std::string* path);
     void resize(unsigned int width, unsigned int height);
-
+    void generate_mip_map() const;
     [[nodiscard]] int width() const
     {
         return width_;
