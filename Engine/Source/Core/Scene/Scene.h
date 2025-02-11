@@ -60,11 +60,13 @@ public:
 	StructColorRange* get_ao_color_at(int samples, glm::vec3 ws_pos) const;
 
 	//register scene objects
+	unsigned int register_object(Object3D* object);
 	void register_global_light(direct_light *direct_light);
 	void register_sky_box(sky_box *skybox);
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
+	std::unordered_map<unsigned int, Object3D*> objects_;
 	std::vector<Collider*> sceneColliders;
 	StackedBB* scene_bb;
 	GlobalContext* global_context_;
@@ -77,6 +79,9 @@ private:
 
 	//name of the scene
 	std::string name_;
+
+	unsigned int running_object_id_ = 0;
+	unsigned int get_new_id();
 
 	bool _has_selected_object = false;
 	Object3D* selected_object = nullptr;

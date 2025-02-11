@@ -107,6 +107,21 @@ StructColorRange* Scene::get_ao_color_at(int samples, glm::vec3 ws_pos) const
 	return sky_box_->get_sky_box_ao_color_range();
 }
 
+unsigned int Scene::register_object(Object3D* object)
+{
+	const auto id = get_new_id();
+	objects_[id] = object;
+	return id;
+}
+
+
+unsigned int Scene::get_new_id()
+{
+	running_object_id_++;
+	return running_object_id_;
+}
+
+
 void Scene::register_global_light(direct_light* direct_light)
 {
 	if (direct_light_ != nullptr)

@@ -10,6 +10,7 @@ Object3D::Object3D(Object3D* parent)
 {
 	this->parent = parent;
 	this->scene_ = parent->scene_;
+	id_ = scene_->register_object(this);
 	this->global_context_ = parent->global_context_;
 	parent->children.push_back(this);
 }

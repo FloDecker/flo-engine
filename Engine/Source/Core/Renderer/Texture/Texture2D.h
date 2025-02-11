@@ -29,6 +29,7 @@ private:
 public:
     void initialize_as_depth_map_render_target(unsigned int width,  unsigned int height );
     void initialize_as_frame_buffer(unsigned int width,  unsigned int height );
+    void initialize_as_pixel_picker();
     void use(unsigned int textureUnit) override;
     unsigned int get_texture() const;
     void loadFromDisk(std::string* path);

@@ -31,6 +31,8 @@ class Object3D
 	Object3D(); //friend class SceneRoot overwrites this since it's the only Object3D without parent
 	std::vector<unsigned int> tags_; //tags associated with this object
 	std::vector<modifier*> modifiers_; //modifiers of this game object
+	unsigned int id_;
+	
 	//transforms
 	glm::vec3 rotation_ = {0.0, 0.0, 0.0};
 	glm::quat rotation_quat_ = glm::identity<glm::quat>();

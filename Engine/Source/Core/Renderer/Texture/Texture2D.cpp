@@ -68,6 +68,28 @@ void Texture2D::initialize_as_frame_buffer(unsigned int width, unsigned int heig
 	initialized_ = true;
 }
 
+void Texture2D::initialize_as_pixel_picker()
+{
+	if (initialized_)
+	{
+		std::cerr << "Texture2D already initialized\n";
+	}
+	
+	width_ = 1;
+	height_ = 1;
+
+	glGenTextures(1, &_texture);
+	glBindTexture(GL_TEXTURE_2D, _texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, width_, height_, 0, GL_RED, GL_UNSIGNED_INT, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	type_ = IMAGE_TEXTURE;
+
+	initialized_ = true;
+}
+
 void Texture2D::use(unsigned int textureUnit)
 {
 	glActiveTexture(GL_TEXTURE0 + textureUnit);
