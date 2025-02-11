@@ -2,6 +2,7 @@
 #include <mat4x4.hpp>
 #include "../Core/CommonDataStructures/StructVertexArray.h"
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
+#include <array>
 
 class BoundingBoxHelper
 {
@@ -30,6 +31,9 @@ public:
 
     //removes all vertices that aren't contained in the bounding box
     static void remove_vertices_not_contained(const StructBoundingBox* bounding_box, std::vector<glm::vec3> *vertices);
+
+    //bb edges
+    static std::array<glm::vec3,8> get_vertices(const StructBoundingBox* bounding_box, const glm::mat4& transform_a);
         
     static glm::vec3 get_center_of_bb(const StructBoundingBox *bounding_box);
     static glm::vec3  get_scale_of_bb(const StructBoundingBox *bounding_box);
@@ -38,4 +42,9 @@ public:
     //intersection test (code by Tomas Akenine-Möller)
     static int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3]);
     static int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3]) ;
+
+    //Separating axis test
+    static bool are_intersecting(const StructBoundingBox *bounding_box_a, const StructBoundingBox *bounding_box_b, const glm::mat4& transform_a, const glm::mat4& transform_b);
+    static bool intersects_on_axis(glm::vec3 axis, glm::vec3 vertices_a[8], glm::vec3 vertices_b[8]);
+    static std::pair<float,float> project_cube_on_axis(glm::vec3 axis, glm::vec3 vertices[8]);
 };

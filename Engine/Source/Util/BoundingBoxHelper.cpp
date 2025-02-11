@@ -2,6 +2,8 @@
 
 #include <__msvc_filebuf.hpp>
 
+#include "../Core/Scene/Object3D.h"
+
 void BoundingBoxHelper::get_bounding_box_from_vertex_array(StructBoundingBox* bb, struct_vertex_array* vertex_array,
                                                            glm::mat4x4 transformation_matrix)
 {
@@ -90,6 +92,21 @@ void BoundingBoxHelper::remove_vertices_not_contained(const StructBoundingBox* b
 {
 	auto condition = [bounding_box](glm::vec3 x) { return !is_in_bounding_box(bounding_box,x); };
 	vertices->erase(std::remove_if(vertices->begin(), vertices->end(), condition), vertices->end());
+}
+
+std::array<glm::vec3, 8> BoundingBoxHelper::get_vertices(const StructBoundingBox* bounding_box, const glm::mat4& transform_a)
+{
+	
+	return {
+		transform_a * glm::vec4(bounding_box->min.x, bounding_box->min.y, bounding_box->min.z,1), // 0
+		transform_a * glm::vec4(bounding_box->max.x, bounding_box->min.y, bounding_box->min.z,1), // 1
+		transform_a * glm::vec4(bounding_box->min.x, bounding_box->max.y, bounding_box->min.z,1), // 2
+		transform_a * glm::vec4(bounding_box->max.x, bounding_box->max.y, bounding_box->min.z,1), // 3
+		transform_a * glm::vec4(bounding_box->min.x, bounding_box->min.y, bounding_box->max.z,1), // 4
+		transform_a * glm::vec4(bounding_box->max.x, bounding_box->min.y, bounding_box->max.z,1), // 5
+		transform_a * glm::vec4(bounding_box->min.x, bounding_box->max.y, bounding_box->max.z,1), // 6
+		transform_a * glm::vec4(bounding_box->max.x, bounding_box->max.y, bounding_box->max.z,1)  // 7
+	};
 }
 
 glm::vec3 BoundingBoxHelper::get_center_of_bb(const StructBoundingBox* bounding_box)
@@ -358,4 +375,63 @@ int BoundingBoxHelper::planeBoxOverlap(float normal[3], float vert[3], float max
 	if (DOT(normal, vmin) > 0.0f) return 0; // -NJMP-
 	if (DOT(normal, vmax) >= 0.0f) return 1; // -NJMP-
 	return 0;
+}
+
+bool BoundingBoxHelper::are_intersecting(const StructBoundingBox* bounding_box_a,
+	const StructBoundingBox* bounding_box_b, const glm::mat4& transform_a, const glm::mat4& transform_b)
+{
+	glm::vec3 a_x = transform_a * vec_x_w; 
+	glm::vec3 a_y = transform_a * vec_y_w; 
+	glm::vec3 a_z = transform_a * vec_z_w;
+	
+	glm::vec3 b_x = transform_b * vec_x_w; 
+	glm::vec3 b_y = transform_b * vec_y_w; 
+	glm::vec3 b_z = transform_b * vec_z_w; 
+
+
+	//TODO: is this a memory leak? 
+	auto v_a = get_vertices(bounding_box_a, transform_a).data();
+	auto v_b = get_vertices(bounding_box_b, transform_b).data();
+		
+	return (
+		(intersects_on_axis(a_x,v_a,v_b))	&&
+	 	(intersects_on_axis(a_y,v_a,v_b))	&&
+	 	(intersects_on_axis(a_z,v_a,v_b))	&&
+	 	(intersects_on_axis(b_x,v_a,v_b))	&&
+	 	(intersects_on_axis(b_y,v_a,v_b))	&&
+	 	(intersects_on_axis(b_z,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_x ,b_x) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_x ,b_y) ,v_a,v_b))		&&
+	 	(intersects_on_axis(glm::cross(a_x ,b_z) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_y ,b_x) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_y ,b_y) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_y ,b_z) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_z ,b_x) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_z ,b_y) ,v_a,v_b))	&&
+	 	(intersects_on_axis(glm::cross(a_z ,b_z) ,v_a,v_b)));
+}
+
+bool BoundingBoxHelper::intersects_on_axis(glm::vec3 axis, glm::vec3 vertices_a[8], glm::vec3 vertices_b[8])
+{
+	std::pair<float,float> min_max_a = project_cube_on_axis(axis, vertices_a);
+	std::pair<float,float> min_max_b = project_cube_on_axis(axis, vertices_b);
+
+	return std::max(min_max_a.first, min_max_b.first) <= std::min(min_max_a.second, min_max_b.second);
+}
+
+std::pair<float, float> BoundingBoxHelper::project_cube_on_axis(glm::vec3 axis, glm::vec3 vertices[8])
+{
+	float min = glm::dot(axis, vertices[0]);
+	float max = min;
+
+
+	for (int q = 1; q < 8; q++)
+	{
+		float dot = glm::dot(axis, vertices[q]);
+		
+		if (dot < min) min = dot;
+		if (dot > max) max = dot;
+	}
+
+	return std::pair<float,float>(min,max);
 }

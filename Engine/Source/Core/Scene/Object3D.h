@@ -21,6 +21,10 @@ constexpr auto vec_x = glm::vec3(1, 0, 0);
 constexpr auto vec_y = glm::vec3(0, 1, 0);
 constexpr auto vec_z = glm::vec3(0, 0, 1);
 
+constexpr auto vec_x_w = glm::vec4(1, 0, 0,0);
+constexpr auto vec_y_w = glm::vec4(0, 1, 0,0);
+constexpr auto vec_z_w = glm::vec4(0, 0, 1,0);
+
 
 //an object is the most basic type in a Scene
 
@@ -103,6 +107,7 @@ public:
 	glm::vec3 transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const;
 	glm::vec3 transform_position_to_local_space(const glm::vec3& vertex_in_world_space);
 	glm::vec3 transform_vector_to_local_space(const glm::vec3& vector_in_world_space);
+	glm::vec3 transform_vector_to_world_space(const glm::vec3& vector_in_local_space) const;
 
 	//Getter
 	glm::mat4 getGlobalTransform();

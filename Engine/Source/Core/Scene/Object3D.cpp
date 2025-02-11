@@ -311,6 +311,12 @@ glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_l
 	return transformGlobal * glm::vec4(vertex_in_local_space, 1);
 }
 
+glm::vec3 Object3D::transform_vector_to_world_space(const glm::vec3& vector_in_local_space) const
+{
+	return transformGlobal * glm::vec4(vector_in_local_space, 0);
+}
+
+
 glm::vec3 Object3D::transform_position_to_local_space(const glm::vec3& vertex_in_world_space)
 {
 	glm::vec4 ray_cast_origin_vec4_local = getGlobalTransformInverse() * glm::vec4(vertex_in_world_space, 1);
@@ -322,6 +328,7 @@ glm::vec3 Object3D::transform_vector_to_local_space(const glm::vec3& vector_in_w
 	glm::vec4 ray_cast_origin_vec4_local = getGlobalTransformInverse() * glm::vec4(vector_in_world_space, 0);
 	return glm::vec3(ray_cast_origin_vec4_local);
 }
+
 
 
 void Object3D::recalculate_local_transform()
