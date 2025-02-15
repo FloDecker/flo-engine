@@ -2,8 +2,8 @@
 #include <mat4x4.hpp>
 #include "../Core/CommonDataStructures/StructVertexArray.h"
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
+#include "../Core/CommonDataStructures/struct_collision.h"
 #include <array>
-
 class BoundingBoxHelper
 {
 public:
@@ -37,6 +37,7 @@ public:
         
     static glm::vec3 get_center_of_bb(const StructBoundingBox *bounding_box);
     static glm::vec3  get_scale_of_bb(const StructBoundingBox *bounding_box);
+    static glm::vec3  get_half_sizes_of_bb(const StructBoundingBox *bounding_box);
     static float  get_max_length_of_bb(const StructBoundingBox *bounding_box);
 
     //intersection test (code by Tomas Akenine-Möller)
@@ -44,7 +45,6 @@ public:
     static int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3]) ;
 
     //Separating axis test
-    static bool are_intersecting(const StructBoundingBox *bounding_box_a, const StructBoundingBox *bounding_box_b, const glm::mat4& transform_a, const glm::mat4& transform_b);
-    static bool intersects_on_axis(glm::vec3 axis, glm::vec3 vertices_a[8], glm::vec3 vertices_b[8]);
-    static std::pair<float,float> project_cube_on_axis(glm::vec3 axis, glm::vec3 vertices[8]);
+    static struct_collision are_intersecting(const StructBoundingBox *bounding_box_a, const StructBoundingBox *bounding_box_b, const glm::mat4& transform_a, const glm::mat4& transform_b);
+    static float project_cube_on_axis(glm::vec3 axis, glm::vec3 half_sizes, glm::vec3 bb_axis[3]);
 };

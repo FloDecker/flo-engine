@@ -24,8 +24,8 @@ public:
 	void set_box(glm::vec3 max, glm::vec3 min);
 
 
-	bool check_intersection(collider_modifier* other) override;
-	bool check_intersection_with(box_collider* box) override;
+	struct_collision check_intersection(collider_modifier* other) override;
+	struct_collision check_intersection_with(box_collider* box) override;
 
 private:
 	

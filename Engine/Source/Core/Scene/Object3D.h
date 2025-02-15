@@ -21,9 +21,13 @@ constexpr auto vec_x = glm::vec3(1, 0, 0);
 constexpr auto vec_y = glm::vec3(0, 1, 0);
 constexpr auto vec_z = glm::vec3(0, 0, 1);
 
-constexpr auto vec_x_w = glm::vec4(1, 0, 0,0);
-constexpr auto vec_y_w = glm::vec4(0, 1, 0,0);
-constexpr auto vec_z_w = glm::vec4(0, 0, 1,0);
+constexpr auto vec_x_w_vector = glm::vec4(1, 0, 0,0);
+constexpr auto vec_y_w_vector = glm::vec4(0, 1, 0,0);
+constexpr auto vec_z_w_vector = glm::vec4(0, 0, 1,0);
+
+constexpr auto vec_x_w_point = glm::vec4(1, 0, 0,1);
+constexpr auto vec_y_w_point = glm::vec4(0, 1, 0,1);
+constexpr auto vec_z_w_point = glm::vec4(0, 0, 1,1);
 
 
 //an object is the most basic type in a Scene

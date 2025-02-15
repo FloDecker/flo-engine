@@ -1,6 +1,8 @@
 ﻿#include "PhysicsEngine.h"
 
 #include <geometric.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/string_cast.hpp>
 
 #include "../Scene/Object3D.h"
 #include "IntegrationMethods/Integrator.h"
@@ -13,9 +15,10 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
     
 	for (size_t i = 0; i < numColliders; ++i) {
 		for (size_t j = i + 1; j < numColliders; ++j) {  // Start from i+1 to avoid duplicate checks
-			if (colliders_[i]->check_intersection(colliders_[j])) {
+			auto c = colliders_[i]->check_intersection(colliders_[j]);
+			if (c.collision) {
 				std::cout << "Collision detected between object " << i 
-						  << " and object " << j << std::endl;
+						  << " and object " << j << "at: " << glm::to_string(c.collision_point) <<std::endl;
 			}
 		}
 	}

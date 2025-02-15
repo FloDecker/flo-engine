@@ -1,8 +1,10 @@
 ﻿#include "BoundingBoxHelper.h"
 
-#include <__msvc_filebuf.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/string_cast.hpp>
 
 #include "../Core/Scene/Object3D.h"
+
 
 void BoundingBoxHelper::get_bounding_box_from_vertex_array(StructBoundingBox* bb, struct_vertex_array* vertex_array,
                                                            glm::mat4x4 transformation_matrix)
@@ -117,6 +119,11 @@ glm::vec3 BoundingBoxHelper::get_center_of_bb(const StructBoundingBox* bounding_
 glm::vec3 BoundingBoxHelper::get_scale_of_bb(const StructBoundingBox* bounding_box)
 {
 	return bounding_box->max - bounding_box->min;
+}
+
+glm::vec3 BoundingBoxHelper::get_half_sizes_of_bb(const StructBoundingBox* bounding_box)
+{
+	return get_scale_of_bb(bounding_box) * 0.5f;
 }
 
 float BoundingBoxHelper::get_max_length_of_bb(const StructBoundingBox* bounding_box)
@@ -377,61 +384,82 @@ int BoundingBoxHelper::planeBoxOverlap(float normal[3], float vert[3], float max
 	return 0;
 }
 
-bool BoundingBoxHelper::are_intersecting(const StructBoundingBox* bounding_box_a,
+struct_collision BoundingBoxHelper::are_intersecting(const StructBoundingBox* bounding_box_a,
 	const StructBoundingBox* bounding_box_b, const glm::mat4& transform_a, const glm::mat4& transform_b)
 {
-	glm::vec3 a_x = transform_a * vec_x_w; 
-	glm::vec3 a_y = transform_a * vec_y_w; 
-	glm::vec3 a_z = transform_a * vec_z_w;
+	glm::vec3 a_x = transform_a * vec_x_w_vector; 
+	glm::vec3 a_y = transform_a * vec_y_w_vector; 
+	glm::vec3 a_z = transform_a * vec_z_w_vector;
+	glm::vec3 a_normals[3] = {a_x, a_y ,a_z}; 
 	
-	glm::vec3 b_x = transform_b * vec_x_w; 
-	glm::vec3 b_y = transform_b * vec_y_w; 
-	glm::vec3 b_z = transform_b * vec_z_w; 
+	glm::vec3 b_x = transform_b * vec_x_w_vector; 
+	glm::vec3 b_y = transform_b * vec_y_w_vector; 
+	glm::vec3 b_z = transform_b * vec_z_w_vector;
+	glm::vec3 b_normals[3] = {b_x, b_y ,b_z}; 
 
 
-	//TODO: is this a memory leak? 
-	auto v_a = get_vertices(bounding_box_a, transform_a).data();
-	auto v_b = get_vertices(bounding_box_b, transform_b).data();
+	glm::vec3 axis_to_check[15] = {
+		a_x, a_y ,a_z,
+		b_x, b_y ,b_z,
+		glm::cross(a_x, b_x), glm::cross(a_x, b_y), glm::cross(a_x, b_z),
+		glm::cross(a_y, b_x), glm::cross(a_y, b_y), glm::cross(a_y, b_z),
+		glm::cross(a_z, b_x), glm::cross(a_z, b_y), glm::cross(a_z, b_z)
+	};
+	
+	
+	float min_penetration = FLT_MAX;
+	glm::vec3 best_axis;
+	glm::vec3 half_sizes_a = get_half_sizes_of_bb(bounding_box_a);	
+	glm::vec3 half_sizes_b = get_half_sizes_of_bb(bounding_box_b);	
+
+	glm::vec3 axis_world_space_a[3] = {
+		transform_a * vec_x_w_vector,
+		transform_a * vec_y_w_vector,
+		transform_a * vec_z_w_vector
+	};
+
+	
+	glm::vec3 axis_world_space_b[3] = {
+		transform_b * vec_x_w_vector,
+		transform_b * vec_y_w_vector,
+		transform_b * vec_z_w_vector
+	};
+
+	glm::vec3 center_distance =
+		transform_a * glm::vec4(get_center_of_bb(bounding_box_a),1) -
+			transform_b * glm::vec4(get_center_of_bb(bounding_box_b),1);
+	
+	for (int i = 0; i < 15; i++) {
+		auto axis = normalize(axis_to_check[i]);
+		float proj_a = project_cube_on_axis(axis, half_sizes_a, axis_world_space_a);
+		float proj_b = project_cube_on_axis(axis, half_sizes_b, axis_world_space_b);
+		float dist = fabs(dot(center_distance,axis));
+
 		
-	return (
-		(intersects_on_axis(a_x,v_a,v_b))	&&
-	 	(intersects_on_axis(a_y,v_a,v_b))	&&
-	 	(intersects_on_axis(a_z,v_a,v_b))	&&
-	 	(intersects_on_axis(b_x,v_a,v_b))	&&
-	 	(intersects_on_axis(b_y,v_a,v_b))	&&
-	 	(intersects_on_axis(b_z,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_x ,b_x) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_x ,b_y) ,v_a,v_b))		&&
-	 	(intersects_on_axis(glm::cross(a_x ,b_z) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_y ,b_x) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_y ,b_y) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_y ,b_z) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_z ,b_x) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_z ,b_y) ,v_a,v_b))	&&
-	 	(intersects_on_axis(glm::cross(a_z ,b_z) ,v_a,v_b)));
-}
+		float penetration = (proj_a + proj_b) - dist;
 
-bool BoundingBoxHelper::intersects_on_axis(glm::vec3 axis, glm::vec3 vertices_a[8], glm::vec3 vertices_b[8])
-{
-	std::pair<float,float> min_max_a = project_cube_on_axis(axis, vertices_a);
-	std::pair<float,float> min_max_b = project_cube_on_axis(axis, vertices_b);
-
-	return std::max(min_max_a.first, min_max_b.first) <= std::min(min_max_a.second, min_max_b.second);
-}
-
-std::pair<float, float> BoundingBoxHelper::project_cube_on_axis(glm::vec3 axis, glm::vec3 vertices[8])
-{
-	float min = glm::dot(axis, vertices[0]);
-	float max = min;
-
-
-	for (int q = 1; q < 8; q++)
-	{
-		float dot = glm::dot(axis, vertices[q]);
-		
-		if (dot < min) min = dot;
-		if (dot > max) max = dot;
+		if (penetration < 0) return {};  // Separating axis found, no collision
+		if (penetration < min_penetration) {
+			min_penetration = penetration;
+			best_axis = axis;
+		}
 	}
+	if (glm::dot(center_distance, best_axis) > 0) best_axis = -best_axis;
+	struct_collision return_struct;
+	return_struct.collision = true;
+	return_struct.collision_normal = best_axis;
+	
+	float estimated_depth = fabs(glm::dot(center_distance,best_axis));
+	return_struct.collision_point = get_center_of_bb(bounding_box_b) + best_axis * (estimated_depth * 0.5f);
+	return return_struct;
 
-	return std::pair<float,float>(min,max);
 }
+
+
+float BoundingBoxHelper::project_cube_on_axis(glm::vec3 axis, glm::vec3 half_sizes, glm::vec3 bb_axis[3])
+{
+	return fabs(half_sizes.x * dot(bb_axis[0],axis)) +
+		   fabs(half_sizes.y * dot(bb_axis[1],axis)) +
+		   fabs(half_sizes.z * dot(bb_axis[2],axis));
+}
+
