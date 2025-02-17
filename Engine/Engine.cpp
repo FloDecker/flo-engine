@@ -276,16 +276,27 @@ int main()
 	mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
 
 
+	auto s = std::string("ENGINE_COLLIDER");
+
+
 	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_1->name = "collision_test_cube_1";
+	collision_test_cube_1->set_position_global(0,-3,0);
 	collision_test_cube_1->add_material(lightTestMaterial);
 	collision_test_cube_1->add_modifier(new box_collider(collision_test_cube_1, physics_engine));
+
+	auto rigid_body_test_cube_1 = new rigid_body(collision_test_cube_1,physics_engine,
+		dynamic_cast<MeshCollider*>(collision_test_cube_1->get_child_by_tag(&s)));
+	rigid_body_test_cube_1->gravity_enabled = false;
+	rigid_body_test_cube_1->is_fixed = true;
+	collision_test_cube_1->add_modifier(rigid_body_test_cube_1);
 
 	auto collision_test_cube_2 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_2->name = "collision_test_cube_2";
 	collision_test_cube_2->add_material(lightTestMaterial);
 	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2, physics_engine));
-	
+	collision_test_cube_2->add_modifier(new rigid_body(collision_test_cube_2,physics_engine,
+		dynamic_cast<MeshCollider*>(collision_test_cube_2->get_child_by_tag(&s))));
 	
 	
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
@@ -296,7 +307,6 @@ int main()
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
 	//auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
 
-	auto s = std::string("ENGINE_COLLIDER");
 	auto collider_test = dynamic_cast<MeshCollider*>(mInertiaTest->get_child_by_tag(&s));
 	rigid_body_mod = new rigid_body(mInertiaTest, physics_engine, collider_test);
 	rigid_body_mod->mass = 20;
@@ -514,7 +524,7 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
-	
+
 	//// ------ RENDER LOOP ------ ////
 	while (!glfwWindowShouldClose(window))
 	{
@@ -539,6 +549,31 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 
+
+		//PHYSICS
+		//if handler is attached to rigid body
+		//-> calculate velocity from dragging the object
+		//-> suspend physics calculation for this object 
+		if (scene->handle()->is_attached())
+		{
+			auto modifiers = scene->handle()->attached_object_3d()->get_modifiers_by_id(10);
+			for (auto modifier : modifiers)
+			{
+				rigid_body *r = dynamic_cast<rigid_body *>(modifier);
+				if (r!= nullptr)
+				{
+					glm::vec3 handler_delta = (scene->handle()->getWorldPosition() - scene->handle()->last_pos_) *
+						static_cast<float>(1.0f / editorRenderContext->deltaTime);
+					r->set_velocity(handler_delta);
+					r->set_angular_momentum(glm::vec3());
+					r->skip_next_step = true;
+					scene->handle()->last_pos_ = scene->handle()->getWorldPosition();
+					//printf("handler delta = %s\n",glm::to_string(handler_delta).c_str());
+				}
+			}
+		}
+		
+		
 		//run physics step
 		physics_engine->evaluate_physics_step(editorRenderContext->deltaTime);
 
@@ -551,6 +586,7 @@ int main()
 		
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();
+		scene->get_debug_tools()->draw_debug_tools(editorRenderContext->deltaTime);
 		//draw scene elements
 		scene->draw_scene(editorRenderContext);
 		

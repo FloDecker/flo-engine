@@ -103,6 +103,7 @@ public:
 	//Modifiers
 	void add_modifier(modifier* modifier);
 	void draw_modifier_ui() const;
+	std::vector<modifier*> get_modifiers_by_id(int id) const;
 	//TODO: make modifiers removable
 
 	//Transform Helper

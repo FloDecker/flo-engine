@@ -20,7 +20,7 @@ public:
 	}
 
 	StructBoundingBox bounding_box;
-
+	glm::vec3 get_collider_center_ws() override;
 	void set_box(glm::vec3 max, glm::vec3 min);
 
 

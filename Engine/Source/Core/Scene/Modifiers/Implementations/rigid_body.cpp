@@ -22,11 +22,31 @@ rigid_body::rigid_body(Object3D* parent_game_object_3d, PhysicsEngine* physics_e
 		}
 	}
 
+	//search if the parent objects has collider modifiers 
+	auto parent_collider = parent_game_object_3d->get_modifiers_by_id(100);
+	for (auto modifier : parent_collider)
+	{
+		collider_modifier* c = dynamic_cast<collider_modifier*>(modifier);
+		if (c == nullptr)
+		{
+			std::cerr << "tried casting modifier with id 100 but couldn't cast object to collider modifier\n";
+		}
+		else
+		{
+			colliders.insert(c);
+			c->associated_rigid_body = this;
+		}
+	}
 
 	inverse_inertia_tensor_object_space_ = inverse(collider_->get_inertia_tensor());
 	angular_momentum_ = glm::vec3(0, 0, 0);
 	update_inverse_inertia_tensor_world_space();
 	update_angular_velocity();
+}
+
+int rigid_body::get_id()
+{
+	return 10;
 }
 
 void rigid_body::calculate_torque_and_force()
@@ -53,27 +73,33 @@ void rigid_body::update_angular_velocity()
 
 void rigid_body::step(float delta)
 {
+	if (skip_next_step)
+	{
+		skip_next_step = false;
+		return;
+	}
 	calculate_torque_and_force();
 	pos_center_of_mass_object_space_ += delta * velocity_center_of_mass_object_space_; //x_cm = x_cm + h * v_cm
-	velocity_center_of_mass_object_space_ += delta * force_ / mass; //v_cm = v_cm + h * F/M
+	acceleration_ = force_ / mass + (gravity_enabled ? physics_constants::gravity_vector : glm::vec3());
+	velocity_center_of_mass_object_space_ += delta * acceleration_; //v_cm = v_cm + h * F/M
 
-	//
-	// //calculate rotation
+	velocity_center_of_mass_object_space_ += current_linear_impulse; //add linear impulse to current velocity
+
+
+	//calculate rotation
 	auto parent_rot = parent->get_quaternion_rotation();
 	auto rot = parent_rot + (delta / 2) * (glm::quat(0, angular_velocity_.x, angular_velocity_.y, angular_velocity_.z) *
 		parent_rot);
 	parent->setRotationLocal(rot);
-	
+
 	angular_momentum_ += delta * torque_;
-	
+	angular_momentum_ += current_angular_impulse;
+
 	update_inverse_inertia_tensor_world_space();
 	update_angular_velocity();
-	
-	//printf("velocity center of mass: %f at force: %f | angular momentum: %f,%f,%f \n" ,glm::length(velocity_center_of_mass_object_space_), glm::length(force_),
-		//angular_momentum_.x,angular_momentum_.y,angular_momentum_.z);
-	
+
 	auto r = parent->get_global_rotation_matrix();
-	
+
 	parent->move_local(delta * velocity_center_of_mass_object_space_);
 	force_ = glm::vec3(0, 0, 0);
 }
@@ -95,20 +121,22 @@ void rigid_body::apply_force_ws(glm::vec3 direction_ws, glm::vec3 pos_ws, float 
 	{
 		return;
 	}
-	
-	glm::vec3 pos_object_space_0 = distances_to_center_of_mass_.at(cast_hit.vertex_indices[0])+pos_center_of_mass_object_space_initial_;
-	glm::vec3 pos_object_space_1 = distances_to_center_of_mass_.at(cast_hit.vertex_indices[1])+pos_center_of_mass_object_space_initial_;
-	glm::vec3 pos_object_space_2 = distances_to_center_of_mass_.at(cast_hit.vertex_indices[2])+pos_center_of_mass_object_space_initial_;
-	
 
-	auto distribution = math_util::barycentric(cast_hit.hit_local, pos_object_space_0, pos_object_space_1, pos_object_space_2);
-	
+	glm::vec3 pos_object_space_0 = distances_to_center_of_mass_.at(cast_hit.vertex_indices[0]) +
+		pos_center_of_mass_object_space_initial_;
+	glm::vec3 pos_object_space_1 = distances_to_center_of_mass_.at(cast_hit.vertex_indices[1]) +
+		pos_center_of_mass_object_space_initial_;
+	glm::vec3 pos_object_space_2 = distances_to_center_of_mass_.at(cast_hit.vertex_indices[2]) +
+		pos_center_of_mass_object_space_initial_;
+
+
+	auto distribution = math_util::barycentric(cast_hit.hit_local, pos_object_space_0, pos_object_space_1,
+	                                           pos_object_space_2);
+
 
 	apply_force_at_vertex(cast_hit.vertex_indices[0], direction_local_space * (force * distribution.x));
 	apply_force_at_vertex(cast_hit.vertex_indices[1], direction_local_space * (force * distribution.y));
 	apply_force_at_vertex(cast_hit.vertex_indices[2], direction_local_space * (force * distribution.z));
-
-	
 }
 
 void rigid_body::clear_force()
@@ -117,6 +145,36 @@ void rigid_body::clear_force()
 	for (int i = 0; i < force_on_vertices_.size(); i++)
 	{
 		force_on_vertices_.at(i) = glm::vec3(0, 0, 0);
-		
 	}
+}
+
+void rigid_body::clear_impulses()
+{
+	current_linear_impulse = glm::vec3(0, 0, 0);
+	current_angular_impulse = glm::vec3(0, 0, 0);
+}
+
+void rigid_body::set_velocity(glm::vec3 velocity)
+{
+	velocity_center_of_mass_object_space_ = parent->transform_vector_to_local_space(velocity);
+}
+
+void rigid_body::set_angular_momentum(glm::vec3 angular_momentum)
+{
+	angular_momentum_ = angular_momentum;
+}
+
+glm::vec3 rigid_body::get_angular_velocity() const
+{
+	return angular_velocity_;
+}
+
+glm::mat3 rigid_body::get_inverse_inertia_tensor_world_space() const
+{
+	return inverse_inertia_tensor_world_space_;
+}
+
+glm::vec3 rigid_body::get_velocity() const
+{
+	return velocity_center_of_mass_object_space_;
 }

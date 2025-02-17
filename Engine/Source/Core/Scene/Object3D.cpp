@@ -306,6 +306,19 @@ void Object3D::draw_modifier_ui() const
 	}
 }
 
+std::vector<modifier*> Object3D::get_modifiers_by_id(const int id) const
+{
+	std::vector<modifier*> modifiers;
+	for (auto modifier : modifiers_)
+	{
+		if (modifier->get_id() == id)
+		{
+			modifiers.push_back(modifier);
+		}
+	}
+	return modifiers;
+}
+
 glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const
 {
 	return transformGlobal * glm::vec4(vertex_in_local_space, 1);

@@ -4,6 +4,9 @@
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
 #include "../Core/CommonDataStructures/struct_collision.h"
 #include <array>
+
+
+
 class BoundingBoxHelper
 {
 public:
@@ -47,4 +50,8 @@ public:
     //Separating axis test
     static struct_collision are_intersecting(const StructBoundingBox *bounding_box_a, const StructBoundingBox *bounding_box_b, const glm::mat4& transform_a, const glm::mat4& transform_b);
     static float project_cube_on_axis(glm::vec3 axis, glm::vec3 half_sizes, glm::vec3 bb_axis[3]);
+
+    static float penetration_depth(glm::vec3 axis_to_check, glm::vec3 half_sizes_a,
+                                   glm::vec3 axis_world_space_a[3], glm::vec3 half_sizes_b,
+                                   glm::vec3 axis_world_space_b[3], glm::vec3 center_distance);
 };

@@ -5,35 +5,91 @@
 #include <gtx/string_cast.hpp>
 
 #include "../Scene/Object3D.h"
+#include "../Scene/Scene.h"
 #include "IntegrationMethods/Integrator.h"
 
 void PhysicsEngine::evaluate_physics_step(double delta_t)
 {
-
 	//collision detection
 	size_t numColliders = colliders_.size();
-    
-	for (size_t i = 0; i < numColliders; ++i) {
-		for (size_t j = i + 1; j < numColliders; ++j) {  // Start from i+1 to avoid duplicate checks
-			auto c = colliders_[i]->check_intersection(colliders_[j]);
-			if (c.collision) {
-				std::cout << "Collision detected between object " << i 
-						  << " and object " << j << "at: " << glm::to_string(c.collision_point) <<std::endl;
+
+	for (size_t i = 0; i < numColliders; ++i)
+	{
+		for (size_t j = i + 1; j < numColliders; ++j)
+		{
+			// Start from i+1 to avoid duplicate checks
+			auto collider_a = colliders_[i];
+			auto collider_b = colliders_[j];
+			rigid_body* rigid_body_a = collider_a->get_associated_rigid_body();
+			rigid_body* rigid_body_b = collider_b->get_associated_rigid_body();
+
+			if (!rigid_body_a->is_fixed || !rigid_body_b->is_fixed)
+			{
+				auto c = collider_b->check_intersection(collider_a);
+				if (c.collision)
+				{
+					//std::cout << "Collision detected between object " << i 
+					//		  << " and object " << j << "at: " << glm::to_string(c.collision_point)
+					//		  << " with normal " << glm::to_string(c.collision_normal) <<std::endl;
+
+					//calculate relative velocity between both objects
+
+
+					glm::vec3 a_center_collision_ws = c.collision_point - collider_a->get_collider_center_ws();
+					glm::vec3 b_center_collision_ws = c.collision_point - collider_b->get_collider_center_ws();
+
+					auto debug_tools = rigid_body_a->get_parent()->get_scene()->get_debug_tools();
+					debug_tools->draw_debug_line(c.collision_point, collider_a->get_collider_center_ws(), glm::vec3(1,0,0),20);
+					debug_tools->draw_debug_line(c.collision_point, collider_b->get_collider_center_ws(), glm::vec3(0,1,0),20);
+
+					
+					glm::vec3 v_rel_a = rigid_body_a->get_velocity() + glm::cross(
+						rigid_body_a->get_angular_velocity(), a_center_collision_ws);
+					glm::vec3 v_rel_b = rigid_body_b->get_velocity() + glm::cross(
+						rigid_body_b->get_angular_velocity(), b_center_collision_ws);
+
+					glm::vec3 v_rel = v_rel_a - v_rel_b;
+
+					float avg_bounciness = (collider_a->associated_rigid_body->bounciness + collider_b->
+						associated_rigid_body->bounciness) * 0.5;
+
+					if (glm::dot(v_rel, c.collision_normal) < 0)
+					{
+						//collision
+						float J = (-(1 + avg_bounciness) * glm::dot(v_rel, c.collision_normal)) /
+							(1 / rigid_body_a->mass) + (1 / rigid_body_b->mass) + glm::dot(
+								glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
+									           a_center_collision_ws, c.collision_normal), a_center_collision_ws) +
+								glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
+									           b_center_collision_ws, c.collision_normal), b_center_collision_ws)
+								, c.collision_normal);
+						
+						rigid_body_a->current_linear_impulse += J * (c.collision_normal / rigid_body_a->mass);
+						rigid_body_b->current_linear_impulse -= J * (c.collision_normal / rigid_body_b->mass);
+
+						rigid_body_a->current_angular_impulse += glm::cross(
+							a_center_collision_ws, J * c.collision_normal);
+						rigid_body_b->current_angular_impulse -= glm::cross(
+							b_center_collision_ws, J * c.collision_normal);
+
+						printf("J = %f\n", J);
+					}
+					//glm::vec3 vec_a_collision_point = 
+				}
 			}
 		}
 	}
-	
+
 	//calculate spring forces
 	for (auto spring : springs_)
 	{
 		auto pos_1 = spring->point_1->get_parent()->getWorldPosition();
 		auto pos_2 = spring->point_2->get_parent()->getWorldPosition();
-		auto l = glm::distance(pos_1,pos_2);
-		auto force_direction = (pos_1-pos_2)/l;
-		auto f = -spring->stiffness*(l-spring->initial_length);
-		spring->point_1->add_force(force_direction*f);
-		spring->point_2->add_force(-force_direction*f);
-		
+		auto l = glm::distance(pos_1, pos_2);
+		auto force_direction = (pos_1 - pos_2) / l;
+		auto f = -spring->stiffness * (l - spring->initial_length);
+		spring->point_1->add_force(force_direction * f);
+		spring->point_2->add_force(-force_direction * f);
 	}
 
 	//evaluate rigid body
@@ -43,9 +99,10 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 		{
 			rigid_body->step(delta_t);
 			rigid_body->clear_force();
+			rigid_body->clear_impulses();
 		}
 	}
-	
+
 
 	//evaluate mass spring system
 	for (auto mass_spring : mass_spring_objects_)
@@ -59,7 +116,6 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 			mass_spring->clear_force();
 		}
 	}
-	
 }
 
 void PhysicsEngine::register_mass_spring_object(physics_object_modifier* object)

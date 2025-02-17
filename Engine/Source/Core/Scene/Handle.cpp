@@ -61,6 +61,7 @@ void Handle::attach_to_object(Object3D* object_3d)
 	attached_ = true;
 	attached_object_3d_ = object_3d;
 	this->setPositionLocal(object_3d->getWorldPosition());
+	last_pos_ = object_3d->getWorldPosition();
 }
 
 void Handle::detach()

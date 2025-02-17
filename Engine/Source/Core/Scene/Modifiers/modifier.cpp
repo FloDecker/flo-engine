@@ -10,6 +10,11 @@ void modifier::draw_gui()
 {
 }
 
+int modifier::get_id()
+{
+	return -1;
+}
+
 Object3D* modifier::get_parent() const
 {
 	return this->parent;
