@@ -3,6 +3,7 @@
 #include <geometric.hpp>
 
 #include "../Scene/Object3D.h"
+#include "../Scene/Scene.h"
 #include "IntegrationMethods/Integrator.h"
 
 void PhysicsEngine::evaluate_physics_step(double delta_t)

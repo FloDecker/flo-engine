@@ -7,6 +7,44 @@
 #include "../Renderer/Primitives/Line.h"
 #include "../Renderer/Shader/ShaderProgram.h"
 
+enum log_type
+{
+	log_info,
+	log_warning,
+	log_error
+};
+
+inline const char* to_string(log_type e)
+{
+	switch (e)
+	{
+	case log_info: return "log_info";
+	case log_warning: return "log_warning";
+	case log_error: return "log_error";
+	default: return "unknown";
+	}
+}
+
+struct log_entry
+{
+	log_type type;
+	std::string log;
+};
+
+class Logger
+{
+public:
+	unsigned int max_logs = 1000;
+	void print_info(std::string log);
+	unsigned int get_current_log_amount() const;
+	std::vector<log_entry> *get_log_entries();
+	void print_log(std::string log);
+
+private:
+	std::vector<log_entry> log_array_;
+	void print_to_log(log_type type, std::string log);
+
+};
 
 class TagManager
 {
@@ -31,6 +69,7 @@ struct debug_primitives
 struct GlobalContext
 {
 	TagManager tag_manager;
+	Logger *logger = new Logger();
 	debug_primitives debug_primitives;
 	uniform_buffer_object *uniform_buffer_object;
 	
