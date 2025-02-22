@@ -52,7 +52,6 @@ vec2 random_vector(vec2 st, float scale) {
 float light_map_at(vec2 coords, float mipmap) {
     float a = texture(direct_light_map_texture, coords.xy,mipmap).r;
     return a;
-    return (a>0)?a:1.0;
 }
 
 float sample_at_random(float currentDepth, vec2 coords, int samples, float distance) {

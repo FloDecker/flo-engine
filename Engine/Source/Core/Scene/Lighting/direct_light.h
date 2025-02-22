@@ -9,6 +9,7 @@ class direct_light : public light
 {
 private:
 	float size_;
+	float light_height_ = 10; //distance of sun to the camera
 	float near_plane_;
 	float far_plane_;
 	Texture2D *light_map_;

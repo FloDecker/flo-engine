@@ -453,7 +453,7 @@ int main()
 
 	//ADD DIRECT LIGHT
 	auto direct_scene_light = new direct_light(scene->get_root(), 1024,1024);
-	direct_scene_light->setRotationLocal(-30,-30,0);
+	direct_scene_light->setRotationLocal(-90,0,0);
 	direct_scene_light->intensity = 1;
 
 

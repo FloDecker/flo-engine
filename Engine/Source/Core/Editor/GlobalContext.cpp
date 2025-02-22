@@ -59,9 +59,8 @@ void Logger::print_to_log(const log_type type, std::string log)
     log_array_.emplace_back(log_entry(type, log));
 }
 
-void Logger::print_log(std::string log)
+void Logger::print_info(std::string log)
 {
     print_to_log(log_info, log);
 }
 
-////////////////////////////////////////////////////
