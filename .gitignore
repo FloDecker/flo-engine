@@ -398,3 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 /Engine/Debug/*
+
+/Engine/imgui.ini

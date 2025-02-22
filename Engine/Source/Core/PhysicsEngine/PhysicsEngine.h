@@ -7,6 +7,8 @@
 #include "IntegrationMethods/euler_integrator.h"
 
 
+class Scene;
+
 namespace physics_constants
 {
 	static constexpr float gravity = -9.81f;
@@ -17,6 +19,11 @@ namespace physics_constants
 class PhysicsEngine
 {
 public:
+	explicit PhysicsEngine(Scene* scene)
+		: scene_(scene)
+	{
+	}
+
 	void evaluate_physics_step(double delta_t);
 
 	// mass spring
@@ -37,4 +44,5 @@ private:
 
 	std::vector<rigid_body*> rigid_bodies_;
 	
+	Scene *scene_;
 };
