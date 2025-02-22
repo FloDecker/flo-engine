@@ -72,7 +72,9 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 						rigid_body_b->current_angular_impulse -= glm::cross(
 							b_center_collision_ws, J * c.collision_normal);
 
-						printf("J = %f\n", J);
+
+						scene_->get_global_context()->logger->print_info(std::format("J = {}\n", J));
+						//printf("J = %f\n", J);
 					}
 					//glm::vec3 vec_a_collision_point = 
 				}

@@ -155,6 +155,7 @@
         <ClCompile Include="Source\Core\Editor\GlobalContext.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIBase.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIManager.cpp"/>
+        <ClCompile Include="Source\Core\GUI\LogGUI.cpp" />
         <ClCompile Include="Source\Core\GUI\ObjectInfo.cpp"/>
         <ClCompile Include="Source\Core\GUI\SceneTree.cpp"/>
         <ClCompile Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.cpp"/>
@@ -297,6 +298,7 @@
         <ClInclude Include="Source\Core\Editor\GlobalContext.h"/>
         <ClInclude Include="Source\Core\GUI\GUIBase.h"/>
         <ClInclude Include="Source\Core\GUI\GUIManager.h"/>
+        <ClInclude Include="Source\Core\GUI\LogGUI.h" />
         <ClInclude Include="Source\Core\GUI\ObjectInfo.h"/>
         <ClInclude Include="Source\Core\GUI\SceneTree.h"/>
         <ClInclude Include="Source\Core\PhysicsEngine\IntegrationMethods\euler_integrator.h"/>

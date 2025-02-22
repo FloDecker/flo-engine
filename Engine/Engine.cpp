@@ -22,6 +22,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/LogGUI.h"
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
@@ -168,7 +169,7 @@ int main()
 	editorRenderContext->pass = render_pass_main;
 
 	//init physics engine
-	auto physics_engine = new PhysicsEngine();
+	auto physics_engine = new PhysicsEngine(scene);
 
 	//register interaction callbacks
 	glfwSetKeyCallback(window, key_callback);
@@ -495,6 +496,7 @@ int main()
 	//WIDNOWS
 	//INTI GUI MANAGER
 	guiManager = new GUIManager();
+	guiManager->addGUI(new LogGUI(&global_context));
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
 	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
