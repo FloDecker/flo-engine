@@ -451,6 +451,7 @@ int main()
 
 	//ADD DIRECT LIGHT
 	auto direct_scene_light = new direct_light(scene->get_root(), 1024,1024);
+	direct_scene_light->setRotationLocal(-30,-30,0);
 	direct_scene_light->intensity = 1;
 
 
@@ -462,8 +463,9 @@ int main()
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
 	object_plane->add_material(lightTestMaterial);
-	object_plane->set_position_global(0, 0, -15);
-	object_plane->setScale(5,5,1);
+	object_plane->set_position_global(0, -4, 0);
+	object_plane->setRotationLocal(-90, 0, 0);
+	object_plane->setScale(50,50,1);
 	
 	//object_plane->setScale(20);
 	
@@ -497,6 +499,7 @@ int main()
 	pp_shader->compileShader();
 	pp_shader->addTexture(framebuffer_texture_color, "color_framebuffer");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
+	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
 	

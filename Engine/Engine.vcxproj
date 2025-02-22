@@ -237,11 +237,11 @@
             <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
             <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
             <SDLCheck>true</SDLCheck>
-            <AdditionalIncludeDirectories>D:\Code\Engine\Dependencies\GLFW64\include;D:\Code\Engine\Dependencies\GLEW64\include;D:\Code\Engine\Dependencies\glm\glm;D:\Code\Engine\Dependencies\assimp64\include;D:\Code\Engine\\Dependencies\stb_image;D:\Code\Engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW64\include;$(SolutionDir)Dependencies\GLEW64\include;$(SolutionDir)Dependencies\glm\glm;$(SolutionDir)Dependencies\assimp64\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)Engine\Source\External\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <LinkCompiled>true</LinkCompiled>
         </ClCompile>
         <ClCompile Include="Source\Core\Renderer\RenderContext.cpp"/>
-        <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp" />
         <ClCompile Include="Source\Core\Renderer\Texture\Texture2D.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Texture\Texture3D.cpp"/>
         <ClCompile Include="Source\Core\Renderer\uniform_buffer_object.cpp" />
@@ -309,7 +309,7 @@
         <ClInclude Include="Source\Core\Renderer\Primitives\vertex_array.h"/>
         <ClInclude Include="Source\Core\Renderer\RenderContext.h"/>
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h"/>
-        <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h"/>
+        <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h" />
         <ClInclude Include="Source\Core\Renderer\Texture\Texture.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture2D.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture3D.h"/>

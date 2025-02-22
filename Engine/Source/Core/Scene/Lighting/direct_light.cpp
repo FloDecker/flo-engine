@@ -1,5 +1,8 @@
 ﻿#include "direct_light.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/string_cast.hpp>
+
 #include "../Scene.h"
 #include "../DebugPrimitives/Line3D.h"
 direct_light::direct_light(Object3D* parent, unsigned int light_map_width, unsigned int light_map_height): light(parent)
@@ -60,6 +63,8 @@ void direct_light::on_light_changed()
 	l->direct_light_light_space_matrix = light_matrix_;
 	
 	global_context_->uniform_buffer_object->update_direct_light();
+
+	std::printf("%s\n", glm::to_string(glm::vec3( light_pos  * glm::vec4(0,0,0,1))).c_str());
 }
 
 
