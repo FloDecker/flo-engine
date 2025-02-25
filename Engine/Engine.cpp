@@ -22,6 +22,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/LogGUI.h"
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
@@ -167,7 +168,7 @@ int main()
 	editorRenderContext->pass = render_pass_main;
 
 	//init physics engine
-	auto physics_engine = new PhysicsEngine();
+	auto physics_engine = new PhysicsEngine(scene);
 
 	//register interaction callbacks
 	glfwSetKeyCallback(window, key_callback);
@@ -276,6 +277,7 @@ int main()
 
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
+	mInertiaTest->set_position_global(20,20,20);
 	mInertiaTest->add_material(lightTestMaterial);
 
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
@@ -451,6 +453,7 @@ int main()
 
 	//ADD DIRECT LIGHT
 	auto direct_scene_light = new direct_light(scene->get_root(), 1024,1024);
+	direct_scene_light->setRotationLocal(-90,0,0);
 	direct_scene_light->intensity = 1;
 
 
@@ -462,14 +465,16 @@ int main()
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
 	object_plane->add_material(lightTestMaterial);
-	object_plane->set_position_global(0, 0, -15);
-	object_plane->setScale(5,5,1);
+	object_plane->set_position_global(0, -4, 0);
+	object_plane->setRotationLocal(-90, 0, 0);
+	object_plane->setScale(50,50,1);
 	
 	//object_plane->setScale(20);
 	
 	//WIDNOWS
 	//INTI GUI MANAGER
 	guiManager = new GUIManager();
+	guiManager->addGUI(new LogGUI(&global_context));
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
 	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
@@ -497,6 +502,7 @@ int main()
 	pp_shader->compileShader();
 	pp_shader->addTexture(framebuffer_texture_color, "color_framebuffer");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
+	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
 	

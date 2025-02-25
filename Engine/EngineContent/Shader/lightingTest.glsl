@@ -52,7 +52,6 @@ vec2 random_vector(vec2 st, float scale) {
 float light_map_at(vec2 coords, float mipmap) {
     float a = texture(direct_light_map_texture, coords.xy,mipmap).r;
     return a;
-    return (a>0)?a:1.0;
 }
 
 float sample_at_random(float currentDepth, vec2 coords, int samples, float distance) {
@@ -111,6 +110,13 @@ float sample_box(float currentDepth, vec2 coords, int kernel_widht_height, float
     return shadow;
 }
 
+bool is_inside_shadow_map_frustum() {
+    vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
+    vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    return (projCoords.x > 0 && projCoords.y > 0 && projCoords.x < 1 && projCoords.y < 1);
+}
+
 float in_light_map_shadow() {
     vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
     vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
@@ -166,6 +172,11 @@ vec3 get_ao_color(){
 }
 
 void main() {
+
+    if (!is_inside_shadow_map_frustum()) {
+        FragColor = vec4(1.0,0.0,0.0,1.0);
+        return;
+    }
     vec3 lightDir = normalize(direct_light_direction);
     vec3 viewDir = normalize(cameraPosWs-vertexPosWs);
 

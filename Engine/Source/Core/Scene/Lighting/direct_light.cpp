@@ -1,5 +1,8 @@
 ﻿#include "direct_light.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/string_cast.hpp>
+
 #include "../Scene.h"
 #include "../DebugPrimitives/Line3D.h"
 direct_light::direct_light(Object3D* parent, unsigned int light_map_width, unsigned int light_map_height): light(parent)
@@ -31,6 +34,8 @@ void direct_light::render_to_light_map()
 void direct_light::draw_object_specific_ui()
 {
 	light::draw_object_specific_ui();
+	ImGui::DragFloat("Size", &size_);
+	ImGui::DragFloat("Light to camera distance", &light_height_);
 }
 
 
@@ -47,10 +52,10 @@ void direct_light::on_light_changed()
 {
 	glm::mat4 light_projection = glm::ortho(-size_, size_, -size_, size_, near_plane_, far_plane_);
 	auto light_pos = glm::mat4(1.0f);
-	light_pos = translate(light_pos, light_center_position_);
-	light_pos =  light_pos * glm::toMat4(glm::conjugate(this->get_quaternion_rotation()));
+	light_pos = translate(light_pos, light_center_position_ + getForwardVector() * light_height_);
+	light_pos =  light_pos * glm::toMat4(this->get_quaternion_rotation());
 	
-	light_matrix_ = light_projection * light_pos;
+	light_matrix_ = light_projection *  glm::inverse(light_pos);
 
 	auto l = global_context_->uniform_buffer_object->ubo_direct_light;
 	l->light_direction = getForwardVector();

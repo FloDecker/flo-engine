@@ -40,4 +40,27 @@ int TagManager::get_id_of_tag(const std::string& tag) const
     return -1;
 }
 
-////////////////////////////////////////////////////
+unsigned int Logger::get_current_log_amount() const
+{
+    return log_array_.size();
+}
+
+std::vector<log_entry>* Logger::get_log_entries()
+{
+    return &log_array_;
+}
+
+void Logger::print_to_log(const log_type type, std::string log)
+{
+    if (log_array_.size() > max_logs)
+    {
+        
+    }
+    log_array_.emplace_back(log_entry(type, log));
+}
+
+void Logger::print_info(std::string log)
+{
+    print_to_log(log_info, log);
+}
+

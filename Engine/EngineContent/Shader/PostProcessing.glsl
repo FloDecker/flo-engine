@@ -19,6 +19,7 @@ in vec2 TexCoords;
 
 uniform sampler2D color_framebuffer;
 uniform sampler2D dpeth_framebuffer;
+uniform sampler2D light_map;
 
 
 
@@ -63,14 +64,15 @@ void main()
     //vec3 color = vec3(texture(color_framebuffer, TexCoords));
     //vec3 color = get_distance_blur(100);
     vec3 color = vec3(texture(color_framebuffer, TexCoords));
+    vec3 light_map_sampled = vec3(texture(light_map, TexCoords*2.0));
 
     //color = vec3(d);
    
-    FragColor = vec4(vec3(color),1.0);
-    //if(TexCoords.x < 0.5 ){
-    //    FragColor = vec4(vec3(color),1.0);
-    //}else {
-    //    FragColor = vec4(vec3(pow(d,100)),1.0);
-    //}
+    //FragColor = vec4(vec3(color),1.0);
+    if(TexCoords.x < 0.5  && TexCoords.y < 0.5){
+        FragColor = vec4(light_map_sampled,1.0);
+    }else {
+        FragColor = vec4(vec3(color),1.0);
+    }
     //FragColor = vec4(0.4);
 }
