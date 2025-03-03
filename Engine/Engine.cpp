@@ -542,6 +542,9 @@ int main()
 		
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();
+
+		//draw debug elements
+		scene->draw_debug_tools(editorRenderContext);
 		//draw scene elements
 		scene->draw_scene(editorRenderContext);
 		

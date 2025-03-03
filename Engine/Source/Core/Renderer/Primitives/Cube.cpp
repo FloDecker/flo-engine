@@ -45,7 +45,7 @@ int Cube::draw()
         return -1;
     }
     glBindVertexArray(VAO);
-    glDrawArrays(GL_LINES,0,24);
+    glDrawArrays( GL_LINES,0,24);
     glBindVertexArray(0);
     return 1;
 }
