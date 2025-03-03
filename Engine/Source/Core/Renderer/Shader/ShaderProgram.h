@@ -28,7 +28,8 @@ enum shader_header_includes
 {
     DEFAULT_HEADERS,
     DYNAMIC_DIRECTIONAL_LIGHT,
-    DYNAMIC_AMBIENT_LIGHT
+    DYNAMIC_AMBIENT_LIGHT,
+    PIXEL_PICKING,
 };
 
 class ShaderProgram
@@ -51,6 +52,7 @@ private:
     bool flag_include_default_header_ = true;
     bool flag_include_dynamic_directional_light_ = false;
     bool flag_include_dynamic_ambient_light_ = false;
+    bool flag_include_pixel_picking_ = false;
 
 
 public:

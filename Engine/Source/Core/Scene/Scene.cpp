@@ -1,4 +1,5 @@
 ﻿#include "Scene.h"
+#include <utility>
 
 #include "Handle.h"
 #include "../Scene/Collider.h"
@@ -87,6 +88,44 @@ void Scene::select_object(Object3D* object)
 	this->selected_object = object;
 }
 
+
+std::pair<bool, Object3D*> Scene::pixel_picker(glm::vec3 view_pos_world_space, glm::vec3 direction) const
+{
+	auto pixel_picker_framebuffer_object = framebuffer_object();
+	auto pixel_picker_result = Texture2D();
+	auto pixel_picker_result_depth = Texture2D();
+	
+	pixel_picker_result.initialize_as_pixel_picker();
+	pixel_picker_result_depth.initialize_as_depth_map_render_target(10,10);
+	pixel_picker_framebuffer_object.attach_texture_as_color_buffer(&pixel_picker_result);
+	pixel_picker_framebuffer_object.attach_texture_as_depth_buffer(&pixel_picker_result_depth);
+
+	
+	ShaderProgram p = ShaderProgram();
+	p.loadFromFile("EngineContent/Shader/PixelPickerPass.glsl");
+	p.set_shader_header_include(DEFAULT_HEADERS,false);
+	p.set_shader_header_include(PIXEL_PICKING,true);
+	p.compileShader();
+	RenderContext r = RenderContext();
+	r.camera = new camera(1,1);
+	r.pass = render_pass_custom;
+	r.custom_shader = &p;
+	
+	r.camera->calculate_view(view_pos_world_space, direction);
+	glDisable(GL_BLEND);
+	int idpre = pixel_picker_framebuffer_object.read_pixel_as_integer(0,0);
+
+	pixel_picker_framebuffer_object.render_to_framebuffer();
+	custom_pass(&r);
+	glEnable(GL_BLEND);
+	int id = pixel_picker_framebuffer_object.read_pixel_as_integer(0,0);
+	global_context_->logger->print_info(std::to_string(idpre));
+	global_context_->logger->print_info(std::to_string(id));
+	return std::pair<bool, Object3D*>(true, nullptr);
+}
+
+
+
 Handle* Scene::handle() const
 {
 	return handle_;
@@ -112,6 +151,14 @@ unsigned int Scene::register_object(Object3D* object)
 	const auto id = get_new_id();
 	objects_[id] = object;
 	return id;
+}
+
+std::pair<bool,Object3D*> Scene::get_object_by_id(unsigned int id) const
+{
+	if (objects_.contains(id)) {
+		return std::make_pair(true, objects_.at(id));
+	} 
+	return std::make_pair(false, nullptr);
 }
 
 
@@ -198,6 +245,11 @@ void Scene::light_pass(camera* current_camera) const
 		scene_root_->draw_entry_point(light_pass_render_context_);
 		direct_light_->light_map()->generate_mip_map();
 	}
+}
+
+void Scene::custom_pass(RenderContext* render_context) const
+{
+	scene_root_->draw_entry_point(render_context);
 }
 
 std::vector<Collider*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const

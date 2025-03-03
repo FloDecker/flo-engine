@@ -19,7 +19,7 @@ RenderContext *Camera3D::getRenderContext() {
 
 void Camera3D::calculateView() {
     this->drawSelf();
-    this->renderContext_->camera->calculateView(this->transformGlobal, this->getWorldPosition(), this->getForwardVector());
+    this->renderContext_->camera->calculate_view_from_transform(this->transformGlobal, this->getWorldPosition(), this->getForwardVector());
 }
 
 camera* Camera3D::get_camera() const

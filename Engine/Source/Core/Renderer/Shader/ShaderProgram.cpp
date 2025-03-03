@@ -251,11 +251,15 @@ void ShaderProgram::initTextureUnits()
 
 void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* renderContext)
 {
-	if (flag_include_default_header_)
+	if (flag_include_default_header_ ||flag_include_pixel_picking_)
 	{
 		this->setUniformMatrix4("mMatrix", glm::value_ptr(object_3d->getGlobalTransform()));
 		this->setUniformMatrix4("vMatrix", glm::value_ptr(*renderContext->camera->getView()));
 		this->setUniformMatrix4("pMatrix", glm::value_ptr(*renderContext->camera->getProjection()));
+	}
+	
+	if (flag_include_default_header_)
+	{
 		this->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*renderContext->camera->getWorldPosition()));
 	}
 
@@ -306,6 +310,9 @@ void ShaderProgram::set_shader_header_include(shader_header_includes include, bo
 		break;
 	case DYNAMIC_AMBIENT_LIGHT:
 		flag_include_dynamic_ambient_light_ = include_header;
+		break;
+	case PIXEL_PICKING:
+		flag_include_pixel_picking_ = include_header;
 		break;
 	}
 	if (compiled) compileShader(true);

@@ -39,9 +39,14 @@ public:
 	GlobalContext* get_global_context() const;
 	StackedBB* get_bb() const;
 	visual_debug_tools* get_debug_tools() const;
+
+	//render passes 
 	void draw_scene(RenderContext* render_context) const;
 	void light_pass(camera* current_camera) const;
 	void custom_pass(RenderContext* render_context) const;
+
+	std::pair<bool,Object3D*> pixel_picker(glm::vec3 view_pos_world_space, glm::vec3 direction) const;
+	
 	void select_object(Object3D* object);
 	void deselect();
 
@@ -61,6 +66,9 @@ public:
 
 	//register scene objects
 	unsigned int register_object(Object3D* object);
+	std::pair<bool,Object3D*> get_object_by_id(unsigned int id) const;
+	
+	//returns an object give his id
 	void register_global_light(direct_light *direct_light);
 	void register_sky_box(sky_box *skybox);
 

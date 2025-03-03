@@ -75,17 +75,17 @@ void Texture2D::initialize_as_pixel_picker()
 		std::cerr << "Texture2D already initialized\n";
 	}
 	
-	width_ = 1;
-	height_ = 1;
+	width_ = 10;
+	height_ = 10;
 
 	glGenTextures(1, &_texture);
 	glBindTexture(GL_TEXTURE_2D, _texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, width_, height_, 0, GL_RED, GL_UNSIGNED_INT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width_, height_, 0, GL_RED_INTEGER, GL_INT, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	type_ = IMAGE_TEXTURE;
+	type_ = FRAME_BUFFER_COLOR;
 
 	initialized_ = true;
 }

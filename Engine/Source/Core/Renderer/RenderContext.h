@@ -14,7 +14,7 @@ enum render_pass
 {
 	render_pass_main,
 	render_pass_lighting,
-	render_pass_custom,
+	render_pass_custom
 };
 
 struct RenderFlags

@@ -1,5 +1,6 @@
 ﻿#include "framebuffer_object.h"
 
+#include <vec3.hpp>
 #include <GL/glew.h>
 
 
@@ -60,6 +61,25 @@ void framebuffer_object::resize_attach_textures(unsigned int width, unsigned int
 	}
 }
 
+int framebuffer_object::read_pixel_as_integer(int x, int y) const
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+
+	GLint pixelColor; // To store the RGBA color
+	glReadPixels(x, y, 1, 1, GL_RED, GL_INT, &pixelColor);
+	return pixelColor;
+}
+
+glm::vec3 framebuffer_object::read_pixel_as_rgb(int x, int y) const
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+
+	glm::vec3 pixelColor; // To store the RGBA color
+	glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, &pixelColor);
+	return pixelColor;
+}
+
+
 
 void framebuffer_object::generate_framebuffer()
 {
@@ -70,8 +90,41 @@ bool framebuffer_object::check_attached_framebuffer()
 {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		std::cout << "ERROR: Framebuffer is not complete!\n";
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		switch (status) {
+		case GL_FRAMEBUFFER_UNDEFINED:
+			std::cerr << "Framebuffer undefined. No default framebuffer exists." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			std::cerr << "Framebuffer incomplete: Attachment issue." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			std::cerr << "Framebuffer incomplete: No attachments found." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+			std::cerr << "Framebuffer incomplete: Draw buffer is not properly set." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+			std::cerr << "Framebuffer incomplete: Read buffer is not properly set." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			std::cerr << "Framebuffer unsupported: Combination of formats not supported." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+			std::cerr << "Framebuffer incomplete: Inconsistent number of samples." << std::endl;
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+			std::cerr << "Framebuffer incomplete: Layer targets are incorrect." << std::endl;
+			break;
+		default:
+			std::cerr << "Unknown framebuffer status: " << status << std::endl;
+			break;
+		}
 		return false;
+
+
 	}
+
+	
 	return true;
 }

@@ -1,16 +1,20 @@
 ﻿#include "camera.h"
+
+#include "../Scene/Object3D.h"
 #include "gtc/matrix_transform.hpp"
 
-camera::camera(float width, float height, eventpp::CallbackList<void (glm::ivec2)>* camera_change_dispatcher)
+camera::camera(float width, float height, eventpp::CallbackList<void (glm::ivec2)>* camera_change_dispatcher): camera(width,height)
 {
-	view = glm::mat4(1.0);
-	setViewPortDimension(width, height);
 	camera_change_dispatcher->append([this](glm::ivec2 i)
 	{
 		setViewPortDimension(i);
 	});
-	
-	
+}
+
+camera::camera(float width, float height)
+{
+	view = glm::mat4(1.0);
+	setViewPortDimension(width, height);
 }
 
 void camera::setViewPortDimension(glm::i16vec2 dimentions)
@@ -82,9 +86,16 @@ glm::vec3* camera::getWorldPosition()
 }
 
 
-void camera::calculateView(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection)
+void camera::calculate_view_from_transform(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection)
 {
 	view = glm::inverse(cameraTransform);
+	positionWS_ = cameraPos;
+	viewDirection_ = cameraViewDirection;
+}
+
+void camera::calculate_view(glm::vec3 cameraPos, glm::vec3 cameraViewDirection)
+{
+	view = glm::lookAt(cameraViewDirection,cameraPos, vec_y);
 	positionWS_ = cameraPos;
 	viewDirection_ = cameraViewDirection;
 }

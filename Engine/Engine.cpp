@@ -32,8 +32,8 @@
 #include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
-#define WINDOW_HEIGHT (1080/2)
-#define WINDOW_WIDTH (1920/2)
+#define WINDOW_HEIGHT (1080/1.5)
+#define WINDOW_WIDTH (1920/1.5)
 
 #define KEY_AMOUNT 350
 #define MOUSE_BUTTON_AMOUNT 8
@@ -479,8 +479,10 @@ int main()
 	guiManager->addGUI(new ObjectInfo(scene));
 	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
 	
-	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
+	//pixel picker
+	
+	
 
 	//INIT TEXTURES FOR RENDER
 	auto framebuffer_texture_color = new Texture2D();
@@ -536,7 +538,6 @@ int main()
 		//TEST:
 		lightTestMaterial->recompile_if_changed();
 		pp_shader->recompile_if_changed();
-		auto rot = glfwGetTime() * 10;
 		handlertest->look_at_local(mSphere1->getWorldPosition());
 		
 		
@@ -686,15 +687,18 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 				else
 				{
 					//if handle is active check first intersection with handle
-					ray_cast_hit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
-					if (a.hit)
-					{
-						scene->select_object(a.object_3d);
-					}
-					else
-					{
-						scene->deselect();
-					}
+
+					scene->pixel_picker(ray_origin,ray_direction);
+					
+					//ray_cast_hit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+					//if (a.hit)
+					//{
+					//	scene->select_object(a.object_3d);
+					//}
+					//else
+					//{
+					//	scene->deselect();
+					//}
 				}
 			}
 			else if (mouseButtonsPressed[GLFW_MOUSE_BUTTON_LEFT])

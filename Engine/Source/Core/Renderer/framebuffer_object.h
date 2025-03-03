@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <vec3.hpp>
+
 #include "Texture/Texture2D.h"
 
 
@@ -10,6 +12,8 @@ public:
 	void attach_texture_as_depth_buffer(Texture2D* depth_texture);
 	void attach_texture_as_color_buffer(Texture2D* color_texture);
 	void resize_attach_textures(unsigned int width, unsigned int height) const;
+	int read_pixel_as_integer(int x, int y) const;
+	glm::vec3 read_pixel_as_rgb(int x, int y) const;
 private:
 	void generate_framebuffer();
 	static bool check_attached_framebuffer();

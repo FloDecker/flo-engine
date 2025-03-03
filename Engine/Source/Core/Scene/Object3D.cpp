@@ -173,7 +173,8 @@ Object3D* Object3D::get_child_by_tag(std::string* tag)
 void Object3D::ui_get_scene_structure_recursively(ImGuiTreeNodeFlags flags)
 {
 	if (IGNORE_IN_SCENE_TREE_VIEW) return;
-	if (ImGui::TreeNodeEx((this->name.empty()) ? "..." : this->name.c_str(), flags))
+	std::string label = (this->name.empty() ? "..." : this->name) + " #" + std::to_string(id_);
+	if (ImGui::TreeNodeEx(label.c_str(), flags))
 	{
 		if (ImGui::IsItemClicked())
 		{

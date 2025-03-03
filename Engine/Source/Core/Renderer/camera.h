@@ -9,6 +9,7 @@ class camera
 {
 public:
 	camera(float width, float height, eventpp::CallbackList<void (glm::ivec2)> *camera_change_dispatcher);
+	camera(float width, float height);
 	glm::mat4* getProjection();
 	glm::mat4* getView();
 	void setViewPortDimension(glm::i16vec2 dimentions);
@@ -18,7 +19,8 @@ public:
 	void setFOV(float FOV);
 	void setClippingPlanes(float near, float far);
 	void recalculateProjection(); //has to be called when camera changes
-	void calculateView(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection);
+	void calculate_view_from_transform(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection);
+	void calculate_view(glm::vec3 cameraPos, glm::vec3 cameraViewDirection);
 	//has to be called when camera changes position
 	glm::vec3* getWorldPosition();
 	glm::mat4 view;
