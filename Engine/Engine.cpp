@@ -32,6 +32,7 @@
 #include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
+#include "Source/Core/Scene/SceneTools/gaussianinzer.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -243,6 +244,12 @@ int main()
 	lightTestMaterial->set_shader_header_include(DYNAMIC_AMBIENT_LIGHT,true);
 	lightTestMaterial->compileShader();
 
+	
+
+	auto* gaussian_gi_shader = new ShaderProgram();
+	gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
+	gaussian_gi_shader->compileShader();
+
 
 	auto* worldPosMat = new ShaderProgram();
 	worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
@@ -250,7 +257,7 @@ int main()
 
 	
 
-	plane->materials.push_back(lightTestMaterial);
+	plane->materials.push_back(gaussian_gi_shader);
 	sphere->materials.push_back(lightTestMaterial);
 
 
@@ -464,10 +471,13 @@ int main()
 	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
-	object_plane->add_material(lightTestMaterial);
+	object_plane->add_material(gaussian_gi_shader);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50,50,1);
+
+	auto gaussianizer = new gaussianinzer(scene->get_root());
+	gaussianizer->name = "gaussianizer";
 	
 	//object_plane->setScale(20);
 	
@@ -536,6 +546,7 @@ int main()
 		//TEST:
 		lightTestMaterial->recompile_if_changed();
 		pp_shader->recompile_if_changed();
+		gaussian_gi_shader->recompile_if_changed();
 		auto rot = glfwGetTime() * 10;
 		handlertest->look_at_local(mSphere1->getWorldPosition());
 		

@@ -69,10 +69,8 @@ void main()
     //color = vec3(d);
    
     //FragColor = vec4(vec3(color),1.0);
-    if(TexCoords.x < 0.5  && TexCoords.y < 0.5){
-        FragColor = vec4(light_map_sampled,1.0);
-    }else {
-        FragColor = vec4(vec3(color),1.0);
-    }
+
+    FragColor = vec4(vec3(color),1.0);
+    
     //FragColor = vec4(0.4);
 }
