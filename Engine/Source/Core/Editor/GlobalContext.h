@@ -35,9 +35,9 @@ class Logger
 {
 public:
 	unsigned int max_logs = 1000;
-	void print_info(std::string log);
 	unsigned int get_current_log_amount() const;
 	std::vector<log_entry> *get_log_entries();
+	void print_info(std::string log);
 
 private:
 	std::vector<log_entry> log_array_;

@@ -19,6 +19,7 @@ in vec2 TexCoords;
 
 uniform sampler2D color_framebuffer;
 uniform sampler2D dpeth_framebuffer;
+uniform sampler2D light_map;
 
 
 
@@ -63,6 +64,7 @@ void main()
     vec3 color = vec3(texture(color_framebuffer, TexCoords));
     //vec3 color = get_distance_blur(d*20000);
     //vec3 color = vec3(texture(color_framebuffer, TexCoords));
+    vec3 light_map_sampled = vec3(texture(light_map, TexCoords*2.0));
 
     //color = vec3(d*100000);
    

@@ -63,3 +63,4 @@ void Logger::print_info(std::string log)
 {
     print_to_log(log_info, log);
 }
+

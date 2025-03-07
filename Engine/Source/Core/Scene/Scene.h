@@ -50,6 +50,7 @@ public:
 
 	//render passes
 	void draw_scene(RenderContext* render_context) const;
+	void draw_debug_tools(const RenderContext* render_context) const;
 	void light_pass(camera* current_camera) const;
 	void custom_pass(RenderContext* render_context) const;
 

@@ -1,26 +1,17 @@
-//
-// Created by flode on 28/02/2023.
-//
+#pragma once
 
-#ifndef ENGINE_RENDERABLE_H
-#define ENGINE_RENDERABLE_H
 
 class primitive {
 private:
     bool isLoaded = false;
     bool mesh_calculation_ran = false;
-
     void run_mesh_calculations();
 
 
 public:
     virtual int load() = 0;
     virtual int draw() = 0;
-
- 
-    
 };
 
 
 
-#endif //ENGINE_RENDERABLE_H

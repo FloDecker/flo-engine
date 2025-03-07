@@ -228,6 +228,11 @@ void Scene::draw_scene(RenderContext* render_context) const
 	scene_root_->draw_entry_point(render_context);
 }
 
+void Scene::draw_debug_tools(const RenderContext* render_context) const
+{
+	visual_debug_tools_->draw_debug_tools(render_context->deltaTime);
+}
+
 void Scene::light_pass(camera* current_camera) const
 {
 	//direct light
