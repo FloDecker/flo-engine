@@ -2,6 +2,7 @@
 #include "Mesh3D.h"
 #include "../../Util/AssetLoader.h"
 
+class collider_modifier;
 class Collider;
 
 enum HandlerType
@@ -37,9 +38,9 @@ private:
     Mesh3D *arrow_y;
     Mesh3D *arrow_z;
 
-    Collider *arrow_x_collider_;
-    Collider *arrow_y_collider_;
-    Collider *arrow_z_collider_;
+    collider_modifier *arrow_x_collider_;
+    collider_modifier *arrow_y_collider_;
+    collider_modifier *arrow_z_collider_;
     Object3D* attached_object_3d_;
 
 

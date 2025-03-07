@@ -6,13 +6,9 @@
 #include "../../Content/Mesh.h"
 
 class collider_modifier;
-class MeshCollider;
 
 class rigid_body final : public physics_object_modifier
 {
-	MeshCollider* collider_;
-
-
 	std::vector<glm::vec3> distances_to_center_of_mass_; //x_i
 	std::vector<glm::vec3> force_on_vertices_; //f_i
 
@@ -37,12 +33,14 @@ class rigid_body final : public physics_object_modifier
 
 
 public:
-	rigid_body(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine, MeshCollider* collider);
+	rigid_body(Object3D* parent_game_object_3d);
 	int get_id() override;
 
 	void step(float delta);
 	void apply_force_at_vertex(unsigned int vertex_id, glm::vec3 force);
 	void apply_force_ws(glm::vec3 direction_ws, glm::vec3 pos_ws, float force);
+
+	void recalculate_inertia(unsigned int index_of_collider = 0);
 
 	glm::vec3 current_linear_impulse;
 	glm::vec3 current_angular_impulse;
@@ -62,10 +60,11 @@ public:
 	glm::mat3 get_inverse_inertia_tensor_world_space() const;
 	glm::vec3 get_velocity() const;
 
-
 	
-	//colliders associated with this rigid body 
-	std::unordered_set<collider_modifier*> colliders;
+	collider_modifier *collider; 
+	//colliders associated with this rigid body
+	//TODO : one rigid body should be able to have more colliders
+	//std::unordered_set<collider_modifier*> colliders;
 
 	//physical characteristics
 	float bounciness = 0.2f;

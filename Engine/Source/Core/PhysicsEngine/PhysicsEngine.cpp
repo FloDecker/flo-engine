@@ -10,77 +10,65 @@
 
 void PhysicsEngine::evaluate_physics_step(double delta_t)
 {
-	//collision detection
-	size_t numColliders = colliders_.size();
+	auto overlaps = scene_->generate_overlaps_in_channel(PHYSICS);
 
-	for (size_t i = 0; i < numColliders; ++i)
+	for (auto c : overlaps)
 	{
-		for (size_t j = i + 1; j < numColliders; ++j)
+		auto rigid_body_a = c.collider_a->associated_rigid_body;
+		auto rigid_body_b = c.collider_b->associated_rigid_body;
+
+
+		if (rigid_body_a && rigid_body_b && (!rigid_body_a->is_fixed || !rigid_body_b->is_fixed))
 		{
-			// Start from i+1 to avoid duplicate checks
-			auto collider_a = colliders_[i];
-			auto collider_b = colliders_[j];
-			rigid_body* rigid_body_a = collider_a->get_associated_rigid_body();
-			rigid_body* rigid_body_b = collider_b->get_associated_rigid_body();
+			glm::vec3 a_center_collision_ws = c.collision.collision_point - c.collider_a->get_collider_center_ws();
+			glm::vec3 b_center_collision_ws = c.collision.collision_point - c.collider_b->get_collider_center_ws();
 
-			if (!rigid_body_a->is_fixed || !rigid_body_b->is_fixed)
+			auto debug_tools = rigid_body_a->get_parent()->get_scene()->get_debug_tools();
+			debug_tools->draw_debug_line(c.collision.collision_point, c.collider_a->get_collider_center_ws(),
+			                             glm::vec3(1, 0, 0),
+			                             20);
+			debug_tools->draw_debug_line(c.collision.collision_point, c.collider_b->get_collider_center_ws(),
+			                             glm::vec3(0, 1, 0),
+			                             20);
+
+
+			glm::vec3 v_rel_a = rigid_body_a->get_velocity() + glm::cross(
+				rigid_body_a->get_angular_velocity(), a_center_collision_ws);
+			glm::vec3 v_rel_b = rigid_body_b->get_velocity() + glm::cross(
+				rigid_body_b->get_angular_velocity(), b_center_collision_ws);
+
+			glm::vec3 v_rel = v_rel_a - v_rel_b;
+
+			float avg_bounciness = (c.collider_a->associated_rigid_body->bounciness + c.collider_b->
+				associated_rigid_body->bounciness) * 0.5;
+
+			if (glm::dot(v_rel, c.collision.collision_normal) < 0)
 			{
-				auto c = collider_b->check_intersection(collider_a);
-				if (c.collision)
-				{
-					//std::cout << "Collision detected between object " << i 
-					//		  << " and object " << j << "at: " << glm::to_string(c.collision_point)
-					//		  << " with normal " << glm::to_string(c.collision_normal) <<std::endl;
+				//collision
+				float J = (-(1 + avg_bounciness) * glm::dot(v_rel, c.collision.collision_normal)) /
+					(1 / rigid_body_a->mass) + (1 / rigid_body_b->mass) + glm::dot(
+						glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
+							           a_center_collision_ws, c.collision.collision_normal), a_center_collision_ws) +
+						glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
+							           b_center_collision_ws, c.collision.collision_normal), b_center_collision_ws)
+						, c.collision.collision_normal);
 
-					//calculate relative velocity between both objects
+				rigid_body_a->current_linear_impulse += J * (c.collision.collision_normal / rigid_body_a->mass);
+				rigid_body_b->current_linear_impulse -= J * (c.collision.collision_normal / rigid_body_b->mass);
 
-
-					glm::vec3 a_center_collision_ws = c.collision_point - collider_a->get_collider_center_ws();
-					glm::vec3 b_center_collision_ws = c.collision_point - collider_b->get_collider_center_ws();
-
-					auto debug_tools = rigid_body_a->get_parent()->get_scene()->get_debug_tools();
-					debug_tools->draw_debug_line(c.collision_point, collider_a->get_collider_center_ws(), glm::vec3(1,0,0),20);
-					debug_tools->draw_debug_line(c.collision_point, collider_b->get_collider_center_ws(), glm::vec3(0,1,0),20);
-
-					
-					glm::vec3 v_rel_a = rigid_body_a->get_velocity() + glm::cross(
-						rigid_body_a->get_angular_velocity(), a_center_collision_ws);
-					glm::vec3 v_rel_b = rigid_body_b->get_velocity() + glm::cross(
-						rigid_body_b->get_angular_velocity(), b_center_collision_ws);
-
-					glm::vec3 v_rel = v_rel_a - v_rel_b;
-
-					float avg_bounciness = (collider_a->associated_rigid_body->bounciness + collider_b->
-						associated_rigid_body->bounciness) * 0.5;
-
-					if (glm::dot(v_rel, c.collision_normal) < 0)
-					{
-						//collision
-						float J = (-(1 + avg_bounciness) * glm::dot(v_rel, c.collision_normal)) /
-							(1 / rigid_body_a->mass) + (1 / rigid_body_b->mass) + glm::dot(
-								glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
-									           a_center_collision_ws, c.collision_normal), a_center_collision_ws) +
-								glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
-									           b_center_collision_ws, c.collision_normal), b_center_collision_ws)
-								, c.collision_normal);
-						
-						rigid_body_a->current_linear_impulse += J * (c.collision_normal / rigid_body_a->mass);
-						rigid_body_b->current_linear_impulse -= J * (c.collision_normal / rigid_body_b->mass);
-
-						rigid_body_a->current_angular_impulse += glm::cross(
-							a_center_collision_ws, J * c.collision_normal);
-						rigid_body_b->current_angular_impulse -= glm::cross(
-							b_center_collision_ws, J * c.collision_normal);
+				rigid_body_a->current_angular_impulse += glm::cross(
+					a_center_collision_ws, J * c.collision.collision_normal);
+				rigid_body_b->current_angular_impulse -= glm::cross(
+					b_center_collision_ws, J * c.collision.collision_normal);
 
 
-						scene_->get_global_context()->logger->print_info(std::format("J = {}\n", J));
-						//printf("J = %f\n", J);
-					}
-					//glm::vec3 vec_a_collision_point = 
-				}
+				scene_->get_global_context()->logger->print_info(std::format("J = {}\n", J));
+				//printf("J = %f\n", J);
 			}
+			//glm::vec3 vec_a_collision_point = 
 		}
 	}
+
 
 	//calculate spring forces
 	for (auto spring : springs_)
@@ -146,9 +134,4 @@ bool PhysicsEngine::add_spring(mass_spring_point* point_1, mass_spring_point* po
 void PhysicsEngine::register_rigid_body(rigid_body* rigid_body)
 {
 	this->rigid_bodies_.push_back(rigid_body);
-}
-
-void PhysicsEngine::register_collider(collider_modifier* collider)
-{
-	colliders_.push_back(collider);
 }

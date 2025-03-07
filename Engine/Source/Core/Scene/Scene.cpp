@@ -1,8 +1,11 @@
 ﻿#include "Scene.h"
 
 #include "Handle.h"
-#include "../Scene/Collider.h"
+#include "../../Util/BoundingBoxHelper.h"
 #include "Lighting/SkyBox/sky_box.h"
+#include "../PhysicsEngine/PhysicsEngine.h"
+#include "Modifiers/Implementations/Colliders/mesh_collider.h"
+
 
 SceneRoot::SceneRoot(GlobalContext* global_context, Scene* scene): Object3D()
 {
@@ -22,10 +25,17 @@ int SceneRoot::draw_entry_point(RenderContext* render_context) const
 Scene::Scene(GlobalContext* global_context, const std::string& name)
 {
 	global_context_ = global_context;
+	physics_engine_ = new PhysicsEngine(this);
 	//get ids of engine defined tags
 	engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
 	engine_collider_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_COLLIDER");
-	scene_bb = new StackedBB(&sceneColliders);
+
+	//calculate a bb tree for each collision channel
+	for ( const auto c : all_collision_channels)
+	{
+		scene_bb[c] = new StackedBB(get_colliders(c));
+	}
+	
 	scene_root_ = new SceneRoot(global_context, this);
 	scene_root_->name = name;
 	recalculate_from_root();
@@ -43,6 +53,65 @@ direct_light *Scene::get_scene_direct_light() const
 	return direct_light_;
 }
 
+void Scene::register_collider(collider_modifier* collider)
+{
+	colliders_.push_back(collider);
+}
+
+std::vector<collider_modifier*> Scene::get_colliders(collision_channel collision_channel)
+{
+	std::vector<collider_modifier*> result;
+	for (auto& collider : colliders_)
+	{
+		if (collider->collision_channels.contains(collision_channel))
+		{
+			result.push_back(collider);
+		}
+	}
+	return result;
+}
+
+std::vector<collider_intersection> Scene::generate_overlaps_in_channel(collision_channel channel)
+{
+	const auto colliders = get_colliders(channel);
+
+	const size_t num_colliders = colliders.size();
+
+	std::vector<collider_intersection> result;
+	for (size_t i = 0; i < num_colliders; ++i)
+	{
+		for (size_t j = i + 1; j < num_colliders; ++j)
+		{
+			// Start from i+1 to avoid duplicate checks
+			const auto collider_a = colliders[i];
+			const auto collider_b = colliders[j];
+
+			const auto c = collider_b->check_intersection(collider_a);
+			if (c.intersected)
+			{
+				result.emplace_back(collider_intersection(
+						c,
+						collider_a,
+						collider_b)
+				);
+			}
+			
+		}
+	}
+	return result;
+}
+
+ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance)
+{
+	ray_cast_result result;
+	ray_cast_in_scene(origin, direction, max_distance, &result);
+	return result;
+}
+
+void Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance, ray_cast_result* result)
+{
+	
+}
 
 void Scene::recalculate_at(Object3D* parent)
 {
@@ -51,12 +120,7 @@ void Scene::recalculate_at(Object3D* parent)
 	{
 		this->scenePointLights.insert(dynamic_cast<PointLight*>(parent));
 	}
-
-	if (parent->has_tag(engine_collider_id_))
-	{
-		this->sceneColliders.push_back(dynamic_cast<Collider*>(parent));
-	}
-
+	
 	const auto children = parent->get_children();
 	for (Object3D* child : children)
 	{
@@ -67,8 +131,11 @@ void Scene::recalculate_at(Object3D* parent)
 void Scene::recalculate_from_root()
 {
 	recalculate_at(scene_root_);
-	calculateColliderBoundingBoxes();
-	scene_bb->recalculate();
+	for ( const auto c : all_collision_channels)
+	{
+		scene_bb[c]->recalculate();
+	}
+
 }
 
 
@@ -130,21 +197,6 @@ void Scene::register_sky_box(sky_box* skybox)
 }
 
 
-void Scene::calculateColliderBoundingBoxes()
-{
-	for (auto collider : sceneColliders)
-	{
-		collider->calculate_world_space_bounding_box();
-
-		//TODO REMOVE THIS TEST
-		//auto c = new Cube3D(global_context_);
-		//scene_root_->addChild(c);
-		//c->setScale(BoundingBoxHelper::get_scale_of_bb(&collider->bounding_box));
-		//c->color = {0, 0, 1};
-		//c->set_position_global(BoundingBoxHelper::get_center_of_bb(&collider->bounding_box));
-		////////////////////TEST END //////////////////////////
-	}
-}
 
 Object3D* Scene::get_root() const
 {
@@ -156,9 +208,14 @@ GlobalContext* Scene::get_global_context() const
 	return global_context_;
 }
 
-StackedBB* Scene::get_bb() const
+PhysicsEngine* Scene::get_physics_engine() const
 {
-	return scene_bb;
+	return physics_engine_;
+}
+
+StackedBB* Scene::get_bb(collision_channel c) const
+{
+	return scene_bb.at(c);
 }
 
 visual_debug_tools* Scene::get_debug_tools() const
@@ -185,12 +242,13 @@ void Scene::light_pass(camera* current_camera) const
 	}
 }
 
-std::vector<Collider*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const
+std::vector<collider_modifier*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box,
+                                                                      collision_channel channel)
 {
-	auto out = new std::vector<Collider*>;
-	for (auto element : sceneColliders)
+	auto out = new std::vector<collider_modifier*>;
+	for (auto element : get_colliders(channel))
 	{
-		if (BoundingBoxHelper::are_overlapping(&element->bounding_box, bounding_box))
+		if (BoundingBoxHelper::are_overlapping(element->get_world_space_bounding_box(), bounding_box))
 		{
 			out->push_back(element);
 		}
@@ -201,84 +259,89 @@ std::vector<Collider*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* 
 
 std::vector<glm::vec3>* Scene::get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const
 {
-	auto out = new std::vector<glm::vec3>;
-	std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box);
-	for (Collider* c : colliders_in_bb)
-	{
-		if (c->get_collider_type() == 1) // collider is a mesh collider
-		{
-			auto c_m = dynamic_cast<MeshCollider*>(c);
-			for (auto vertex_array : *c_m->get_vertex_arrays()) //get vertices of mesh collider
-			{
-				for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3) //check every polygon if in bb
-				{
-					glm::vec3 v_0_ws = c_m->transform_vertex_to_world_space(
-						vertex_array->vertices->at(vertex_array->indices->at(i)).position);
-					glm::vec3 v_1_ws = c_m->transform_vertex_to_world_space(
-						vertex_array->vertices->at(vertex_array->indices->at(i + 1)).position);
-					glm::vec3 v_2_ws = c_m->transform_vertex_to_world_space(
-						vertex_array->vertices->at(vertex_array->indices->at(i + 2)).position);
-
-					if (BoundingBoxHelper::intersects_polygon(bounding_box, v_0_ws, v_1_ws, v_2_ws))
-					{
-						out->push_back(v_0_ws);
-						out->push_back(v_1_ws);
-						out->push_back(v_2_ws);
-					}
-
-					//check if this vertex is in bounding box
-				}
-			}
-		}
-	}
-
-	return out;
+	std::cout << "Scene::get_polygons_in_bounding_box is not implemented \n" << std::endl;
+	return nullptr;
+	// auto out = new std::vector<glm::vec3>;
+	// std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box, TODO);
+	// for (Collider* c : colliders_in_bb)
+	// {
+	// 	if (c->get_collider_type() == 1) // collider is a mesh collider
+	// 	{
+	// 		auto c_m = dynamic_cast<MeshCollider*>(c);
+	// 		for (auto vertex_array : *c_m->get_vertex_arrays()) //get vertices of mesh collider
+	// 		{
+	// 			for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3) //check every polygon if in bb
+	// 			{
+	// 				glm::vec3 v_0_ws = c_m->transform_vertex_to_world_space(
+	// 					vertex_array->vertices->at(vertex_array->indices->at(i)).position);
+	// 				glm::vec3 v_1_ws = c_m->transform_vertex_to_world_space(
+	// 					vertex_array->vertices->at(vertex_array->indices->at(i + 1)).position);
+	// 				glm::vec3 v_2_ws = c_m->transform_vertex_to_world_space(
+	// 					vertex_array->vertices->at(vertex_array->indices->at(i + 2)).position);
+	//
+	// 				if (BoundingBoxHelper::intersects_polygon(bounding_box, v_0_ws, v_1_ws, v_2_ws))
+	// 				{
+	// 					out->push_back(v_0_ws);
+	// 					out->push_back(v_1_ws);
+	// 					out->push_back(v_2_ws);
+	// 				}
+	//
+	// 				//check if this vertex is in bounding box
+	// 			}
+	// 		}
+	// 	}
+	// }
+	//
+	// return out;
 }
 
-std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>* Scene::get_triangles_in_bounding_box(
+std::vector<std::tuple<mesh_collider*, std::vector<vertex_array_filter>*>>* Scene::get_triangles_in_bounding_box(
 	StructBoundingBox* bounding_box) const
 {
-	auto out = new std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>;
-	std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box);
-	for (Collider* c : colliders_in_bb)
-	{
-		if (c->get_collider_type() == 1) // collider is a mesh collider
-		{
-			auto c_m = dynamic_cast<MeshCollider*>(c);
-			auto v_f_array = new std::vector<vertex_array_filter>;
-			for (int i = 0; i < c_m->get_vertex_arrays()->size(); i++) //get vertices of mesh collider
-			{
-				auto vertex_array = c_m->get_vertex_arrays()->at(i);
-				auto v_f = new vertex_array_filter;
-				for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3) //check every polygon if in bb
-				{
-					glm::vec3 v_0_ws = c_m->transform_vertex_to_world_space(
-						vertex_array->vertices->at(vertex_array->indices->at(i)).position);
-					glm::vec3 v_1_ws = c_m->transform_vertex_to_world_space(
-						vertex_array->vertices->at(vertex_array->indices->at(i + 1)).position);
-					glm::vec3 v_2_ws = c_m->transform_vertex_to_world_space(
-						vertex_array->vertices->at(vertex_array->indices->at(i + 2)).position);
-
-					if (BoundingBoxHelper::intersects_polygon(bounding_box, v_0_ws, v_1_ws, v_2_ws))
-					{
-						v_f->indices.push_back(i);
-					}
-
-					//check if this vertex is in bounding box
-				}
-				if (!v_f->indices.empty())
-				{
-					v_f->vertex_array_id = i;
-					v_f_array->emplace_back(*v_f);
-				}
-			}
-			if (!v_f_array->empty())
-			{
-				auto temp = std::make_tuple(c_m, v_f_array);
-				out->emplace_back(temp);
-			}
-		}
-	}
-
-	return out;
+	std::cout << "Scene::get_triangles_in_bounding_box is not implemented \n" << std::endl;
+	return nullptr;
+	//
+	// auto out = new std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>;
+	// std::vector<Collider*> colliders_in_bb = *get_colliders_in_bounding_box(bounding_box, TODO);
+	// for (Collider* c : colliders_in_bb)
+	// {
+	// 	if (c->get_collider_type() == 1) // collider is a mesh collider
+	// 	{
+	// 		auto c_m = dynamic_cast<MeshCollider*>(c);
+	// 		auto v_f_array = new std::vector<vertex_array_filter>;
+	// 		for (int i = 0; i < c_m->get_vertex_arrays()->size(); i++) //get vertices of mesh collider
+	// 		{
+	// 			auto vertex_array = c_m->get_vertex_arrays()->at(i);
+	// 			auto v_f = new vertex_array_filter;
+	// 			for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3) //check every polygon if in bb
+	// 			{
+	// 				glm::vec3 v_0_ws = c_m->transform_vertex_to_world_space(
+	// 					vertex_array->vertices->at(vertex_array->indices->at(i)).position);
+	// 				glm::vec3 v_1_ws = c_m->transform_vertex_to_world_space(
+	// 					vertex_array->vertices->at(vertex_array->indices->at(i + 1)).position);
+	// 				glm::vec3 v_2_ws = c_m->transform_vertex_to_world_space(
+	// 					vertex_array->vertices->at(vertex_array->indices->at(i + 2)).position);
+	//
+	// 				if (BoundingBoxHelper::intersects_polygon(bounding_box, v_0_ws, v_1_ws, v_2_ws))
+	// 				{
+	// 					v_f->indices.push_back(i);
+	// 				}
+	//
+	// 				//check if this vertex is in bounding box
+	// 			}
+	// 			if (!v_f->indices.empty())
+	// 			{
+	// 				v_f->vertex_array_id = i;
+	// 				v_f_array->emplace_back(*v_f);
+	// 			}
+	// 		}
+	// 		if (!v_f_array->empty())
+	// 		{
+	// 			auto temp = std::make_tuple(c_m, v_f_array);
+	// 			out->emplace_back(temp);
+	// 		}
+	// 	}
+	// }
+	//
+	// return out;
 }

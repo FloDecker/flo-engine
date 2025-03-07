@@ -33,11 +33,7 @@ public:
 
 	//rigid body
 	void register_rigid_body(rigid_body* rigid_body);
-
-	//register collider
-	void register_collider(collider_modifier* collider);
-
-
+	
 	//integration methods
 	euler_integrator* integrator_euler = new euler_integrator();
 
@@ -47,7 +43,6 @@ private:
 	std::vector<spring*> springs_; //springs for mass spring systems
 
 	std::vector<rigid_body*> rigid_bodies_;
-	std::vector<collider_modifier*> colliders_;
 	
 	Scene *scene_;
 };

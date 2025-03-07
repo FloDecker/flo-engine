@@ -3,32 +3,16 @@
 #include <vec4.hpp>
 
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
+#include "../Core/CommonDataStructures/collider_intersection.h"
 #include "../Core/Scene/Object3D.h"
 
-struct ray_cast_hit
-{
-	bool hit = false; //if the raycast hit something
-	double distance_from_origin = std::numeric_limits<double>::max();
-	Object3D* object_3d = nullptr; //the object that was hit
-	glm::vec3 hit_world_space = {0, 0, 0}; //hit intersection in world space
-	glm::vec3 hit_normal_world_space = {0, 0, 0}; //normal of the hit
-	glm::vec3 hit_local = {0, 0, 0}; //hit intersection in world space
-	glm::vec3 hit_normal_local = {0, 0, 0}; //normal of the hit
-	unsigned int vertex_indices[3] = {0, 0, 0}; //indices of the vertices of the hit face
-};
-
-struct Intersection
-{
-	bool intersected = false;
-	glm::vec3 intersection_point = {0, 0, 0};
-};
 
 class RayIntersectionHelper
 {
 public:
-	static Intersection* RayPlaneIntersection(glm::vec3 ray_origin, glm::vec3 ray_direction, glm::vec3 point_on_plane,
+	static struct_intersection* ray_plane_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction, glm::vec3 point_on_plane,
 	                                          glm::vec3 plane_normal);
-	static void RayPlaneIntersection(Intersection* intersection, glm::vec3 ray_origin, glm::vec3 ray_direction,
+	static void ray_plane_intersection(struct_intersection* intersection, glm::vec3 ray_origin, glm::vec3 ray_direction,
 	                                 glm::vec3 point_on_plane, glm::vec3 plane_normal);
 
 	static bool ray_bounding_box_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction,

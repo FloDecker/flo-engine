@@ -5,7 +5,6 @@
 
 #include "../Core/Scene/Object3D.h"
 
-
 void BoundingBoxHelper::get_bounding_box_from_vertex_array(StructBoundingBox* bb, struct_vertex_array* vertex_array,
                                                            glm::mat4x4 transformation_matrix)
 {
@@ -24,8 +23,58 @@ void BoundingBoxHelper::get_bounding_box_from_vertex_array(StructBoundingBox* bb
 	}
 }
 
-void BoundingBoxHelper::get_combined_bounding_box(StructBoundingBox* resulting_box, StructBoundingBox* box_a,
-                                                  StructBoundingBox* box_b)
+std::vector<glm::vec3> BoundingBoxHelper::get_edges_of_bounding_box(StructBoundingBox* bb,
+                                                                    const glm::mat4x4& transformation_matrix = glm::mat4x4())
+{
+	std::vector<glm::vec3> result = {
+		 bb->min,
+		{bb->max.x, bb->min.y, bb->min.z},
+		{bb->min.x, bb->max.y, bb->min.z},
+		{bb->min.x, bb->min.y, bb->max.z},
+		{bb->max.x, bb->max.y, bb->min.z},
+		{bb->max.x, bb->min.y, bb->max.z},
+		{bb->min.x, bb->max.y, bb->max.z},
+		 bb->max
+	};
+
+	if (transformation_matrix == glm::mat4x4())
+	{
+		return result;
+	}
+
+	for (int i = 0; i < result.size(); ++i)
+	{
+		result[i] = transformation_matrix * glm::vec4(result[i], 1);
+	}
+	
+	return result;
+}
+
+void BoundingBoxHelper::get_bounding_box_containing_points(StructBoundingBox* bb, const std::vector<glm::vec3>* points)
+{
+	bb->min = points->at(0);
+	bb->max = bb->min;
+
+	for (const auto point : *points)
+	{
+		if (point.x > bb->max.x) bb->max.x = point.x;
+		if (point.y > bb->max.y) bb->max.y = point.y;
+		if (point.z > bb->max.z) bb->max.z = point.z;
+		if (point.x < bb->min.x) bb->min.x = point.x;
+		if (point.y < bb->min.y) bb->min.y = point.y;
+		if (point.z < bb->min.z) bb->min.z = point.z;
+	}
+}
+
+void BoundingBoxHelper::transform_local_bb_to_world_space_axis_aligned(StructBoundingBox* world_space_result,
+	StructBoundingBox* local_bb, const glm::mat4x4& transformation_matrix)
+{
+	const auto p = get_edges_of_bounding_box(local_bb,transformation_matrix);
+	get_bounding_box_containing_points(world_space_result,&p);
+}
+
+void BoundingBoxHelper::get_combined_bounding_box(StructBoundingBox* resulting_box, const StructBoundingBox* box_a,
+                                                  const StructBoundingBox* box_b)
 {
 	resulting_box->max.x = std::max(box_b->max.x, box_a->max.x);
 	resulting_box->max.y = std::max(box_b->max.y, box_a->max.y);
@@ -392,11 +441,11 @@ float BoundingBoxHelper::penetration_depth(glm::vec3 axis_to_check, glm::vec3 ha
 	return  (proj_a + proj_b) - dist;
 }
 
-struct_collision BoundingBoxHelper::are_intersecting(const StructBoundingBox* bounding_box_a,
+struct_intersection BoundingBoxHelper::are_intersecting(const StructBoundingBox* bounding_box_a,
                                                      const StructBoundingBox* bounding_box_b,
                                                      const glm::mat4& transform_a, const glm::mat4& transform_b)
 {
-	struct_collision return_struct;
+	struct_intersection return_struct;
 
 	glm::vec3 a_x = transform_a * vec_x_w_vector;
 	glm::vec3 a_y = transform_a * vec_y_w_vector;
@@ -498,7 +547,7 @@ struct_collision BoundingBoxHelper::are_intersecting(const StructBoundingBox* bo
 	printf("intersection_type %i \n", intersection_type);
 
 	if (glm::dot(center_distance, best_axis) < 0) best_axis = -best_axis;
-	return_struct.collision = true;
+	return_struct.intersected = true;
 	return_struct.collision_normal = best_axis;
 
 	float estimated_depth = fabs(glm::dot(center_distance, best_axis));

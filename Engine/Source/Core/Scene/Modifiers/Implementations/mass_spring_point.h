@@ -19,7 +19,7 @@ struct spring
 class mass_spring_point final : public physics_object_modifier
 {
 public:
-	mass_spring_point(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);
+	mass_spring_point(Object3D* parent_game_object_3d);
 	void calculate_forces() override;
 	void draw_gui() override;
 	float damp = 0.0f;

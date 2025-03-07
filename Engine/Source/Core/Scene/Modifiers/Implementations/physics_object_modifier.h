@@ -9,7 +9,7 @@ class PhysicsEngine;
 class physics_object_modifier: public modifier
 {
 public:
-	physics_object_modifier(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine);
+	physics_object_modifier(Object3D* parent_game_object_3d);
 	virtual void calculate_forces();
 	virtual void clear_force();
 	void add_force(glm::vec3 force);

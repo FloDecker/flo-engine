@@ -15,6 +15,14 @@ int modifier::get_id()
 	return -1;
 }
 
+void modifier::on_parent_recalculate_transforms()
+{
+}
+
+void modifier::on_parent_draw()
+{
+}
+
 Object3D* modifier::get_parent() const
 {
 	return this->parent;

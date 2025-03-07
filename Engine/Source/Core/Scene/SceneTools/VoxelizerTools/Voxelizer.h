@@ -7,7 +7,6 @@
 #include <glm.hpp>
 #include "../../RayCast.h"
 #include "../../../Scene/DebugPrimitives/Cube3D.h"
-#include "../../Collider.h"
 
 class Voxelizer : public AbstractVoxelizer
 {
@@ -42,7 +41,7 @@ private:
 
 	//takes a voxel position and 3 vertices that define a triangle in world space, then it recursively expands the zero level set
 	//on the triangle surface
-	void expand_polygon_to_zero_level_set(MeshCollider* collider, unsigned int vertex_id_0, struct_vertex_array* vertex_array,
+	void expand_polygon_to_zero_level_set(collider_modifier* collider, unsigned int vertex_id_0, struct_vertex_array* vertex_array,
 	                                      glm::i16vec3 voxel_to_expand_from,
 	                                      float radius);
 

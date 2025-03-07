@@ -8,12 +8,18 @@
 #include "Lighting/PointLight.h"
 #include "Lighting/direct_light.h"
 #include "../../Util/StackedBB.h"
+#include "../CommonDataStructures/collider_intersection.h"
 #include "../CommonDataStructures/StructColorRange.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
+#include "../CommonDataStructures/collision_channel.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
+class mesh_collider;
+class collider_modifier;
+class PhysicsEngine;
 class sky_box;
-class MeshCollider;
+
+
 
 class SceneRoot : public Object3D
 {
@@ -34,24 +40,34 @@ public:
 	direct_light *get_scene_direct_light() const;
 	void recalculate_at(Object3D* parent);
 	void recalculate_from_root();
-	void calculateColliderBoundingBoxes();
 	Object3D* get_root() const;
 	GlobalContext* get_global_context() const;
-	StackedBB* get_bb() const;
+	PhysicsEngine* get_physics_engine() const;
+	
+	StackedBB* get_bb(collision_channel c) const;
+	
 	visual_debug_tools* get_debug_tools() const;
+
+	//render passes
 	void draw_scene(RenderContext* render_context) const;
 	void light_pass(camera* current_camera) const;
 	void custom_pass(RenderContext* render_context) const;
+
+
 	void select_object(Object3D* object);
 	void deselect();
 
-	std::vector<Collider*>* get_colliders_in_bounding_box(StructBoundingBox* bounding_box) const;
+	std::vector<collider_modifier*>* get_colliders_in_bounding_box(StructBoundingBox* bounding_box,
+	                                                               collision_channel channel);
 
+	//NOT IMPLEMENTED
 	std::vector<glm::vec3>* get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const;
 
-	std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>* get_triangles_in_bounding_box(
+	//NOT IMPLEMENTED
+	std::vector<std::tuple<mesh_collider*, std::vector<vertex_array_filter>*>>* get_triangles_in_bounding_box(
 		StructBoundingBox* bounding_box) const;
 
+	//handle
 	Handle* handle() const;
 	Object3D* get_selected_object() const;
 	bool has_selected_object() const;
@@ -62,12 +78,29 @@ public:
 	//register scene objects
 	void register_global_light(direct_light *direct_light);
 	void register_sky_box(sky_box *skybox);
+	
+	//register collider
+	void register_collider(collider_modifier* collider);
+
+
+	//COLLISIONS AND INTERSECTIONS
+	
+	//get colliders by collision channel
+	std::vector<collider_modifier*> get_colliders(collision_channel collision_channel);
+	std::vector<collider_intersection> generate_overlaps_in_channel(collision_channel channel);
+
+	//ray trace in scene
+	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance);
+	void ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance, ray_cast_result* result);
+
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
-	std::vector<Collider*> sceneColliders;
-	StackedBB* scene_bb;
+	std::vector<collider_modifier*> colliders_;
+
+	std::map<collision_channel, StackedBB*> scene_bb;
 	GlobalContext* global_context_;
+	PhysicsEngine* physics_engine_;
 
 	SceneRoot* scene_root_;
 

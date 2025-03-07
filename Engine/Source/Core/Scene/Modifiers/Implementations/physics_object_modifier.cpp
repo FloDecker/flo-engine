@@ -1,10 +1,11 @@
 ﻿#include "physics_object_modifier.h"
 #include "../../../PhysicsEngine/PhysicsEngine.h"
 #include "../../Object3D.h"
+#include "../../Scene.h"
 
-physics_object_modifier::physics_object_modifier(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine) : modifier(parent_game_object_3d)
+physics_object_modifier::physics_object_modifier(Object3D* parent_game_object_3d) : modifier(parent_game_object_3d)
 {
-	physics_engine_ = physics_engine;
+	physics_engine_ = parent_game_object_3d->get_scene()->get_physics_engine();
 }
 
 void physics_object_modifier::calculate_forces()
