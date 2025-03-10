@@ -22,6 +22,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/gui_scene_tools.h"
 #include "Source/Core/GUI/LogGUI.h"
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
@@ -29,10 +30,10 @@
 #include "Source/Core/Renderer/Primitives/quad_fill_screen.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
-#include "Source/Core/Scene/Collider.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #include "Source/Core/Scene/SceneTools/gaussianinzer.h"
+#include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -167,9 +168,7 @@ int main()
 		scene_cam
 	};
 	editorRenderContext->pass = render_pass_main;
-
-	//init physics engine
-	auto physics_engine = new PhysicsEngine(scene);
+	
 
 	//register interaction callbacks
 	glfwSetKeyCallback(window, key_callback);
@@ -257,7 +256,7 @@ int main()
 
 	
 
-	plane->materials.push_back(gaussian_gi_shader);
+	plane->materials.push_back(lightTestMaterial);
 	sphere->materials.push_back(lightTestMaterial);
 
 
@@ -280,8 +279,27 @@ int main()
 	auto mSphere3 = new Mesh3D(mSphere2, sphere);
 	mSphere3->setPositionLocal(0.9, -0.55, -4.3);
 	mSphere3->name = "sphere 3";
-	mSphere3->add_modifier(new physics_object_modifier(mSphere3, physics_engine));
+	mSphere3->add_modifier(new physics_object_modifier(mSphere3));
+	
 
+	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
+	collision_test_cube_1->name = "collision_test_cube_1";
+	collision_test_cube_1->set_position_global(0,-3,0);
+	collision_test_cube_1->add_material(lightTestMaterial);
+	collision_test_cube_1->add_modifier(new box_collider(collision_test_cube_1));
+
+	auto rigid_body_test_cube_1 = new rigid_body(collision_test_cube_1);
+	rigid_body_test_cube_1->gravity_enabled = false;
+	rigid_body_test_cube_1->is_fixed = true;
+	collision_test_cube_1->add_modifier(rigid_body_test_cube_1);
+
+	auto collision_test_cube_2 = new Mesh3D(scene->get_root(), cube);
+	collision_test_cube_2->name = "collision_test_cube_2";
+	collision_test_cube_2->add_material(lightTestMaterial);
+	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2));
+	collision_test_cube_2->add_modifier(new rigid_body(collision_test_cube_2));
+	
+	
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
 	mInertiaTest->set_position_global(20,20,20);
@@ -290,25 +308,15 @@ int main()
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
 	//auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
 
-	auto s = std::string("ENGINE_COLLIDER");
-	auto collider_test = dynamic_cast<MeshCollider*>(mInertiaTest->get_child_by_tag(&s));
-	rigid_body_mod = new rigid_body(mInertiaTest, physics_engine, collider_test);
+	rigid_body_mod = new rigid_body(mInertiaTest);
 	rigid_body_mod->mass = 20;
 	mInertiaTest->add_modifier(rigid_body_mod);
-	auto i = collider_test->get_inertia_tensor();
-	auto xx = (vec_x * i * vec_x);
-	auto yy = (vec_y * i * vec_y);
-	auto zz = (vec_z * i * vec_z);
-	printf("%f, %f, %f", xx.x, xx.y, xx.z);
-	printf("%f, %f, %f", yy.x, yy.y, yy.z);
-	printf("%f, %f, %f", zz.x, zz.y, zz.z);
-
 
 	auto mSphere_phyics_1 = new Mesh3D(scene->get_root(), sphere);
 	mSphere_phyics_1->add_material(worldPosMat);
 	mSphere_phyics_1->setPositionLocal(10, 0, 0);
 	mSphere_phyics_1->name = "mSphere_phyics_1";
-	auto spring1 = new mass_spring_point(mSphere_phyics_1, physics_engine);
+	auto spring1 = new mass_spring_point(mSphere_phyics_1);
 	spring1->is_fixed = true;
 	mSphere_phyics_1->add_modifier(spring1);
 
@@ -316,7 +324,7 @@ int main()
 	mSphere_phyics_2->add_material(worldPosMat);
 	mSphere_phyics_2->setPositionLocal(5, 0, 0);
 	mSphere_phyics_2->name = "mSphere_phyics_2";
-	auto spring2 = new mass_spring_point(mSphere_phyics_2, physics_engine);
+	auto spring2 = new mass_spring_point(mSphere_phyics_2);
 	spring2->damp = 1;
 	mSphere_phyics_2->add_modifier(spring2);
 
@@ -325,7 +333,7 @@ int main()
 	mSphere_phyics_3->add_material(worldPosMat);
 	mSphere_phyics_3->setPositionLocal(5, 2, 0);
 	mSphere_phyics_3->name = "mSphere_phyics_3";
-	auto spring3 = new mass_spring_point(mSphere_phyics_3, physics_engine);
+	auto spring3 = new mass_spring_point(mSphere_phyics_3);
 	spring3->damp = 1;
 	mSphere_phyics_3->add_modifier(spring3);
 
@@ -333,18 +341,18 @@ int main()
 	mSphere_phyics_4->add_material(worldPosMat);
 	mSphere_phyics_4->setPositionLocal(10, 2, 0);
 	mSphere_phyics_4->name = "mSphere_phyics_4";
-	auto spring4 = new mass_spring_point(mSphere_phyics_4, physics_engine);
+	auto spring4 = new mass_spring_point(mSphere_phyics_4);
 	spring4->damp = 1;
 	spring4->is_fixed = true;
 	mSphere_phyics_4->add_modifier(spring4);
 
 
-	physics_engine->add_spring(spring1, spring2, 200.0);
-	physics_engine->add_spring(spring2, spring3, 200.0);
-	physics_engine->add_spring(spring3, spring4, 200.0);
-	physics_engine->add_spring(spring4, spring1, 200.0);
-	physics_engine->add_spring(spring3, spring1, 200.0);
-	physics_engine->add_spring(spring2, spring4, 200.0);
+	scene->get_physics_engine()->add_spring(spring1, spring2, 200.0);
+	scene->get_physics_engine()->add_spring(spring2, spring3, 200.0);
+	scene->get_physics_engine()->add_spring(spring3, spring4, 200.0);
+	scene->get_physics_engine()->add_spring(spring4, spring1, 200.0);
+	scene->get_physics_engine()->add_spring(spring3, spring1, 200.0);
+	scene->get_physics_engine()->add_spring(spring2, spring4, 200.0);
 
 
 	{
@@ -487,7 +495,7 @@ int main()
 	guiManager->addGUI(new LogGUI(&global_context));
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
-	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
+	guiManager->addGUI(new gui_scene_tools(scene));
 	
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
@@ -515,7 +523,7 @@ int main()
 	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
-	
+
 	//// ------ RENDER LOOP ------ ////
 	while (!glfwWindowShouldClose(window))
 	{
@@ -540,8 +548,33 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 
+
+		//PHYSICS
+		//if handler is attached to rigid body
+		//-> calculate velocity from dragging the object
+		//-> suspend physics calculation for this object 
+		if (scene->handle()->is_attached())
+		{
+			auto modifiers = scene->handle()->attached_object_3d()->get_modifiers_by_id(10);
+			for (auto modifier : modifiers)
+			{
+				rigid_body *r = dynamic_cast<rigid_body *>(modifier);
+				if (r!= nullptr)
+				{
+					glm::vec3 handler_delta = (scene->handle()->getWorldPosition() - scene->handle()->last_pos_) *
+						static_cast<float>(1.0f / editorRenderContext->deltaTime);
+					r->set_velocity(handler_delta);
+					r->set_angular_momentum(glm::vec3());
+					r->skip_next_step = true;
+					scene->handle()->last_pos_ = scene->handle()->getWorldPosition();
+					//printf("handler delta = %s\n",glm::to_string(handler_delta).c_str());
+				}
+			}
+		}
+		
+		
 		//run physics step
-		physics_engine->evaluate_physics_step(editorRenderContext->deltaTime);
+		scene->get_physics_engine()->evaluate_physics_step(editorRenderContext->deltaTime);
 
 		//TEST:
 		lightTestMaterial->recompile_if_changed();
@@ -700,7 +733,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 				else
 				{
 					//if handle is active check first intersection with handle
-					ray_cast_hit a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+					ray_cast_result a = scene->ray_cast_in_scene_unoptimized(ray_origin,ray_direction,100000, VISIBILITY);
 					if (a.hit)
 					{
 						scene->select_object(a.object_3d);

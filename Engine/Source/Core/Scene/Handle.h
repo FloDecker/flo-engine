@@ -2,6 +2,7 @@
 #include "Mesh3D.h"
 #include "../../Util/AssetLoader.h"
 
+class collider_modifier;
 class Collider;
 
 enum HandlerType
@@ -23,15 +24,27 @@ public:
     void editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction);
     void editor_release_handle();
     void editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction);
+
+    glm::vec3 last_pos_ = glm::vec3(0, 0, 0);
+
+    
+    [[nodiscard]] Object3D* attached_object_3d() const
+    {
+        return attached_object_3d_;
+    }
+    
 private:
     Mesh3D *arrow_x;
     Mesh3D *arrow_y;
     Mesh3D *arrow_z;
 
-    Collider *arrow_x_collider_;
-    Collider *arrow_y_collider_;
-    Collider *arrow_z_collider_;
+    collider_modifier *arrow_x_collider_;
+    collider_modifier *arrow_y_collider_;
+    collider_modifier *arrow_z_collider_;
     Object3D* attached_object_3d_;
+
+
+private:
     bool attached_ = false;
     bool handle_mode_global_ = true;
     HandlerType handler_status = not_transforming;

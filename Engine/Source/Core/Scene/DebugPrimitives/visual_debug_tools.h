@@ -2,6 +2,7 @@
 #include <detail/type_quat.hpp>
 #include "glm.hpp"
 
+struct StructBoundingBox;
 class Line3D;
 class Cube3D;
 class Object3D;
@@ -34,6 +35,7 @@ public:
 	void draw_debug_line(glm::vec3 pos_start, glm::vec3 pos_end, glm::vec3 color, float time = 0);
 	void draw_debug_point(glm::vec3 position, float time = 0, glm::vec3 color = {1,1,1}, float size = 0.05);
 	void draw_debug_cube(glm::vec3 position, float time = 0, glm::quat rot = glm::quat(), glm::vec3 scale = {1,1,1}, glm::vec3 color = {1,1,1});
+	void draw_debug_cube(StructBoundingBox *bb,float time = 0, glm::vec3 color = {1,1,1});
 	void draw_debug_tools(float delta);
 
 private:

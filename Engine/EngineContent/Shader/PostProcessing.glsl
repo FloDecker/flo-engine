@@ -61,12 +61,12 @@ vec3 get_distance_blur(float distance) {
 void main()
 {
     float d = texture(dpeth_framebuffer, TexCoords).x;
-    //vec3 color = vec3(texture(color_framebuffer, TexCoords));
-    //vec3 color = get_distance_blur(100);
     vec3 color = vec3(texture(color_framebuffer, TexCoords));
+    //vec3 color = get_distance_blur(d*20000);
+    //vec3 color = vec3(texture(color_framebuffer, TexCoords));
     vec3 light_map_sampled = vec3(texture(light_map, TexCoords*2.0));
 
-    //color = vec3(d);
+    //color = vec3(d*100000);
    
     //FragColor = vec4(vec3(color),1.0);
 

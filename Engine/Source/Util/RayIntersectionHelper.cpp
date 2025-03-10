@@ -2,15 +2,15 @@
 
 #define in_bounding_box(a, min,max) ((a)<(max)&&(a)>(min))
 
-Intersection* RayIntersectionHelper::RayPlaneIntersection(glm::vec3 ray_origin, glm::vec3 ray_direction_normalized,
+struct_intersection* RayIntersectionHelper::ray_plane_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction_normalized,
                                                           glm::vec3 point_on_plane, glm::vec3 plane_normal)
 {
-	auto intersection = new Intersection;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction_normalized, point_on_plane, plane_normal);
+	const auto intersection = new struct_intersection;
+	ray_plane_intersection(intersection, ray_origin, ray_direction_normalized, point_on_plane, plane_normal);
 	return intersection;
 }
 
-void RayIntersectionHelper::RayPlaneIntersection(Intersection* intersection, glm::vec3 ray_origin,
+void RayIntersectionHelper::ray_plane_intersection(struct_intersection* intersection, glm::vec3 ray_origin,
                                                  glm::vec3 ray_direction_normalized, glm::vec3 point_on_plane,
                                                  glm::vec3 plane_normal)
 {
@@ -24,7 +24,7 @@ void RayIntersectionHelper::RayPlaneIntersection(Intersection* intersection, glm
 		-((glm::dot(plane_normal, ray_origin) + d) /
 			glm::dot(plane_normal, ray_direction_normalized));
 
-	intersection->intersection_point = ray_origin + t * ray_direction_normalized;
+	intersection->collision_point = ray_origin + t * ray_direction_normalized;
 	intersection->intersected = true;
 }
 
@@ -34,61 +34,61 @@ bool RayIntersectionHelper::ray_bounding_box_intersection(glm::vec3 ray_origin,
                                                           glm::vec3 ray_direction, StructBoundingBox* bounding_box)
 {
 	bool first_intersection = false;
-	auto intersection = new Intersection;
+	const auto intersection = new struct_intersection;
 
 	//max
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->max, {1, 0, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->max, {0, 1, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->max, {0, 0, 1});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y)
 	)
 		return true;
 
 	//min
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->min, {1, 0, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->min, {0, 1, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->min, {0, 0, 1});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y)
 	)
 		return true;
 

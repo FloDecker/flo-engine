@@ -1,15 +1,14 @@
 ﻿#pragma once
 #include "Scene.h"
-#include "../CommonDataStructures/StructVertexArray.h"
+#include "../CommonDataStructures/ray_cast_result.h"
 #include "../../Util/RayIntersectionHelper.h"
 
 class RayCast
 {
 public:
 	//ray cast in scene
-	static ray_cast_hit ray_cast(
+	static ray_cast_result ray_cast(
 		Scene* scene_context,
-		std::string* collision_tag,
 		glm::vec3 ray_cast_origin,
 		glm::vec3 ray_cast_direction,
 		float length,
@@ -17,7 +16,7 @@ public:
 	);
 
 	//TODO this shouldn't be used by the game developer !Engine only!
-	static ray_cast_hit ray_cast_editor(
+	static ray_cast_result ray_cast_editor(
 		Scene* scene_context,
 		glm::vec3 ray_cast_origin,
 		glm::vec3 ray_cast_direction,
@@ -25,8 +24,7 @@ public:
 
 private:
 	static void recurse_scene_model_ray_cast(
-		ray_cast_hit* ray_cast_hit,
-		std::string* collision_tag,
+		ray_cast_result* ray_cast_hit,
 		Object3D* object,
 		glm::vec3 ray_cast_origin,
 		glm::vec3 ray_cast_direction_normalized,
@@ -34,10 +32,9 @@ private:
 		bool ignore_back_face = true
 	);
 
-	static bool recurse_proximity_check(
-		Object3D* object,
-		std::string* collision_tag,
-		glm::vec3 proximity_center,
-		float radius
+	static void recurse_proximity_check(
+		::ray_cast_result* result,
+		::Object3D* object,
+		glm::vec3 proximity_center, float radius
 	);
 };
