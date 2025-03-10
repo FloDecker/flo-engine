@@ -5,6 +5,7 @@
 
 #include "../Scene.h"
 #include "../Object3D.h"
+#include "../../../Util/BoundingBoxHelper.h"
 
 visual_debug_tools::visual_debug_tools(Scene* scene) : scene_(scene)
 {
@@ -35,7 +36,14 @@ void visual_debug_tools::draw_debug_point(glm::vec3 position, float time, glm::v
 void visual_debug_tools::draw_debug_cube(glm::vec3 position, float time, glm::quat rot, glm::vec3 scale,
                                          glm::vec3 color)
 {
-	debug_cubes_.push_back({position, rot, scale, color, time});
+	debug_cubes_.push_back({.pos = position, .rot = rot, .scale = scale, .color = color, .ttl = time});
+}
+
+void visual_debug_tools::draw_debug_cube(StructBoundingBox* bb, float time, glm::vec3 color)
+{
+	auto pos = BoundingBoxHelper::get_center_of_bb(bb);
+	auto scale = BoundingBoxHelper::get_scale_of_bb(bb);
+	draw_debug_cube(pos,time,glm::quat(),scale, color);
 }
 
 void visual_debug_tools::draw_debug_tools(float delta)

@@ -85,14 +85,15 @@ public:
 
 
 	//COLLISIONS AND INTERSECTIONS
+
+	void recalculate_collision_channel_bb_hierarchy(collision_channel channel) const;
 	
 	//get colliders by collision channel
 	std::vector<collider_modifier*> get_colliders(collision_channel collision_channel);
 	std::vector<collider_intersection> generate_overlaps_in_channel(collision_channel channel);
 
-	//ray trace in scene
-	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance);
-	void ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance, ray_cast_result* result);
+	//ray trace in scene (theses always work independent of the bb tree 
+	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance, collision_channel collision_channel);
 
 
 private:

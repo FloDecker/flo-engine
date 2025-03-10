@@ -3,8 +3,8 @@
 #include "../Core/CommonDataStructures/StructVertexArray.h"
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
 #include "../Core/CommonDataStructures/struct_intersection.h"
+#include "../Core/CommonDataStructures/ray_cast_result.h"
 #include <array>
-
 
 
 class BoundingBoxHelper
@@ -49,6 +49,13 @@ public:
     static glm::vec3  get_half_sizes_of_bb(const StructBoundingBox *bounding_box);
     static float  get_max_length_of_bb(const StructBoundingBox *bounding_box);
 
+    static bool ray_axis_aligned_bb_intersection(const ::StructBoundingBox* bb, glm::vec3 ray_origin_ws,
+                                                 glm::vec3 ray_direction_ws, ray_cast_result* intersection);
+    static bool ray_plane_intersection(
+	    const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+	    const glm::vec3& planePoint, const glm::vec3& planeNormal,
+	    float& t, glm::vec3& intersectionPoint);
+	
     //intersection test (code by Tomas Akenine-Möller)
     static int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3]);
     static int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3]) ;

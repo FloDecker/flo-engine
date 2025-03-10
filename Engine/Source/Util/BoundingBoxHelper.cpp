@@ -4,6 +4,7 @@
 #include <gtx/string_cast.hpp>
 
 #include "../Core/Scene/Object3D.h"
+//#include "../Core/CommonDataStructures/ray_cast_result.h"
 
 void BoundingBoxHelper::get_bounding_box_from_vertex_array(StructBoundingBox* bb, struct_vertex_array* vertex_array,
                                                            glm::mat4x4 transformation_matrix)
@@ -116,12 +117,12 @@ bool BoundingBoxHelper::is_in_bounding_box(const StructBoundingBox* bounding_box
                                            const float uniform_scale_addition)
 {
 	return (
-		bounding_box->max.x + uniform_scale_addition > p.x &&
-		bounding_box->max.y + uniform_scale_addition > p.y &&
-		bounding_box->max.z + uniform_scale_addition > p.z &&
-		bounding_box->min.x - uniform_scale_addition < p.x &&
-		bounding_box->min.y - uniform_scale_addition < p.y &&
-		bounding_box->min.z - uniform_scale_addition < p.z
+		bounding_box->max.x + uniform_scale_addition >= p.x &&
+		bounding_box->max.y + uniform_scale_addition >= p.y &&
+		bounding_box->max.z + uniform_scale_addition >= p.z &&
+		bounding_box->min.x - uniform_scale_addition <= p.x &&
+		bounding_box->min.y - uniform_scale_addition <= p.y &&
+		bounding_box->min.z - uniform_scale_addition <= p.z
 	);
 }
 
@@ -178,6 +179,76 @@ glm::vec3 BoundingBoxHelper::get_half_sizes_of_bb(const StructBoundingBox* bound
 float BoundingBoxHelper::get_max_length_of_bb(const StructBoundingBox* bounding_box)
 {
 	return glm::length(get_scale_of_bb(bounding_box));
+}
+
+bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox* bb,
+	glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, ray_cast_result *intersection)
+{
+	*intersection = {};
+	glm::vec3 normals[6] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+	glm::vec3 points[6] = {
+		{bb->max.x, 0, 0}, {bb->min.x, 0, 0}, // +X, -X
+		{0, bb->max.y, 0}, {0, bb->min.y, 0}, // +Y, -Y
+		{0, 0, bb->max.z}, {0, 0, bb->min.z} // +Z, -Z
+	};
+
+	auto nearestT = std::numeric_limits<float>::infinity();
+	bool hit = false;
+	glm::vec3 hitPoint = {};
+	glm::vec3 hitNormal = {};
+	for (int i = 0; i < 6; i++)
+	{
+		float t;
+		glm::vec3 intersection_point;
+		if (ray_plane_intersection(ray_origin_ws, ray_direction_ws, points[i], normals[i], t, intersection_point))
+		{
+			if (is_in_bounding_box(bb,intersection_point))
+			{
+				if (t < nearestT)
+				{
+					nearestT = t;
+					hitPoint = intersection_point;
+					hit = true;
+					hitNormal = normals[i];
+				}
+			}
+		}
+	}
+	intersection->hit = hit;
+	if (hit)
+	{
+		intersection->distance_from_origin = glm::distance(ray_origin_ws, hitPoint);
+		intersection->hit_local = hitPoint;
+		intersection->hit_world_space = hitPoint;
+		intersection->hit_normal_local = hitNormal;
+		intersection->hit_normal_world_space = hitNormal;
+	}
+	return hit;
+}
+
+
+
+bool BoundingBoxHelper::ray_plane_intersection(
+	const glm::vec3& rayOrigin, const glm::vec3& rayDir, // Ray: Origin & Direction
+	const glm::vec3& planePoint, const glm::vec3& planeNormal, // Plane: Point & Normal
+	float& t, glm::vec3& intersectionPoint) 
+{
+	float denom = glm::dot(rayDir, planeNormal);
+
+	// Check if the ray is parallel to the plane
+	if (fabs(denom) < 1e-6) {
+		return false; // No intersection
+	}
+
+	t = glm::dot(planePoint - rayOrigin, planeNormal) / denom;
+
+	// If t < 0, the intersection is behind the ray's origin
+	if (t < 0) {
+		return false; 
+	}
+
+	intersectionPoint = rayOrigin + t * rayDir;
+	return true; 
 }
 
 

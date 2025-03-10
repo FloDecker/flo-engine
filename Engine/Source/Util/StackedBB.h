@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <chrono>
+#include <vec3.hpp>
+
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
 #include "../Core/CommonDataStructures/ray_cast_result.h"
 //ray trace acceleration structures
@@ -7,8 +9,8 @@
 //if child_0 = -1 -> child_1 indicates the position of the found collider in the sceneColliders array
 
 
+class Scene;
 class collider_modifier;
-class Object3D;
 
 struct kdTreeElement
 {
@@ -20,7 +22,11 @@ struct kdTreeElement
 class StackedBB
 {
 public:
-	StackedBB(std::vector<collider_modifier*> leafs);
+	explicit StackedBB(Scene *scene, std::vector<collider_modifier*> leafs);
+	StackedBB(Scene *scene);
+
+	void insert_leaf_node(collider_modifier* leaf);
+	bool contains_leaf_node(const collider_modifier* leaf) const;
 
 	void recalculate();
 	kdTreeElement* get_scene_bb_entry_element() const;
@@ -35,12 +41,14 @@ public:
 		float radius
 	);
 
+
 private:
 
 	
 	void calculateSceneTree();
 
-
+	Scene *scene_;
+	
 	ray_cast_result *recurse_proximity_check_bb_tree(
 		const kdTreeElement* bb_to_check,const glm::vec3& proximity_center,
 		float radius
@@ -50,4 +58,5 @@ private:
 	kdTreeElement* axis_aligned_bb_tree_ = nullptr;
 	int scene_bb_entry_id_ = -1;
 	std::vector<collider_modifier*> leaf_nodes;
+	
 };

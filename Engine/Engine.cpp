@@ -22,6 +22,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/gui_scene_tools.h"
 #include "Source/Core/GUI/LogGUI.h"
 #include "Source/Core/GUI/ObjectInfo.h"
 #include "Source/Core/GUI/SceneTree.h"
@@ -484,7 +485,7 @@ int main()
 	guiManager->addGUI(new LogGUI(&global_context));
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
-	scene->get_debug_tools()->draw_debug_line({0, 0, 0}, {0, 0, 20}, {1, 1, 1});
+	//guiManager->addGUI(new gui_scene_tools(scene));
 	
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
@@ -721,7 +722,7 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 				else
 				{
 					//if handle is active check first intersection with handle
-					ray_cast_result a = RayCast::ray_cast_editor(scene_context, ray_origin, ray_direction);
+					ray_cast_result a = scene->ray_cast_in_scene_unoptimized(ray_origin,ray_direction,100000, VISIBILITY);
 					if (a.hit)
 					{
 						scene->select_object(a.object_3d);

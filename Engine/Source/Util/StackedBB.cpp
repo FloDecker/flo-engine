@@ -1,11 +1,40 @@
 ﻿#include "StackedBB.h"
 #include "BoundingBoxHelper.h"
 #include "../../Core/Scene/Modifiers/Implementations/Colliders/mesh_collider.h"
+//#include "../Core/Scene/Scene.h"
 
-StackedBB::StackedBB(std::vector<collider_modifier*> leafs)
+StackedBB::StackedBB(Scene *scene, std::vector<collider_modifier*> leafs)
 {
 	leaf_nodes = leafs;
+	scene_ = scene;
 	calculateSceneTree();
+}
+
+StackedBB::StackedBB(Scene *scene)
+{
+	scene_ = scene;
+	leaf_nodes = std::vector<collider_modifier*>();
+}
+
+void StackedBB::insert_leaf_node(collider_modifier* leaf)
+{
+	if (contains_leaf_node(leaf))
+	{
+		return;
+	}
+	leaf_nodes.push_back(leaf);
+}
+
+bool StackedBB::contains_leaf_node(const collider_modifier* leaf) const
+{
+	for (const auto l: leaf_nodes)
+	{
+		if (l == leaf)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void StackedBB::recalculate()
@@ -91,13 +120,17 @@ void StackedBB::calculateSceneTree()
 		};
 
 
+		
 		//TODO REMOVE THIS TEST
 		//auto c = new Cube3D(global_context_);
 		//scene_root_->addChild(c);
 		//c->setScale(BoundingBoxHelper::get_scale_of_bb(&temp_bb));
-		//c->color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes.size()), 1};
+		//c->
 		//c->set_position_global(BoundingBoxHelper::get_center_of_bb(&temp_bb));
 		////////////////////TEST END //////////////////////////
+		///
+		glm::vec3 color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes.size()), 1};
+		//scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb),10,glm::quat(),BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
 
 		//add new bounding box containing both objects into the array
 		axis_aligned_bb_tree_[leaf_nodes.size() + i] = temp;
@@ -215,10 +248,9 @@ ray_cast_result* StackedBB::scene_geometry_proximity_check(const glm::vec3& prox
 	return {};
 }
 
-
 ray_cast_result *StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
-                                               const glm::vec3& proximity_center,
-                                                float radius)
+                                                            const glm::vec3& proximity_center,
+                                                            float radius)
 {
 	if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, proximity_center, radius))
 	{

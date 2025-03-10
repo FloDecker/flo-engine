@@ -36,7 +36,7 @@ mesh_collider::mesh_collider(Object3D* parent_game_object_3d, Mesh* mesh): colli
 void mesh_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::vec3 ray_direction_ls, float ray_length,
                                                  bool ignore_back_face, ray_cast_result* ray_cast_result_out)
 {
-	
+	*ray_cast_result_out = {};
 	std::vector<struct_vertex_array*> vertex_arrays_of_geometry = vertex_arrays_;
 	for (unsigned int a = 0; a < vertex_arrays_of_geometry.size(); a++)
 	{

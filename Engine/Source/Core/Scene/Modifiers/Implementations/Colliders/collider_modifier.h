@@ -14,6 +14,7 @@ class PhysicsEngine;
 class collider_modifier : public modifier
 {
 public:
+	void draw_gui() override;
 	explicit collider_modifier(Object3D* parent_game_object_3d);
 	rigid_body* associated_rigid_body;
 	int get_id() override;

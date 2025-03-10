@@ -30,19 +30,16 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
 	engine_collider_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_COLLIDER");
 
-	//calculate a bb tree for each collision channel
 	for ( const auto c : all_collision_channels)
 	{
-		scene_bb[c] = new StackedBB(get_colliders(c));
+		scene_bb[c] = new StackedBB(this);
 	}
 	
 	scene_root_ = new SceneRoot(global_context, this);
 	scene_root_->name = name;
-	recalculate_from_root();
 	name_ = name;
 	handle_ = new Handle(this);
 	visual_debug_tools_ = new visual_debug_tools(this);
-	
 	light_pass_render_context_ = new RenderContext();
 	light_pass_render_context_->pass = render_pass_lighting;
 }
@@ -56,6 +53,15 @@ direct_light *Scene::get_scene_direct_light() const
 void Scene::register_collider(collider_modifier* collider)
 {
 	colliders_.push_back(collider);
+	for (auto channel: collider->collision_channels)
+	{
+		scene_bb[channel]->insert_leaf_node(collider);
+	}
+}
+
+void Scene::recalculate_collision_channel_bb_hierarchy(collision_channel channel) const
+{
+	scene_bb.at(channel)->recalculate();
 }
 
 std::vector<collider_modifier*> Scene::get_colliders(collision_channel collision_channel)
@@ -101,17 +107,30 @@ std::vector<collider_intersection> Scene::generate_overlaps_in_channel(collision
 	return result;
 }
 
-ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance)
+ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,  collision_channel collision_channel)
 {
 	ray_cast_result result;
-	ray_cast_in_scene(origin, direction, max_distance, &result);
+	auto temp_result = ray_cast_result();
+	double min_distance = std::numeric_limits<double>::max();
+	for (auto collider : get_colliders(collision_channel))
+	{
+		auto bb = collider->get_world_space_bounding_box();
+		if (BoundingBoxHelper::is_in_bounding_box(bb,origin) ||
+			BoundingBoxHelper::ray_axis_aligned_bb_intersection(bb, origin, direction,&temp_result))
+		{
+			collider->ray_intersection_world_space(origin, direction,max_distance, true, &temp_result);
+			if (temp_result.hit && temp_result.distance_from_origin < min_distance)
+			{
+				min_distance = temp_result.distance_from_origin;
+				result = temp_result;
+				result.object_3d = collider->get_parent();
+			} 
+		}
+	}
+
 	return result;
 }
 
-void Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance, ray_cast_result* result)
-{
-	
-}
 
 void Scene::recalculate_at(Object3D* parent)
 {
@@ -133,7 +152,7 @@ void Scene::recalculate_from_root()
 	recalculate_at(scene_root_);
 	for ( const auto c : all_collision_channels)
 	{
-		scene_bb[c]->recalculate();
+		recalculate_collision_channel_bb_hierarchy(c);
 	}
 
 }
