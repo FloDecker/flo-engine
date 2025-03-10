@@ -8,7 +8,8 @@
 void box_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::vec3 ray_direction_ls, float ray_length,
                                                 bool ignore_back_face, ray_cast_result* ray_cast_result_out)
 {
-	std::cerr<<"box_collider::ray_intersection_local_space not implemented\n "<<std::endl;
+	
+	BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bounding_box, ray_direction_ls, ray_direction_ls,ray_cast_result_out);
 	
 }
 

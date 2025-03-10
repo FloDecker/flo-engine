@@ -1,7 +1,7 @@
 ﻿#include "StackedBB.h"
 #include "BoundingBoxHelper.h"
 #include "../../Core/Scene/Modifiers/Implementations/Colliders/mesh_collider.h"
-//#include "../Core/Scene/Scene.h"
+#include "../Core/Scene/Scene.h"
 
 StackedBB::StackedBB(Scene *scene, std::vector<collider_modifier*> leafs)
 {
@@ -11,6 +11,7 @@ StackedBB::StackedBB(Scene *scene, std::vector<collider_modifier*> leafs)
 }
 
 StackedBB::StackedBB(Scene *scene)
+
 {
 	scene_ = scene;
 	leaf_nodes = std::vector<collider_modifier*>();
@@ -130,7 +131,7 @@ void StackedBB::calculateSceneTree()
 		////////////////////TEST END //////////////////////////
 		///
 		glm::vec3 color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes.size()), 1};
-		//scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb),10,glm::quat(),BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
+		scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb),2,glm::quat(),BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
 
 		//add new bounding box containing both objects into the array
 		axis_aligned_bb_tree_[leaf_nodes.size() + i] = temp;

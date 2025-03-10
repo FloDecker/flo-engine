@@ -485,7 +485,7 @@ int main()
 	guiManager->addGUI(new LogGUI(&global_context));
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
-	//guiManager->addGUI(new gui_scene_tools(scene));
+	guiManager->addGUI(new gui_scene_tools(scene));
 	
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
