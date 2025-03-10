@@ -154,7 +154,7 @@
         <ClCompile Include="Source\Content\Mesh.cpp"/>
         <ClCompile Include="Source\Core\Editor\GlobalContext.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIBase.cpp"/>
-        <ClCompile Include="Source\Core\GUI\gui_scene_tools.cpp" />
+        <ClCompile Include="Source\Core\GUI\gui_scene_tools.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIManager.cpp"/>
         <ClCompile Include="Source\Core\GUI\LogGUI.cpp"/>
         <ClCompile Include="Source\Core\GUI\ObjectInfo.cpp"/>
@@ -303,7 +303,7 @@
         <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h"/>
         <ClInclude Include="Source\Core\Editor\GlobalContext.h"/>
         <ClInclude Include="Source\Core\GUI\GUIBase.h"/>
-        <ClInclude Include="Source\Core\GUI\gui_scene_tools.h" />
+        <ClInclude Include="Source\Core\GUI\gui_scene_tools.h"/>
         <ClInclude Include="Source\Core\GUI\GUIManager.h"/>
         <ClInclude Include="Source\Core\GUI\LogGUI.h"/>
         <ClInclude Include="Source\Core\GUI\ObjectInfo.h"/>
@@ -384,13 +384,6 @@
         <ClInclude Include="Source\External\imgui\imstb_rectpack.h"/>
         <ClInclude Include="Source\External\imgui\imstb_textedit.h"/>
         <ClInclude Include="Source\External\imgui\imstb_truetype.h"/>
-        <ClInclude Include="Source\Util\angle_utils.h"/>
-        <ClInclude Include="Source\Util\AssetLoader.h"/>
-        <ClInclude Include="Source\Util\BoundingBoxHelper.h"/>
-        <ClInclude Include="Source\Util\math_util.h"/>
-        <ClInclude Include="Source\Util\RayIntersectionHelper.h"/>
-        <ClInclude Include="Source\Util\Remesh.h"/>
-        <ClInclude Include="Source\Util\StackedBB.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.h"/>
