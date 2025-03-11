@@ -267,12 +267,11 @@
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.cpp"/>
-        <ClCompile Include="Source\Core\Scene\SceneTools\gaussianinzer.cpp" />
+        <ClCompile Include="Source\Core\Scene\SceneTools\gaussianinzer.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\modifier.cpp"/>
         <ClCompile Include="Source\Core\Scene\Object3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\RayCast.cpp"/>
         <ClCompile Include="Source\Core\Scene\Scene.cpp"/>
-        <ClCompile Include="Source\Core\Scene\SceneTools\gaussianinzer.cpp" />
         <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.cpp"/>
         <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.cpp"/>
         <ClCompile Include="Source\External\imgui\backends\imgui_impl_glfw.cpp"/>
@@ -430,19 +429,11 @@
         <ClInclude Include="Source\Util\RayIntersectionHelper.h"/>
         <ClInclude Include="Source\Util\Remesh.h"/>
         <ClInclude Include="Source\Util\StackedBB.h"/>
-        <ClInclude Include="Source\External\imgui\imgui.h" />
-        <ClInclude Include="Source\External\imgui\imgui_internal.h" />
-        <ClInclude Include="Source\External\imgui\imstb_rectpack.h" />
-        <ClInclude Include="Source\External\imgui\imstb_textedit.h" />
-        <ClInclude Include="Source\External\imgui\imstb_truetype.h" />
-        <ClInclude Include="Source\Util\angle_utils.h" />
-        <ClInclude Include="Source\Util\AssetLoader.h" />
-        <ClInclude Include="Source\Util\BoundingBoxHelper.h" />
-        <ClInclude Include="Source\Util\math_util.h" />
-        <Content Include="EngineContent\Shader\GaussianGI.glsl" />
-        <ClInclude Include="Source\Util\RayIntersectionHelper.h" />
-        <ClInclude Include="Source\Util\Remesh.h" />
-        <ClInclude Include="Source\Util\StackedBB.h" />
+        <ClInclude Include="Source\External\imgui\imgui.h"/>
+        <ClInclude Include="Source\External\imgui\imgui_internal.h"/>
+        <ClInclude Include="Source\External\imgui\imstb_rectpack.h"/>
+        <ClInclude Include="Source\External\imgui\imstb_textedit.h"/>
+        <ClInclude Include="Source\External\imgui\imstb_truetype.h"/>
     </ItemGroup>
     <ItemGroup>
         <Content Include="EngineContent\Arrow.fbx"/>
@@ -452,7 +443,7 @@
         <Content Include="EngineContent\Cube.fbx"/>
         <Content Include="EngineContent\Cube.obj"/>
         <Content Include="EngineContent\cubeArray.fbx"/>
-        <Content Include="EngineContent\Shader\GaussianGI.glsl" />
+        <Content Include="EngineContent\Shader\GaussianGI.glsl"/>
         <Content Include="EngineContent\Shader\GBuffers.glsl"/>
         <Content Include="EngineContent\Shader\PostProcessing.glsl"/>
         <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl"/>
