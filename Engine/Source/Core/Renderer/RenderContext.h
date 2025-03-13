@@ -22,6 +22,10 @@ struct RenderFlags
 	bool visualize_hitboxes = false; //TODO: not really a render flag
 };
 
+
+	
+
+
 //holds the information needed to render the current frame 
 struct RenderContext
 {
@@ -31,6 +35,10 @@ struct RenderContext
 	RenderFlags flags;
 	render_pass pass = render_pass_main;
 	ShaderProgram *custom_shader = nullptr;
+
+	//global shaders
+	ShaderProgram* default_shader;
+	ShaderProgram* light_pass_depth_only_shader;
 };
 
 struct RenderWindow

@@ -18,6 +18,8 @@ private:
     unsigned int VBO = 0;
     unsigned int VAO = 0;
     unsigned int EBO = 0;
+
+private:
     bool loaded = false;
     GLenum mode_ = GL_FILL;
     
@@ -29,6 +31,7 @@ public:
     
     bool set_draw_mode(GLenum mode);
     struct_vertex_array* get_vertex_array();
+    primitive_type get_primitive_type() override;
 
 };
 #endif //ENGINE_VERTEXARRAY_H

@@ -85,3 +85,8 @@ int plane::load_static()
 	loaded = true;
 	return 1;
 }
+
+primitive_type plane::get_primitive_type()
+{
+	return primitive_type::plane;
+}

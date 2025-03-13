@@ -11,4 +11,6 @@ public:
 private:
 	
 	vertex_array *sphere_vertex_array_;
+	primitive_type get_primitive_type() override;
+
 };

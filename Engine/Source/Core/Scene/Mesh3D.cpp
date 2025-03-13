@@ -12,11 +12,6 @@ Mesh3D::Mesh3D(Object3D* parent, Mesh* mesh) : Object3D(parent)
 	
 }
 
-Mesh* Mesh3D::get_mesh() const
-{
-	return mesh;
-}
-
 bool Mesh3D::add_material(ShaderProgram* material)
 {
 	if (material == nullptr)

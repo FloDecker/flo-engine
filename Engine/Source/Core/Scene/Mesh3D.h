@@ -21,7 +21,6 @@ protected:
 public:
     explicit Mesh3D(Object3D* parent, Mesh* mesh);
     bool receive_light = true;
-    Mesh* get_mesh() const;
 
     bool add_material(ShaderProgram *material);
 };

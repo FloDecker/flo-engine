@@ -15,6 +15,7 @@ public:
 	int draw() override;
 	static int draw_static();
 	static int load_static();
+	primitive_type get_primitive_type() override;
 
 private:
 	static vertex points_[4];

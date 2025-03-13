@@ -163,7 +163,9 @@ int main()
 	auto scene_cam = new camera(WINDOW_WIDTH, WINDOW_HEIGHT, &change_window_size_dispatcher);
 	//initialize render context
 	auto editorRenderContext = new RenderContext{
-		scene_cam
+		.camera = scene_cam,
+		.default_shader = default_shader,
+		.light_pass_depth_only_shader = light_pass_shader,
 	};
 	editorRenderContext->pass = render_pass_main;
 

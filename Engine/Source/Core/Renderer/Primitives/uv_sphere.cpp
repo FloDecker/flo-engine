@@ -80,3 +80,9 @@ int uv_sphere::draw()
 {
 	return sphere_vertex_array_->draw();
 }
+
+primitive_type uv_sphere::get_primitive_type()
+{
+	return sphere;
+}
+

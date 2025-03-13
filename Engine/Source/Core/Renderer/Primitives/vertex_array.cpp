@@ -72,3 +72,8 @@ struct_vertex_array *vertex_array::get_vertex_array()
 {
     return &vertex_array_;
 }
+
+primitive_type vertex_array::get_primitive_type()
+{
+    return mesh;
+}
