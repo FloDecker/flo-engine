@@ -3,7 +3,8 @@
 enum collision_channel 
 {
 	VISIBILITY,
-	PHYSICS
+	PHYSICS,
+	HANDLER, //ENGINE ONLY
 };
 
 static constexpr collision_channel all_collision_channels[] = { VISIBILITY, PHYSICS};

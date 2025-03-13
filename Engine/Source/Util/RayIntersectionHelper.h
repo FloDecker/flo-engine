@@ -4,6 +4,7 @@
 
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
 #include "../Core/CommonDataStructures/collider_intersection.h"
+#include "../Core/CommonDataStructures/ray_cast_result.h"
 #include "../Core/Scene/Object3D.h"
 
 
@@ -23,6 +24,6 @@ public:
 	static bool sphere_triangle_intersection(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 circle_pos,
 	                                         float circle_radius);
 
-	static bool point_triangle_proximity_check(glm::vec3 v_0, glm::vec3 v_1, glm::vec3 v_2,
-	                                           glm::vec3 circle_pos, float radius);
+	static void get_closest_point_on_triangle(glm::vec3 v_0, glm::vec3 v_1, glm::vec3 v_2,
+	                                           glm::vec3 circle_pos,ray_cast_result *result);
 };

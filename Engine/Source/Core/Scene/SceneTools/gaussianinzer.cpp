@@ -2,21 +2,19 @@
 
 #include "../RayCast.h"
 #include "../Scene.h"
-
+#include "../../../Util/BoundingBoxHelper.h"
+#include "../Modifiers/Implementations/Colliders/collider_modifier.h"
 void gaussianinzer::on_transform_changed()
 {
-	get_sample_positions_sparse();
+	glm::vec3 lower_left = transform_vertex_to_world_space({-1,-1,-1});
+	glm::vec3 upper_right = transform_vertex_to_world_space({1,1,1});
+	auto bb = StructBoundingBox(lower_left, upper_right);
+	scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&bb), 0, glm::quat(),
+	                                           BoundingBoxHelper::get_scale_of_bb(&bb));
 }
 
 void gaussianinzer::clear_samples()
 {
-	for (auto s : samples_)
-	{
-		if (s.gaussian_at_sample != nullptr)
-		{
-			free(s.gaussian_at_sample);
-		}
-	}
 	samples_.clear();
 }
 
@@ -28,30 +26,43 @@ void gaussianinzer::calculate_gaussian()
 	}
 }
 
-void gaussianinzer::get_sample_positions_sparse()
+void gaussianinzer::draw_object_specific_ui()
 {
-	clear_samples();
-	glm::vec3 lower_left = transform_vertex_to_world_space({-1,-1,-1});
-	glm::vec3 upper_right = transform_vertex_to_world_space({1,1,1});
-	
-	unsigned int samples_in_x = static_cast<unsigned int>(upper_right.x - lower_left.x) * samples_per_meter;
-	unsigned int samples_in_y = static_cast<unsigned int>(upper_right.y - lower_left.y) * samples_per_meter;
-	unsigned int samples_in_z = static_cast<unsigned int>(upper_right.z - lower_left.z) * samples_per_meter;
-
-	for (unsigned int x = 0; x < samples_in_x; x++)
+	ImGui::Checkbox("Draw debug tools", &draw_debug_tools_);
+	if (draw_debug_tools_)
 	{
-		for (unsigned int y = 0; y < samples_in_y; y++)
+		for (auto sample : samples_)
 		{
-			for (unsigned int z = 0; z < samples_in_z; z++)
-			{
-				auto a = glm::vec3(x,y,z);
-				auto b = glm::vec3(samples_in_x,samples_in_y,samples_in_z);
-				auto p = transform_vertex_to_world_space(glm::vec3(-1,-1,-1) + a/b * 2.0f);
-				scene_->get_debug_tools()->draw_debug_point(p);
-				samples_.push_back({p});
-			}
+			scene_->get_debug_tools()->draw_debug_point(sample.mean);
 		}
 	}
 
+	ImGui::DragInt("samples per object",&amount_);
+	if (ImGui::Button("Recalculate"))
+	{
+		snap_samples_to_closest_surface();
+	}
+}
+
+void gaussianinzer::snap_samples_to_closest_surface()
+{
+	clear_samples();
+
+	glm::vec3 lower_left = transform_vertex_to_world_space({-1,-1,-1});
+	glm::vec3 upper_right = transform_vertex_to_world_space({1,1,1});
+	StructBoundingBox boundingbox = {lower_left, upper_right};
+	auto colliders_in_bb = std::vector<collider_modifier*>();
+	scene_->get_colliders_in_bounding_box(&boundingbox, VISIBILITY, &colliders_in_bb);
+
+	std::vector<vertex> points = std::vector<vertex>();
+	for (collider_modifier* collider : colliders_in_bb)
+	{
+		collider->scatter_points_on_surface(&points, amount_);
+	}
+
+	for (auto point: points)
+	{
+		samples_.push_back({point.position, point.normal});
+	}
 	
 }

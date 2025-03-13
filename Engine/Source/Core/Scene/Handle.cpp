@@ -24,10 +24,7 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
 	auto* handler_blue = new ShaderProgram();
 	handler_blue->loadFromFile("EngineContent/Shader/HandlerBlue.glsl");
 	handler_blue->compileShader();
-
-	std::string engine_collider_tag = "ENGINE_COLLIDER";
-	std::string engine_handle_collider_tag = "ENGINE_HANDLE_COLLIDER";
-
+	
 	arrow_x = new Mesh3D(this, engine_handler_arrow_model);
 	arrow_x->add_material(handler_red);
 	arrow_x->setRotationLocalDegrees(0, 90, 0);
@@ -42,6 +39,10 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
 	arrow_x_collider_ = dynamic_cast<collider_modifier*>(arrow_x->get_modifiers_by_id(100)[0]);
 	arrow_y_collider_ = dynamic_cast<collider_modifier*>(arrow_y->get_modifiers_by_id(100)[0]);
 	arrow_z_collider_ = dynamic_cast<collider_modifier*>(arrow_z->get_modifiers_by_id(100)[0]);
+
+	arrow_x_collider_->remove_collision_channel(VISIBILITY);
+	arrow_y_collider_->remove_collision_channel(VISIBILITY);
+	arrow_z_collider_->remove_collision_channel(VISIBILITY);
 	
 	detach();
 
@@ -110,31 +111,31 @@ void Handle::editor_release_handle()
 
 void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 {
-	auto intersection = new struct_intersection;
+	auto intersection = struct_intersection();
 
 	switch (handler_status)
 	{
 	case not_transforming:
 		return;
 	case move_global_x:
-		RayIntersectionHelper::ray_plane_intersection(intersection, camera_pos, ray_direction,
+		RayIntersectionHelper::ray_plane_intersection(&intersection, camera_pos, ray_direction,
 		                                            attached_object_3d_->getWorldPosition(), vec_z);
-		if (intersection->intersected)
+		if (intersection.intersected)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
-			current_object_pos.x = intersection->collision_point.x;
+			current_object_pos.x = intersection.collision_point.x;
 			auto pos = current_object_pos - offset_;
 			attached_object_3d_->set_position_global(pos);
 			this->set_position_global(pos);
 		}
 		return;
 	case move_global_y:
-		RayIntersectionHelper::ray_plane_intersection(intersection, camera_pos, ray_direction,
+		RayIntersectionHelper::ray_plane_intersection(&intersection, camera_pos, ray_direction,
 		                                            attached_object_3d_->getWorldPosition(), vec_z);
-		if (intersection->intersected)
+		if (intersection.intersected)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
-			current_object_pos.y = intersection->collision_point.y;
+			current_object_pos.y = intersection.collision_point.y;
 			auto pos = current_object_pos - offset_;
 
 			attached_object_3d_->set_position_global(pos);
@@ -142,12 +143,12 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		}
 		return;
 	case move_global_z:
-		RayIntersectionHelper::ray_plane_intersection(intersection, camera_pos, ray_direction,
+		RayIntersectionHelper::ray_plane_intersection(&intersection, camera_pos, ray_direction,
 		                                            attached_object_3d_->getWorldPosition(), vec_x);
-		if (intersection->intersected)
+		if (intersection.intersected)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
-			current_object_pos.z = intersection->collision_point.z;
+			current_object_pos.z = intersection.collision_point.z;
 			auto pos = current_object_pos - offset_;
 
 			attached_object_3d_->set_position_global(pos);
@@ -156,5 +157,4 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		return;
 	}
 
-	free(intersection);
 }

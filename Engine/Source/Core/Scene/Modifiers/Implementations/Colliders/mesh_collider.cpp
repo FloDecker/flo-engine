@@ -1,4 +1,8 @@
 ﻿#include "mesh_collider.h"
+
+#include <random>
+
+#include "../../../../../Util/math_util.h"
 #include "../../Content/Mesh.h"
 #include "../../Util/BoundingBoxHelper.h"
 
@@ -115,8 +119,51 @@ struct_intersection mesh_collider::check_intersection_with(box_collider* box)
 
 void mesh_collider::is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_result* result)
 {
-	std::cerr << "function not implemented mesh_collider::is_in_proximity\n";
+	ray_cast_result temp_ray_cast_result;
+	
+	const std::vector<struct_vertex_array*>* vertex_arrays_of_geometry = &vertex_arrays_;
+	for (unsigned int a = 0; a < vertex_arrays_of_geometry->size(); a++)
+	{
+		is_in_proximity_vertex_array(center_ws, radius, a, &temp_ray_cast_result);
+		if (temp_ray_cast_result.hit && temp_ray_cast_result.distance_from_origin < result->distance_from_origin)
+		{
+			std::memcpy(result, &temp_ray_cast_result, sizeof(ray_cast_result));
+		}
+	}
 
+}
+
+void mesh_collider::is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id, ray_cast_result* result) const
+{
+	result->hit = false;
+	result->distance_from_origin = std::numeric_limits<float>::max();
+
+	ray_cast_result temp_result;
+	glm::vec3 proximity_center_local = get_parent()->transform_position_to_local_space(center_ws);
+	std::vector<struct_vertex_array*> vertex_arrays_of_geometry = this->vertex_arrays_;
+	struct_vertex_array* vertex_array = vertex_arrays_of_geometry.at(vertex_array_id);
+	for (unsigned int i = 0; i < vertex_array->indices->size(); i += 3)
+	{
+		vertex v0 = vertex_array->vertices->at(vertex_array->indices->at(i));
+		vertex v1 = vertex_array->vertices->at(vertex_array->indices->at(i + 1));
+		vertex v2 = vertex_array->vertices->at(vertex_array->indices->at(i + 2));
+		glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
+
+		RayIntersectionHelper::get_closest_point_on_triangle(v0.position,v1.position,v2.position,proximity_center_local, &temp_result);
+
+		temp_result.hit_world_space = get_parent()->transform_vertex_to_world_space(temp_result.hit_local);
+		temp_result.distance_from_origin = glm::distance(temp_result.hit_world_space, center_ws);
+		
+		if (temp_result.distance_from_origin < radius && temp_result.distance_from_origin < result->distance_from_origin)
+		{
+			result->hit = true;
+			result->distance_from_origin = temp_result.distance_from_origin;
+			result->hit_local = temp_result.hit_local;
+			result->hit_world_space = temp_result.hit_world_space;
+			result->hit_normal_local = temp_result.hit_normal_local;
+			result->hit_normal_world_space = get_parent()->transform_vector_to_world_space(temp_result.hit_normal_local);
+		}
+	}
 }
 
 struct_intersection mesh_collider::check_intersection_with(mesh_collider* mesh)
@@ -140,4 +187,32 @@ glm::vec3 mesh_collider::get_center_of_mass_local()
 		}
 	}
 	return center_of_mass / static_cast<float>(vertices);
+}
+
+void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, unsigned amount)
+{
+	std::cout<<"scatter_points_on_surface\n";
+	std::random_device rd;  // Seed the random number generator
+	std::mt19937 gen(rd()); // Mersenne Twister PRNG
+	std::uniform_int_distribution<int> dist_vertex_arrays(0, vertex_arrays_.size() - 1); // Range [1, 100]
+
+	int randomNumber = dist_vertex_arrays(gen);
+	std::cout<<"scatter_points_on_surface 2\n"; 
+
+	for (int i = 0; i < amount; i++)
+	{
+		auto v = vertex_arrays_.at(dist_vertex_arrays(gen));
+		std::uniform_int_distribution<int> dist_vertices(0, v->indices->size() - 1); // Range [1, 100]
+		auto random_index = dist_vertices(gen);
+		random_index-= random_index%3;
+		random_index = std::max(0,random_index);
+		auto v_1 = v->vertices->at(v->indices->at(random_index));
+		auto v_2 = v->vertices->at(v->indices->at(random_index + 1));
+		auto v_3 = v->vertices->at(v->indices->at(random_index + 2));
+
+		auto p = math_util::get_random_point_in_triangle(v_1.position,v_2.position,v_3.position);
+		
+		points->push_back({parent->transform_vertex_to_world_space(p)});
+	}
+	
 }

@@ -58,8 +58,8 @@ public:
 	void select_object(Object3D* object);
 	void deselect();
 
-	std::vector<collider_modifier*>* get_colliders_in_bounding_box(StructBoundingBox* bounding_box,
-	                                                               collision_channel channel);
+	void get_colliders_in_bounding_box(StructBoundingBox* bounding_box,
+	collision_channel channel, std::vector<collider_modifier*>* result);
 
 	//NOT IMPLEMENTED
 	std::vector<glm::vec3>* get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const;

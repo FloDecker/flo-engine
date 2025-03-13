@@ -15,7 +15,7 @@ class collider_modifier : public modifier
 {
 public:
 	void draw_gui() override;
-	explicit collider_modifier(Object3D* parent_game_object_3d);
+	explicit collider_modifier(Object3D* parent_game_object_3d, collision_channel default_channel = VISIBILITY);
 	rigid_body* associated_rigid_body;
 	int get_id() override;
 	static int MODIFIER_ID;
@@ -27,7 +27,8 @@ public:
 	virtual struct_intersection check_intersection(collider_modifier* other) = 0;
 	virtual struct_intersection check_intersection_with(box_collider* box) = 0;
 	virtual struct_intersection check_intersection_with(mesh_collider* mesh) = 0;
-	
+	virtual void scatter_points_on_surface(std::vector<vertex>* points, unsigned int amount) = 0;
+
 	virtual void is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_result* result) = 0;
 	ray_cast_result *is_in_proximity(glm::vec3 center_ws, float radius);
 	
@@ -48,14 +49,17 @@ public:
 
 	rigid_body* get_associated_rigid_body() const;
 
-	//collision channels
-	std::set<collision_channel> collision_channels;
 
+	//collision channels
+	[[nodiscard]] std::set<collision_channel> &collision_channels();
+	bool remove_collision_channel(collision_channel channel);
+	void add_collision_channel(collision_channel channel);
 
 	StructBoundingBox* get_world_space_bounding_box();
 	
 protected:
 	virtual StructBoundingBox calculate_world_space_bounding_box_internal_() = 0;
 	StructBoundingBox current_world_space_bounding_box_;
+	std::set<collision_channel> collision_channels_;
 
 };

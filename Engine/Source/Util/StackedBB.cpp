@@ -235,27 +235,29 @@ bool StackedBB::is_bb_element_leaf_node(const kdTreeElement* leaf_node)
 	return leaf_node->child_0 == -1;
 }
 
-ray_cast_result* StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center,
-                                                             float radius)
+void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center,
+                                                             float radius, ray_cast_result *result)
 {
-
+	result->hit = false;
+	result->distance_from_origin = std::numeric_limits<float>::max();
 	//if scene provides bb tree search it
 	if (get_scene_bb_entry_element() != nullptr)
 	{
 		auto bb_root_node = get_scene_bb_entry_element();
-		return recurse_proximity_check_bb_tree(bb_root_node, proximity_center, radius);
+		recurse_proximity_check_bb_tree(bb_root_node, proximity_center, radius, result);
+		return;
 	}
 	std::cerr << "no entry object in stacked BB\n";
-	return {};
 }
 
-ray_cast_result *StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
+void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
                                                             const glm::vec3& proximity_center,
-                                                            float radius)
+                                                            float radius, ray_cast_result *result)
 {
 	if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, proximity_center, radius))
 	{
-		return {};
+		result->hit = false;
+		return;
 	}
 
 	//is leaf node
@@ -263,39 +265,29 @@ ray_cast_result *StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement*
 	{
 		auto coll = get_scene_bb_element_leaf(bb_to_check);
 
-		const auto ret = coll->is_in_proximity(proximity_center, radius);
-		if (ret->hit)
-		{
-			return ret;
-		}
-		
-		return {};
+		coll->is_in_proximity(proximity_center, radius, result);
+		return;
 	}
 
-	//not a leaf node -> continue in closest child
+	//not a leaf node -> continue in the closest child
 	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
 	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
 	if (glm::distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb), proximity_center) <
 		glm::distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb), proximity_center))
 	{
 		//child 1 closer
-		auto a = recurse_proximity_check_bb_tree(child_0, proximity_center, radius);
-		if (a->hit) return  a;
+		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
+		if (result->hit) return;
 		
-		auto b = recurse_proximity_check_bb_tree(child_1, proximity_center, radius);
-		if (b->hit) return  b;
-
-		return {};
-		
+		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
+		if (result->hit) return;
 	}
 	else
 	{
-		auto a = recurse_proximity_check_bb_tree(child_1, proximity_center, radius);
-		if (a->hit) return  a;
+		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
+		if (result->hit) return;
 		
-		auto b = recurse_proximity_check_bb_tree(child_0, proximity_center, radius);
-		if (b->hit) return  b;
-
-		return {};
+		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
+		if (result->hit) return;
 	}
 }

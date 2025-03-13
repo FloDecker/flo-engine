@@ -9,15 +9,6 @@ struct gaussian
 };
 
 
-
-struct sample
-{
-	glm::vec3 sample_pos;
-	bool has_gaussian = false;
-	gaussian *gaussian_at_sample = nullptr;
-};
-
-
 class gaussianinzer : public Object3D
 {
 public:
@@ -26,15 +17,19 @@ public:
 	{
 	}
 
-	unsigned int samples_per_meter = 2;
-	void get_sample_positions_sparse();
+	void draw_object_specific_ui() override;
 
+	unsigned int samples_per_meter = 2;
+	float surface_attachment_radius = 1.0f;
+	void snap_samples_to_closest_surface();
 protected:
 	void on_transform_changed() override;
 
 private:
-	std::vector<sample> samples_;
+	std::vector<gaussian> samples_;
 	void clear_samples();
 	void calculate_gaussian();
+	bool draw_debug_tools_;
+	int amount_ = 100;
 
 };

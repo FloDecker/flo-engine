@@ -15,9 +15,9 @@ void collider_modifier::draw_gui()
 	}
 }
 
-collider_modifier::collider_modifier(Object3D* parent_game_object_3d): modifier(parent_game_object_3d)
+collider_modifier::collider_modifier(Object3D* parent_game_object_3d, collision_channel default_channel): modifier(parent_game_object_3d)
 {
-	collision_channels.insert(VISIBILITY);
+	add_collision_channel(default_channel);
 	parent_game_object_3d->get_scene()->register_collider(this);
 	//search if the parent objects has rigid body modifier
 	
@@ -91,6 +91,32 @@ rigid_body* collider_modifier::get_associated_rigid_body() const
 	}
 	return associated_rigid_body;
 }
+
+
+std::set<collision_channel> &collider_modifier::collision_channels()
+{
+	return collision_channels_;
+}
+
+bool collider_modifier::remove_collision_channel(collision_channel channel)
+{
+	if (collision_channels_.contains(channel))
+	{
+		collision_channels_.erase(channel);
+		return true;
+	}
+	return false;
+}
+
+void collider_modifier::add_collision_channel(collision_channel channel)
+{
+	if (!collision_channels_.contains(channel))
+	{
+		collision_channels_.insert(channel);
+	}
+
+}
+
 
 StructBoundingBox* collider_modifier::get_world_space_bounding_box()
 {

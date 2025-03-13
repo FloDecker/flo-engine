@@ -53,7 +53,7 @@ direct_light *Scene::get_scene_direct_light() const
 void Scene::register_collider(collider_modifier* collider)
 {
 	colliders_.push_back(collider);
-	for (auto channel: collider->collision_channels)
+	for (auto channel: collider->collision_channels())
 	{
 		scene_bb[channel]->insert_leaf_node(collider);
 	}
@@ -69,7 +69,7 @@ std::vector<collider_modifier*> Scene::get_colliders(collision_channel collision
 	std::vector<collider_modifier*> result;
 	for (auto& collider : colliders_)
 	{
-		if (collider->collision_channels.contains(collision_channel))
+		if (collider->collision_channels().contains(collision_channel))
 		{
 			result.push_back(collider);
 		}
@@ -266,18 +266,15 @@ void Scene::light_pass(camera* current_camera) const
 	}
 }
 
-std::vector<collider_modifier*>* Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box,
-                                                                      collision_channel channel)
+void Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box, collision_channel channel, std::vector<collider_modifier*>* result)
 {
-	auto out = new std::vector<collider_modifier*>;
 	for (auto element : get_colliders(channel))
 	{
 		if (BoundingBoxHelper::are_overlapping(element->get_world_space_bounding_box(), bounding_box))
 		{
-			out->push_back(element);
+			result->push_back(element);
 		}
 	}
-	return out;
 }
 
 

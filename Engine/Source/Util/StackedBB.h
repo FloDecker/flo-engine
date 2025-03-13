@@ -36,9 +36,9 @@ public:
 
 	//traversal functions
 
-	ray_cast_result* scene_geometry_proximity_check(
+	void scene_geometry_proximity_check(
 		const glm::vec3& proximity_center,
-		float radius
+		float radius , ray_cast_result *result
 	);
 
 
@@ -49,9 +49,9 @@ private:
 
 	Scene *scene_;
 	
-	ray_cast_result *recurse_proximity_check_bb_tree(
+	void recurse_proximity_check_bb_tree(
 		const kdTreeElement* bb_to_check,const glm::vec3& proximity_center,
-		float radius
+		float radius, ray_cast_result *result
 	);
 
 	

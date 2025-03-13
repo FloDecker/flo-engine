@@ -430,8 +430,9 @@ void Voxelizer::calculate_area_filled_recursive(Scene* scene_context, glm::vec3 
 
 		//float radius = glm::length(glm::vec3(step_size)) * 0.5f;
 		float radius = glm::length(glm::vec3(step_size)) * distance_x * 0.5;
-
-		if (scene_->get_bb(VISIBILITY)->scene_geometry_proximity_check(center, radius)->hit)
+		ray_cast_result result;
+		scene_->get_bb(VISIBILITY)->scene_geometry_proximity_check(center, radius, &result);
+		if (result.hit)
 		{
 			//raycast hit and smallest step size reached
 			if (distance_x == 1 && distance_y == 1 && distance_z == 1)

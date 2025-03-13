@@ -51,6 +51,10 @@ glm::vec3 box_collider::get_center_of_mass_local()
 	return BoundingBoxHelper::get_center_of_bb(&bounding_box);
 }
 
+void box_collider::scatter_points_on_surface(std::vector<vertex>* points, unsigned amount)
+{
+}
+
 
 void box_collider::is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_result* result)
 {
