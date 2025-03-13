@@ -37,12 +37,8 @@ void Line3D::set_positions(glm::vec3 pos_0, glm::vec3 pos_1)
 	float distance = glm::distance(pos_0, pos_1);
 	this->setScale(distance, distance, distance);
 	this->set_position_global(pos_0);
-	auto direction_normalized = normalize(pos_1 - pos_0);
-
-	// it just works, if i ever switch to quaternions (which i should) this is going to change 
-	glm::vec2 projection_x_z = normalize(glm::vec2(direction_normalized.x, direction_normalized.z));
-	float rot_around_y = (projection_x_z.x > 0 ? 1.0 : -1.0) * acos(projection_x_z.y);
-	float rot_around_x = (direction_normalized.y < 0 ? 1.0 : -1.0) * acos(
-		length(glm::vec2(direction_normalized.x, direction_normalized.z)));
-	setRotationLocal(rot_around_x, rot_around_y, 0);
+	auto direction_normalized = normalize(pos_0 - pos_1);
+	
+	setRotationLocal(glm::quatLookAt(direction_normalized,vec_y));
+	
 }

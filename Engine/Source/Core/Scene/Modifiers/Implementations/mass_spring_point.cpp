@@ -3,10 +3,10 @@
 
 #include "imgui.h"
 
-mass_spring_point::mass_spring_point(Object3D* parent_game_object_3d, PhysicsEngine* physics_engine):
-	physics_object_modifier(parent_game_object_3d, physics_engine)
+mass_spring_point::mass_spring_point(Object3D* parent_game_object_3d):
+	physics_object_modifier(parent_game_object_3d)
 {
-	physics_engine->register_mass_spring_object(this);
+	physics_engine_->register_mass_spring_object(this);
 
 }
 

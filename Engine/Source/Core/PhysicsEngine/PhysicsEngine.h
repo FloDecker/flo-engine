@@ -4,6 +4,7 @@
 #include "../Scene/Modifiers/Implementations/mass_spring_point.h"
 #include "../Scene/Modifiers/Implementations/physics_object_modifier.h"
 #include "../Scene/Modifiers/Implementations/rigid_body.h"
+#include "../Scene/Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "IntegrationMethods/euler_integrator.h"
 
 
@@ -32,8 +33,7 @@ public:
 
 	//rigid body
 	void register_rigid_body(rigid_body* rigid_body);
-
-
+	
 	//integration methods
 	euler_integrator* integrator_euler = new euler_integrator();
 

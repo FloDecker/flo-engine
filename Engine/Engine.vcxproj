@@ -154,6 +154,7 @@
         <ClCompile Include="Source\Content\Mesh.cpp"/>
         <ClCompile Include="Source\Core\Editor\GlobalContext.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIBase.cpp"/>
+        <ClCompile Include="Source\Core\GUI\gui_scene_tools.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIManager.cpp"/>
         <ClCompile Include="Source\Core\GUI\LogGUI.cpp"/>
         <ClCompile Include="Source\Core\GUI\ObjectInfo.cpp"/>
@@ -243,79 +244,79 @@
             <LinkCompiled>true</LinkCompiled>
         </ClCompile>
         <ClCompile Include="Source\Core\Renderer\primitive_instance.cpp">
-          <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
-          <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-          <Optimization>Disabled</Optimization>
-          <SupportJustMyCode>true</SupportJustMyCode>
-          <AssemblerOutput>NoListing</AssemblerOutput>
-          <AssemblerListingLocation>x64\Debug\Engine\</AssemblerListingLocation>
-          <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-          <BrowseInformation>false</BrowseInformation>
-          <BrowseInformationFile>x64\Debug\Engine\</BrowseInformationFile>
-          <CompileAs>Default</CompileAs>
-          <ConformanceMode>true</ConformanceMode>
-          <DiagnosticsFormat>Column</DiagnosticsFormat>
-          <DisableLanguageExtensions>false</DisableLanguageExtensions>
-          <ErrorReporting>Prompt</ErrorReporting>
-          <ExpandAttributedSource>false</ExpandAttributedSource>
-          <ExceptionHandling>Sync</ExceptionHandling>
-          <EnableASAN>false</EnableASAN>
-          <EnableFuzzer>false</EnableFuzzer>
-          <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-          <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-          <FloatingPointModel>Precise</FloatingPointModel>
-          <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-          <GenerateModuleDependencies>false</GenerateModuleDependencies>
-          <GenerateSourceDependencies>false</GenerateSourceDependencies>
-          <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-          <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-          <IntrinsicFunctions>false</IntrinsicFunctions>
-          <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-          <LanguageStandard>stdcpp20</LanguageStandard>
-          <LanguageStandard_C>Default</LanguageStandard_C>
-          <MinimalRebuild>false</MinimalRebuild>
-          <ModuleDependenciesFile>x64\Debug\Engine\</ModuleDependenciesFile>
-          <ModuleOutputFile>x64\Debug\Engine\</ModuleOutputFile>
-          <OmitDefaultLibName>false</OmitDefaultLibName>
-          <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-          <WholeProgramOptimization>false</WholeProgramOptimization>
-          <ObjectFileName>x64\Debug\Engine\</ObjectFileName>
-          <CallingConvention>Cdecl</CallingConvention>
-          <ProgramDataBaseFileName>x64\Debug\Engine\vc143.pdb</ProgramDataBaseFileName>
-          <PrecompiledHeader>NotUsing</PrecompiledHeader>
-          <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-          <PrecompiledHeaderOutputFile>x64\Debug\Engine\Engine.pch</PrecompiledHeaderOutputFile>
-          <PreprocessToFile>false</PreprocessToFile>
-          <PreprocessKeepComments>false</PreprocessKeepComments>
-          <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-          <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-          <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
-          <ShowIncludes>false</ShowIncludes>
-          <SourceDependenciesFile>x64\Debug\Engine\</SourceDependenciesFile>
-          <SuppressStartupBanner>true</SuppressStartupBanner>
-          <BufferSecurityCheck>true</BufferSecurityCheck>
-          <SmallerTypeCheck>false</SmallerTypeCheck>
-          <SpectreMitigation>false</SpectreMitigation>
-          <StructMemberAlignment>Default</StructMemberAlignment>
-          <TrackerLogDirectory>x64\Debug\Engine\Engine.tlog\</TrackerLogDirectory>
-          <TranslateIncludes>false</TranslateIncludes>
-          <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
-          <TreatWarningAsError>false</TreatWarningAsError>
-          <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-          <UseFullPaths>true</UseFullPaths>
-          <WarningLevel>Level3</WarningLevel>
-          <XMLDocumentationFileName>x64\Debug\Engine\</XMLDocumentationFileName>
-          <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-          <IntelJCCErratum>false</IntelJCCErratum>
-          <BuildStlModules>false</BuildStlModules>
-          <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
-          <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
-          <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
-          <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
-          <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
-          <SDLCheck>true</SDLCheck>
-          <AdditionalIncludeDirectories>D:\Code\Engine\Dependencies\GLFW64\include;D:\Code\Engine\Dependencies\GLEW64\include;D:\Code\Engine\Dependencies\glm\glm;D:\Code\Engine\Dependencies\assimp64\include;D:\Code\Engine\\Dependencies\stb_image;D:\Code\Engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
-          <LinkCompiled>true</LinkCompiled>
+            <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
+            <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+            <Optimization>Disabled</Optimization>
+            <SupportJustMyCode>true</SupportJustMyCode>
+            <AssemblerOutput>NoListing</AssemblerOutput>
+            <AssemblerListingLocation>x64\Debug\Engine\</AssemblerListingLocation>
+            <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+            <BrowseInformation>false</BrowseInformation>
+            <BrowseInformationFile>x64\Debug\Engine\</BrowseInformationFile>
+            <CompileAs>Default</CompileAs>
+            <ConformanceMode>true</ConformanceMode>
+            <DiagnosticsFormat>Column</DiagnosticsFormat>
+            <DisableLanguageExtensions>false</DisableLanguageExtensions>
+            <ErrorReporting>Prompt</ErrorReporting>
+            <ExpandAttributedSource>false</ExpandAttributedSource>
+            <ExceptionHandling>Sync</ExceptionHandling>
+            <EnableASAN>false</EnableASAN>
+            <EnableFuzzer>false</EnableFuzzer>
+            <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+            <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+            <FloatingPointModel>Precise</FloatingPointModel>
+            <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+            <GenerateModuleDependencies>false</GenerateModuleDependencies>
+            <GenerateSourceDependencies>false</GenerateSourceDependencies>
+            <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+            <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+            <IntrinsicFunctions>false</IntrinsicFunctions>
+            <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+            <LanguageStandard>stdcpp20</LanguageStandard>
+            <LanguageStandard_C>Default</LanguageStandard_C>
+            <MinimalRebuild>false</MinimalRebuild>
+            <ModuleDependenciesFile>x64\Debug\Engine\</ModuleDependenciesFile>
+            <ModuleOutputFile>x64\Debug\Engine\</ModuleOutputFile>
+            <OmitDefaultLibName>false</OmitDefaultLibName>
+            <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+            <WholeProgramOptimization>false</WholeProgramOptimization>
+            <ObjectFileName>x64\Debug\Engine\</ObjectFileName>
+            <CallingConvention>Cdecl</CallingConvention>
+            <ProgramDataBaseFileName>x64\Debug\Engine\vc143.pdb</ProgramDataBaseFileName>
+            <PrecompiledHeader>NotUsing</PrecompiledHeader>
+            <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+            <PrecompiledHeaderOutputFile>x64\Debug\Engine\Engine.pch</PrecompiledHeaderOutputFile>
+            <PreprocessToFile>false</PreprocessToFile>
+            <PreprocessKeepComments>false</PreprocessKeepComments>
+            <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+            <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+            <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+            <ShowIncludes>false</ShowIncludes>
+            <SourceDependenciesFile>x64\Debug\Engine\</SourceDependenciesFile>
+            <SuppressStartupBanner>true</SuppressStartupBanner>
+            <BufferSecurityCheck>true</BufferSecurityCheck>
+            <SmallerTypeCheck>false</SmallerTypeCheck>
+            <SpectreMitigation>false</SpectreMitigation>
+            <StructMemberAlignment>Default</StructMemberAlignment>
+            <TrackerLogDirectory>x64\Debug\Engine\Engine.tlog\</TrackerLogDirectory>
+            <TranslateIncludes>false</TranslateIncludes>
+            <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+            <TreatWarningAsError>false</TreatWarningAsError>
+            <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+            <UseFullPaths>true</UseFullPaths>
+            <WarningLevel>Level3</WarningLevel>
+            <XMLDocumentationFileName>x64\Debug\Engine\</XMLDocumentationFileName>
+            <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+            <IntelJCCErratum>false</IntelJCCErratum>
+            <BuildStlModules>false</BuildStlModules>
+            <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+            <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+            <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+            <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+            <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
+            <SDLCheck>true</SDLCheck>
+            <AdditionalIncludeDirectories>D:\Code\Engine\Dependencies\GLFW64\include;D:\Code\Engine\Dependencies\GLEW64\include;D:\Code\Engine\Dependencies\glm\glm;D:\Code\Engine\Dependencies\assimp64\include;D:\Code\Engine\\Dependencies\stb_image;D:\Code\Engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
+            <LinkCompiled>true</LinkCompiled>
         </ClCompile>
         <ClCompile Include="Source\Core\Renderer\RenderContext.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp"/>
@@ -335,9 +336,13 @@
         <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.cpp"/>
         <ClCompile Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.cpp"/>
         <ClCompile Include="Source\Core\Scene\Mesh3D.cpp"/>
+        <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\Colliders\box_collider.cpp"/>
+        <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\Colliders\collider_modifier.cpp"/>
+        <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\Colliders\mesh_collider.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.cpp"/>
+        <ClCompile Include="Source\Core\Scene\SceneTools\gaussianinzer.cpp"/>
         <ClCompile Include="Source\Core\Scene\Modifiers\modifier.cpp"/>
         <ClCompile Include="Source\Core\Scene\Object3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\RayCast.cpp"/>
@@ -360,16 +365,19 @@
         <ClCompile Include="Source\Util\RayIntersectionHelper.cpp"/>
         <ClCompile Include="Source\Util\Remesh.cpp"/>
         <ClCompile Include="Source\Util\StackedBB.cpp"/>
-    </ItemGroup>
-    <ItemGroup>
         <ClInclude Include="Source\Content\Material.h"/>
         <ClInclude Include="Source\Content\Mesh.h"/>
+        <ClInclude Include="Source\Core\CommonDataStructures\collider_intersection.h"/>
+        <ClInclude Include="Source\Core\CommonDataStructures\collision_channel.h"/>
+        <ClInclude Include="Source\Core\CommonDataStructures\ray_cast_result.h"/>
+        <ClInclude Include="Source\Core\CommonDataStructures\struct_intersection.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructColorRange.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructMeshTriangleFilter.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h"/>
         <ClInclude Include="Source\Core\Editor\GlobalContext.h"/>
         <ClInclude Include="Source\Core\GUI\GUIBase.h"/>
+        <ClInclude Include="Source\Core\GUI\gui_scene_tools.h"/>
         <ClInclude Include="Source\Core\GUI\GUIManager.h"/>
         <ClInclude Include="Source\Core\GUI\LogGUI.h"/>
         <ClInclude Include="Source\Core\GUI\ObjectInfo.h"/>
@@ -386,27 +394,19 @@
         <ClInclude Include="Source\Core\Renderer\Primitives\quad_fill_screen.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\uv_sphere.h"/>
         <ClInclude Include="Source\Core\Renderer\Primitives\vertex_array.h"/>
-        <ClInclude Include="Source\Core\Renderer\primitive_instance.h" />
+        <ClInclude Include="Source\Core\Renderer\primitive_instance.h"/>
         <ClInclude Include="Source\Core\Renderer\RenderContext.h"/>
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h"/>
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture2D.h"/>
         <ClInclude Include="Source\Core\Renderer\Texture\Texture3D.h"/>
-        <ClInclude Include="Source\Core\Renderer\uniform_buffer_object.h"/>
-        <ClInclude Include="Source\Core\Scene\Camera3D.h"/>
-        <ClInclude Include="Source\Core\Scene\Collider.h"/>
-        <ClInclude Include="Source\Core\Scene\DebugPrimitives\Cube3D.h"/>
-        <ClInclude Include="Source\Core\Scene\DebugPrimitives\Line3D.h"/>
-        <ClInclude Include="Source\Core\Scene\DebugPrimitives\visual_debug_tools.h"/>
-        <ClInclude Include="Source\Core\Scene\Handle.h"/>
-        <ClInclude Include="Source\Core\Scene\Lighting\direct_light.h"/>
-        <ClInclude Include="Source\Core\Scene\Lighting\light.h"/>
-        <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.h"/>
-        <ClInclude Include="Source\Core\Scene\Mesh3D.h"/>
+        <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\Colliders\box_collider.h"/>
+        <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\Colliders\collider_modifier.h"/>
+        <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\Colliders\mesh_collider.h"/>
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\mass_spring_point.h"/>
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\physics_object_modifier.h"/>
         <ClInclude Include="Source\Core\Scene\Modifiers\Implementations\rigid_body.h"/>
@@ -414,6 +414,7 @@
         <ClInclude Include="Source\Core\Scene\Object3D.h"/>
         <ClInclude Include="Source\Core\Scene\RayCast.h"/>
         <ClInclude Include="Source\Core\Scene\Scene.h"/>
+        <ClInclude Include="Source\Core\Scene\SceneTools\gaussianinzer.h"/>
         <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.h"/>
         <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.h"/>
         <ClInclude Include="Source\External\eventpp\include\eventpp\callbacklist.h"/>
@@ -449,6 +450,7 @@
         <ClInclude Include="Source\External\imgui\imstb_rectpack.h"/>
         <ClInclude Include="Source\External\imgui\imstb_textedit.h"/>
         <ClInclude Include="Source\External\imgui\imstb_truetype.h"/>
+        <ClInclude Include="Source\Core\Scene\Mesh3D.h"/>
         <ClInclude Include="Source\Util\angle_utils.h"/>
         <ClInclude Include="Source\Util\AssetLoader.h"/>
         <ClInclude Include="Source\Util\BoundingBoxHelper.h"/>
@@ -465,6 +467,7 @@
         <Content Include="EngineContent\Cube.fbx"/>
         <Content Include="EngineContent\Cube.obj"/>
         <Content Include="EngineContent\cubeArray.fbx"/>
+        <Content Include="EngineContent\Shader\GaussianGI.glsl"/>
         <Content Include="EngineContent\Shader\GBuffers.glsl"/>
         <Content Include="EngineContent\Shader\PostProcessing.glsl"/>
         <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl"/>

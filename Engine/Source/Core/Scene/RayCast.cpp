@@ -3,20 +3,20 @@
 #include <chrono>
 #include <gtx/string_cast.hpp>
 
-#include "Collider.h"
 #include "Mesh3D.h"
+#include "../Scene/Modifiers/Implementations/Colliders/collider_modifier.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 
-
-ray_cast_hit RayCast::ray_cast(Scene* scene_context, std::string* collision_tag, glm::vec3 ray_cast_origin,
-                               glm::vec3 ray_cast_direction,
-                               float length,
-                               bool ignore_back_face)
+ray_cast_result RayCast::ray_cast(Scene* scene_context,glm::vec3 ray_cast_origin,
+                                  glm::vec3 ray_cast_direction,
+                                  float length,
+                                  bool ignore_back_face)
 {
 	auto start = std::chrono::system_clock::now();
 	//TODO: this can and has to optimized a lot by stacking bounding boxes
 	//also do this with bounding box objects and not with regular geometry
-	auto cast_hit = ray_cast_hit();
-	recurse_scene_model_ray_cast(&cast_hit, collision_tag, scene_context->get_root(), ray_cast_origin,
+	auto cast_hit = ray_cast_result();
+	recurse_scene_model_ray_cast(&cast_hit, scene_context->get_root(), ray_cast_origin,
 	                             normalize(ray_cast_direction), length, ignore_back_face);
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
@@ -25,59 +25,61 @@ ray_cast_hit RayCast::ray_cast(Scene* scene_context, std::string* collision_tag,
 }
 
 
-void RayCast::recurse_scene_model_ray_cast(ray_cast_hit* ray_cast_hit, std::string* collision_tag, Object3D* object,
+void RayCast::recurse_scene_model_ray_cast(ray_cast_result* ray_cast_hit, Object3D* object,
                                            glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction_normalized,
                                            double length, bool ignore_back_face)
 {
-	if (object->has_tag(*collision_tag) && object->visible)
+	const auto colliders = object->get_modifiers_by_id(collider_modifier::MODIFIER_ID);
+
+	for (const auto obj : colliders)
 	{
-		auto mesh_collider = dynamic_cast<Collider*>(object);
-		mesh_collider->check_collision_ws(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
-		                                  ray_cast_hit);
+		auto collider = dynamic_cast<collider_modifier*>(obj);
+		collider->ray_intersection_world_space(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
+										  ray_cast_hit);
+		if (ray_cast_hit->hit)
+		{
+			return;
+		}
 	}
-	if (ray_cast_hit->hit)
-	{
-		return;
-	}
+
 	for (auto child : object->get_children())
 	{
-		recurse_scene_model_ray_cast(ray_cast_hit, collision_tag, child, ray_cast_origin, ray_cast_direction_normalized,
+		recurse_scene_model_ray_cast(ray_cast_hit, child, ray_cast_origin, ray_cast_direction_normalized,
 		                             length,
 		                             ignore_back_face);
 	}
 }
 
-bool RayCast::recurse_proximity_check(Object3D* object, std::string* collision_tag, glm::vec3 proximity_center,
+void RayCast::recurse_proximity_check(ray_cast_result* result, Object3D* object,
+                                      glm::vec3 proximity_center,
                                       float radius)
 {
-	if (object->has_tag(*collision_tag) && object->visible)
+	const auto colliders = object->get_modifiers_by_id(collider_modifier::MODIFIER_ID);
+	for (const auto obj : colliders)
 	{
-		auto mesh_collider = dynamic_cast<Collider*>(object);
-		if (mesh_collider->is_in_proximity(proximity_center, radius))
+		auto collider = dynamic_cast<collider_modifier*>(obj);
+		collider->is_in_proximity(proximity_center, radius, result);
+		if (result->hit)
 		{
-			return true;
+			return;
 		}
 	}
 	for (auto child : object->get_children())
 	{
-		if (recurse_proximity_check(child, collision_tag, proximity_center, radius))
-		{
-			return true;
-		}
+		recurse_proximity_check(result, child, proximity_center, radius);
 	}
-	return false;
+	return;
 }
 
 
 //EDITOR ONLY RAY CAST FOR OBJECT SELECTION 
 
-ray_cast_hit RayCast::ray_cast_editor(Scene* scene_context,
+ray_cast_result RayCast::ray_cast_editor(Scene* scene_context,
                                       glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction, bool ignore_back_face)
 {
-	auto cast_hit = ray_cast_hit();
+	auto cast_hit = ray_cast_result();
 
-	std::string tag = "ENGINE_COLLIDER";
-	recurse_scene_model_ray_cast(&cast_hit, &tag, scene_context->get_root(), ray_cast_origin,
+	recurse_scene_model_ray_cast(&cast_hit,scene_context->get_root(), ray_cast_origin,
 	                             normalize(ray_cast_direction), 100000.0, ignore_back_face);
 
 	return cast_hit;

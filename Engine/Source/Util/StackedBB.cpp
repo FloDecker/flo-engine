@@ -1,10 +1,41 @@
 ﻿#include "StackedBB.h"
-#include "../Core/Scene/Collider.h"
+#include "BoundingBoxHelper.h"
+#include "../../Core/Scene/Modifiers/Implementations/Colliders/mesh_collider.h"
+#include "../Core/Scene/Scene.h"
 
-StackedBB::StackedBB(std::vector<Collider*>* leafs)
+StackedBB::StackedBB(Scene *scene, std::vector<collider_modifier*> leafs)
 {
 	leaf_nodes = leafs;
+	scene_ = scene;
 	calculateSceneTree();
+}
+
+StackedBB::StackedBB(Scene *scene)
+
+{
+	scene_ = scene;
+	leaf_nodes = std::vector<collider_modifier*>();
+}
+
+void StackedBB::insert_leaf_node(collider_modifier* leaf)
+{
+	if (contains_leaf_node(leaf))
+	{
+		return;
+	}
+	leaf_nodes.push_back(leaf);
+}
+
+bool StackedBB::contains_leaf_node(const collider_modifier* leaf) const
+{
+	for (const auto l: leaf_nodes)
+	{
+		if (l == leaf)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void StackedBB::recalculate()
@@ -18,48 +49,48 @@ void StackedBB::recalculate()
 
 void StackedBB::calculateSceneTree()
 {
-	if (leaf_nodes->empty())return;
+	if (leaf_nodes.empty())return;
 
 	auto start = std::chrono::system_clock::now();
 
 	//allocate memory for kd tree
-	//leaf_nodes->size() for the leaf nodes and leaf_nodes->size()-1 for the 
-	axis_aligned_bb_tree_ = static_cast<kdTreeElement*>(calloc(leaf_nodes->size() * 2 - 1, sizeof(kdTreeElement)));
+	//leaf_nodes.size() for the leaf nodes and leaf_nodes.size()-1 for the 
+	axis_aligned_bb_tree_ = static_cast<kdTreeElement*>(calloc(leaf_nodes.size() * 2 - 1, sizeof(kdTreeElement)));
 
 	//vector that holds the positions in axis_aligned_bb_tree_ that the matrix represents e.g at matrix x,y = 4 represents
 	//the bounding box positioned at pos 8 in axis_aligned_bb_tree_ -> matrix_bb_tree_map[4] = 8
 	std::vector<int> matrix_bb_tree_map;
-	matrix_bb_tree_map.resize(leaf_nodes->size());
+	matrix_bb_tree_map.resize(leaf_nodes.size());
 
 	//insert the objects into the leaf nodes
-	for (unsigned int x = 0; x < leaf_nodes->size(); x++)
+	for (unsigned int x = 0; x < leaf_nodes.size(); x++)
 	{
 		auto temp = kdTreeElement{
 			-1,
 			static_cast<int>(x),
-			leaf_nodes->at(x)->bounding_box
+			*leaf_nodes.at(x)->get_world_space_bounding_box()
 		};
 		axis_aligned_bb_tree_[x] = temp;
 		matrix_bb_tree_map[x] = x;
 	}
 
 	StructBoundingBox temp_bb;
-	BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &leaf_nodes->at(0)->bounding_box,
-	                                             &leaf_nodes->at(1)->bounding_box);
+	BoundingBoxHelper::get_combined_bounding_box(&temp_bb, leaf_nodes.at(0)->get_world_space_bounding_box(),
+	                                             leaf_nodes.at(1)->get_world_space_bounding_box());
 	float smallest_box = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
 	glm::i32vec2 next_merge = {0, 1};
 
 	//calculate distance matrix
 	std::vector<std::vector<float>> distance_matrix;
-	distance_matrix.resize(leaf_nodes->size());
+	distance_matrix.resize(leaf_nodes.size());
 
-	for (unsigned int x = 0; x < leaf_nodes->size(); x++)
+	for (unsigned int x = 0; x < leaf_nodes.size(); x++)
 	{
-		distance_matrix[x].resize(leaf_nodes->size());
-		for (unsigned int y = x; y < leaf_nodes->size(); y++)
+		distance_matrix[x].resize(leaf_nodes.size());
+		for (unsigned int y = x; y < leaf_nodes.size(); y++)
 		{
-			BoundingBoxHelper::get_combined_bounding_box(&temp_bb, &leaf_nodes->at(x)->bounding_box,
-			                                             &leaf_nodes->at(y)->bounding_box);
+			BoundingBoxHelper::get_combined_bounding_box(&temp_bb, leaf_nodes.at(x)->get_world_space_bounding_box(),
+			                                             leaf_nodes.at(y)->get_world_space_bounding_box());
 			float d = BoundingBoxHelper::get_max_length_of_bb(&temp_bb);
 			distance_matrix[x][y] = d;
 			if (d < smallest_box && x != y)
@@ -72,7 +103,7 @@ void StackedBB::calculateSceneTree()
 
 	//calculate distance matrix
 	//combine the two closest and merge them
-	for (unsigned int i = 0; i < leaf_nodes->size() - 1; i++)
+	for (unsigned int i = 0; i < leaf_nodes.size() - 1; i++)
 	{
 		int array_pos_of_next_merge_obj_0 = matrix_bb_tree_map[next_merge.x];
 		int array_pos_of_next_merge_obj_1 = matrix_bb_tree_map[next_merge.y];
@@ -90,20 +121,24 @@ void StackedBB::calculateSceneTree()
 		};
 
 
+		
 		//TODO REMOVE THIS TEST
 		//auto c = new Cube3D(global_context_);
 		//scene_root_->addChild(c);
 		//c->setScale(BoundingBoxHelper::get_scale_of_bb(&temp_bb));
-		//c->color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes->size()), 1};
+		//c->
 		//c->set_position_global(BoundingBoxHelper::get_center_of_bb(&temp_bb));
 		////////////////////TEST END //////////////////////////
+		///
+		glm::vec3 color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes.size()), 1};
+		scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb),2,glm::quat(),BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
 
 		//add new bounding box containing both objects into the array
-		axis_aligned_bb_tree_[leaf_nodes->size() + i] = temp;
+		axis_aligned_bb_tree_[leaf_nodes.size() + i] = temp;
 
 		if (distance_matrix.size() <= 2)
 		{
-			scene_bb_entry_id_ = leaf_nodes->size() + i;
+			scene_bb_entry_id_ = leaf_nodes.size() + i;
 			break;
 		}
 
@@ -122,7 +157,7 @@ void StackedBB::calculateSceneTree()
 		matrix_bb_tree_map.erase(matrix_bb_tree_map.begin() + larger_position_in_matrix);
 
 		//replace the first element with the newly merged one 
-		matrix_bb_tree_map.at(smaller_position_in_matrix) = leaf_nodes->size() + i;
+		matrix_bb_tree_map.at(smaller_position_in_matrix) = leaf_nodes.size() + i;
 		//replace vertically 
 		for (int x = 0; x < smaller_position_in_matrix; x++)
 		{
@@ -179,7 +214,7 @@ kdTreeElement* StackedBB::get_scene_bb_element(unsigned int id) const
 	return &axis_aligned_bb_tree_[id];
 }
 
-Object3D* StackedBB::get_scene_bb_element_leaf(const kdTreeElement* leaf_node) const
+collider_modifier* StackedBB::get_scene_bb_element_leaf(const kdTreeElement* leaf_node) const
 {
 	if (!is_bb_element_leaf_node(leaf_node))
 	{
@@ -187,12 +222,12 @@ Object3D* StackedBB::get_scene_bb_element_leaf(const kdTreeElement* leaf_node) c
 		return nullptr;
 	}
 
-	if (leaf_node->child_1 > leaf_nodes->size())
+	if (leaf_node->child_1 > leaf_nodes.size())
 	{
 		std::cerr << "shouldnt happen\n";
 		return nullptr;
 	}
-	return leaf_nodes->at(leaf_node->child_1);
+	return leaf_nodes.at(leaf_node->child_1);
 }
 
 bool StackedBB::is_bb_element_leaf_node(const kdTreeElement* leaf_node)
@@ -200,59 +235,59 @@ bool StackedBB::is_bb_element_leaf_node(const kdTreeElement* leaf_node)
 	return leaf_node->child_0 == -1;
 }
 
-bool StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center,
-                                               float radius)
+void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center,
+                                                             float radius, ray_cast_result *result)
 {
-	std::string tag = "ENGINE_COLLIDER";
-
+	result->hit = false;
+	result->distance_from_origin = std::numeric_limits<float>::max();
 	//if scene provides bb tree search it
 	if (get_scene_bb_entry_element() != nullptr)
 	{
 		auto bb_root_node = get_scene_bb_entry_element();
-		return recurse_proximity_check_bb_tree(bb_root_node, &tag, proximity_center, radius);
+		recurse_proximity_check_bb_tree(bb_root_node, proximity_center, radius, result);
+		return;
 	}
 	std::cerr << "no entry object in stacked BB\n";
-	return false;
 }
 
-
-bool StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
-                                                std::string* collision_tag, const glm::vec3& proximity_center,
-                                                float radius)
+void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
+                                                            const glm::vec3& proximity_center,
+                                                            float radius, ray_cast_result *result)
 {
 	if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, proximity_center, radius))
 	{
-		return false;
+		result->hit = false;
+		return;
 	}
 
 	//is leaf node
 	if (is_bb_element_leaf_node(bb_to_check))
 	{
-		auto object = get_scene_bb_element_leaf(bb_to_check);
-		if (object->has_tag(*collision_tag) && object->visible)
-		{
-			auto mesh_collider = dynamic_cast<Collider*>(object);
-			if (mesh_collider->is_in_proximity(proximity_center, radius))
-			{
-				return true;
-			}
-		}
-		return false;
+		auto coll = get_scene_bb_element_leaf(bb_to_check);
+
+		coll->is_in_proximity(proximity_center, radius, result);
+		return;
 	}
 
-	//not a leaf node -> continue in closest child
+	//not a leaf node -> continue in the closest child
 	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
 	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
 	if (glm::distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb), proximity_center) <
 		glm::distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb), proximity_center))
 	{
 		//child 1 closer
-		return recurse_proximity_check_bb_tree(child_0, collision_tag, proximity_center, radius) ||
-			recurse_proximity_check_bb_tree(child_1, collision_tag, proximity_center, radius);
+		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
+		if (result->hit) return;
+		
+		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
+		if (result->hit) return;
 	}
 	else
 	{
-		return recurse_proximity_check_bb_tree(child_1, collision_tag, proximity_center, radius) ||
-			recurse_proximity_check_bb_tree(child_0, collision_tag, proximity_center, radius);
+		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
+		if (result->hit) return;
+		
+		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
+		if (result->hit) return;
 	}
 }

@@ -10,8 +10,8 @@
 class Mesh3D : public Object3D
 {
 private :
-    Mesh* mesh;
-    std::vector<ShaderProgram *> materials;
+    Mesh* mesh_;
+    std::vector<ShaderProgram *> materials_;
 
 protected:
     int drawSelf() override;

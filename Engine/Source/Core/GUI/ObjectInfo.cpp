@@ -38,9 +38,11 @@ void ObjectInfo::gui_tick()
 	ImGui::Text(name.c_str());
 	ImGui::SeparatorText("Transform");
 	ImGui::BeginDisabled(disabled);
-	ImGui::InputFloat3("WS Position",pos,"%.3f", ImGuiInputTextFlags_CharsDecimal);
-	ImGui::InputFloat3("Rotation",rot,"%.3f", ImGuiInputTextFlags_CharsDecimal);
-	ImGui::InputFloat3("Scale",scale,"%.3f", ImGuiInputTextFlags_CharsDecimal);
+
+	
+	bool transform_changed = ImGui::InputFloat3("WS Position",pos,"%.3f", ImGuiInputTextFlags_CharsDecimal);
+	transform_changed |= ImGui::InputFloat3("Rotation",rot,"%.3f", ImGuiInputTextFlags_CharsDecimal);
+	transform_changed |= ImGui::InputFloat3("Scale",scale,"%.3f", ImGuiInputTextFlags_CharsDecimal);
 
 	
 
@@ -56,7 +58,7 @@ void ObjectInfo::gui_tick()
 	ImGui::EndDisabled();
 	ImGui::End();
 
-	if (scene_->has_selected_object())
+	if (scene_->has_selected_object() && transform_changed)
 	{
 		scene_->get_selected_object()->set_position_global(pos[0],pos[1],pos[2]);
 		scene_->get_selected_object()->setRotationLocalDegrees(rot[0],rot[1],rot[2]);

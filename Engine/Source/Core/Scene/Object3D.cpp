@@ -34,6 +34,11 @@ int Object3D::draw_(struct RenderContext* parentRenderContext)
 	{
 		this->drawSelf();
 	}
+
+	for (auto m : modifiers_)
+	{
+		m->on_parent_draw();
+	}
 	
 	for (auto& child : children)
 	{
@@ -306,10 +311,29 @@ void Object3D::draw_modifier_ui() const
 	}
 }
 
+std::vector<modifier*> Object3D::get_modifiers_by_id(const int id) const
+{
+	auto result = std::vector<modifier*>();
+	for (auto modifier : modifiers_)
+	{
+		if (modifier->get_id() == id)
+		{
+			result.push_back(modifier);
+		}
+	}
+	return result;
+}
+
 glm::vec3 Object3D::transform_vertex_to_world_space(const glm::vec3& vertex_in_local_space) const
 {
 	return transformGlobal * glm::vec4(vertex_in_local_space, 1);
 }
+
+glm::vec3 Object3D::transform_vector_to_world_space(const glm::vec3& vector_in_local_space) const
+{
+	return transformGlobal * glm::vec4(vector_in_local_space, 0);
+}
+
 
 glm::vec3 Object3D::transform_position_to_local_space(const glm::vec3& vertex_in_world_space)
 {
@@ -322,6 +346,7 @@ glm::vec3 Object3D::transform_vector_to_local_space(const glm::vec3& vector_in_w
 	glm::vec4 ray_cast_origin_vec4_local = getGlobalTransformInverse() * glm::vec4(vector_in_world_space, 0);
 	return glm::vec3(ray_cast_origin_vec4_local);
 }
+
 
 
 void Object3D::recalculate_local_transform()
@@ -352,6 +377,10 @@ void Object3D::recalculate_global_transform()
 	for (auto child : this->children)
 	{
 		child->recalculate_global_transform();
+	}
+	for (auto m : modifiers_)
+	{
+		m->on_parent_recalculate_transforms();
 	}
 	on_transform_changed();
 }

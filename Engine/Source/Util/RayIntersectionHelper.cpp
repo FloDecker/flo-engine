@@ -2,15 +2,15 @@
 
 #define in_bounding_box(a, min,max) ((a)<(max)&&(a)>(min))
 
-Intersection* RayIntersectionHelper::RayPlaneIntersection(glm::vec3 ray_origin, glm::vec3 ray_direction_normalized,
+struct_intersection* RayIntersectionHelper::ray_plane_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction_normalized,
                                                           glm::vec3 point_on_plane, glm::vec3 plane_normal)
 {
-	auto intersection = new Intersection;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction_normalized, point_on_plane, plane_normal);
+	const auto intersection = new struct_intersection;
+	ray_plane_intersection(intersection, ray_origin, ray_direction_normalized, point_on_plane, plane_normal);
 	return intersection;
 }
 
-void RayIntersectionHelper::RayPlaneIntersection(Intersection* intersection, glm::vec3 ray_origin,
+void RayIntersectionHelper::ray_plane_intersection(struct_intersection* intersection, glm::vec3 ray_origin,
                                                  glm::vec3 ray_direction_normalized, glm::vec3 point_on_plane,
                                                  glm::vec3 plane_normal)
 {
@@ -24,7 +24,7 @@ void RayIntersectionHelper::RayPlaneIntersection(Intersection* intersection, glm
 		-((glm::dot(plane_normal, ray_origin) + d) /
 			glm::dot(plane_normal, ray_direction_normalized));
 
-	intersection->intersection_point = ray_origin + t * ray_direction_normalized;
+	intersection->collision_point = ray_origin + t * ray_direction_normalized;
 	intersection->intersected = true;
 }
 
@@ -34,61 +34,61 @@ bool RayIntersectionHelper::ray_bounding_box_intersection(glm::vec3 ray_origin,
                                                           glm::vec3 ray_direction, StructBoundingBox* bounding_box)
 {
 	bool first_intersection = false;
-	auto intersection = new Intersection;
+	const auto intersection = new struct_intersection;
 
 	//max
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->max, {1, 0, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->max, {0, 1, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->max, {0, 0, 1});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y)
 	)
 		return true;
 
 	//min
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->min, {1, 0, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->min, {0, 1, 0});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.z, bounding_box->min.z, bounding_box->max.z)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.z, bounding_box->min.z, bounding_box->max.z)
 	)
 		return true;
 
 	intersection->intersected = false;
-	RayPlaneIntersection(intersection, ray_origin, ray_direction,
+	ray_plane_intersection(intersection, ray_origin, ray_direction,
 	                     bounding_box->min, {0, 0, 1});
 	if (intersection->intersected &&
-		in_bounding_box(intersection->intersection_point.x, bounding_box->min.x, bounding_box->max.x) &&
-		in_bounding_box(intersection->intersection_point.y, bounding_box->min.y, bounding_box->max.y)
+		in_bounding_box(intersection->collision_point.x, bounding_box->min.x, bounding_box->max.x) &&
+		in_bounding_box(intersection->collision_point.y, bounding_box->min.y, bounding_box->max.y)
 	)
 		return true;
 
@@ -128,45 +128,40 @@ bool RayIntersectionHelper::sphere_triangle_intersection(glm::vec3 a, glm::vec3 
 		glm::distance(glm::vec3(c_a_), circle_pos) < circle_radius);
 }
 
-bool RayIntersectionHelper::point_triangle_proximity_check(glm::vec3 v_0, glm::vec3 v_1, glm::vec3 v_2,
-                                                           glm::vec3 circle_pos, float radius)
+void RayIntersectionHelper::get_closest_point_on_triangle(glm::vec3 v_0, glm::vec3 v_1, glm::vec3 v_2,
+                                                           glm::vec3 circle_pos,ray_cast_result* result)
 {
+	result->hit = false;
 	glm::vec3 face_normal = glm::cross(glm::normalize(v_0 - v_1), glm::normalize(v_0 - v_2));
-
-	if (RayIntersectionHelper::sphere_triangle_intersection(v_0, v_1, v_2,
-	                                                        circle_pos, radius))
-	{
-		return true;
-	}
-
+	
 	float d = -glm::dot(face_normal, v_0);
 	float t =
 		-(glm::dot(face_normal, circle_pos) + d);
 
 	glm::vec3 hit_point = circle_pos + t * face_normal;
 
-	//check if hitpoint is in radius
-	
-	if (glm::length(circle_pos-hit_point) > radius) return false;
-	
+
 	auto c = glm::vec3();
 
 	// Edge 0
 	glm::vec3 edge0 = v_1 - v_0;
 	glm::vec3 vp0 = hit_point - v_0;
 	c = glm::cross(edge0, vp0);
-	if (glm::dot(face_normal, c) < 0) return false; // P is on the right side
+	if (glm::dot(face_normal, c) < 0) return; // P is on the right side
 
 	// Edge 1
 	glm::vec3 edge1 = v_2 - v_1;
 	glm::vec3 vp1 = hit_point - v_1;
 	c = glm::cross(edge1, vp1);
-	if (glm::dot(face_normal, c) < 0) return false; // P is on the right side
+	if (glm::dot(face_normal, c) < 0) return; // P is on the right side
 
 	// Edge 2
 	glm::vec3 edge2 = v_0 - v_2;
 	glm::vec3 vp2 = hit_point - v_2;
 	c = glm::cross(edge2, vp2);
-	if (glm::dot(face_normal, c) < 0) return false; // P is on the right side
-	return true;
+	if (glm::dot(face_normal, c) < 0) return; // P is on the right side
+	
+	result->hit = true;
+	result->hit_local = hit_point;
+	result->hit_normal_local = face_normal;
 }
