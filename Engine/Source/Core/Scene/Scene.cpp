@@ -5,7 +5,7 @@
 #include "Lighting/SkyBox/sky_box.h"
 #include "../PhysicsEngine/PhysicsEngine.h"
 #include "Modifiers/Implementations/Colliders/mesh_collider.h"
-
+#include "SceneTools/gaussianizer.h"
 
 SceneRoot::SceneRoot(GlobalContext* global_context, Scene* scene): Object3D()
 {
@@ -30,11 +30,11 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	engine_light_point_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_LIGHT_POINT");
 	engine_collider_id_ = global_context_->tag_manager.get_id_of_tag("ENGINE_COLLIDER");
 
-	for ( const auto c : all_collision_channels)
+	for (const auto c : all_collision_channels)
 	{
 		scene_bb[c] = new StackedBB(this);
 	}
-	
+
 	scene_root_ = new SceneRoot(global_context, this);
 	scene_root_->name = name;
 	name_ = name;
@@ -46,7 +46,7 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 }
 
 
-direct_light *Scene::get_scene_direct_light() const
+direct_light* Scene::get_scene_direct_light() const
 {
 	return direct_light_;
 }
@@ -54,7 +54,7 @@ direct_light *Scene::get_scene_direct_light() const
 void Scene::register_collider(collider_modifier* collider)
 {
 	colliders_.push_back(collider);
-	for (auto channel: collider->collision_channels())
+	for (auto channel : collider->collision_channels())
 	{
 		scene_bb[channel]->insert_leaf_node(collider);
 	}
@@ -102,13 +102,13 @@ std::vector<collider_intersection> Scene::generate_overlaps_in_channel(collision
 						collider_b)
 				);
 			}
-			
 		}
 	}
 	return result;
 }
 
-ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,  collision_channel collision_channel)
+ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
+                                                     collision_channel collision_channel)
 {
 	ray_cast_result result;
 	auto temp_result = ray_cast_result();
@@ -116,16 +116,16 @@ ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3
 	for (auto collider : get_colliders(collision_channel))
 	{
 		auto bb = collider->get_world_space_bounding_box();
-		if (BoundingBoxHelper::is_in_bounding_box(bb,origin) ||
-			BoundingBoxHelper::ray_axis_aligned_bb_intersection(bb, origin, direction,&temp_result))
+		if (BoundingBoxHelper::is_in_bounding_box(bb, origin) ||
+			BoundingBoxHelper::ray_axis_aligned_bb_intersection(bb, origin, direction, &temp_result))
 		{
-			collider->ray_intersection_world_space(origin, direction,max_distance, true, &temp_result);
+			collider->ray_intersection_world_space(origin, direction, max_distance, true, &temp_result);
 			if (temp_result.hit && temp_result.distance_from_origin < min_distance)
 			{
 				min_distance = temp_result.distance_from_origin;
 				result = temp_result;
 				result.object_3d = collider->get_parent();
-			} 
+			}
 		}
 	}
 
@@ -140,7 +140,7 @@ void Scene::recalculate_at(Object3D* parent)
 	{
 		this->scenePointLights.insert(dynamic_cast<PointLight*>(parent));
 	}
-	
+
 	const auto children = parent->get_children();
 	for (Object3D* child : children)
 	{
@@ -151,11 +151,10 @@ void Scene::recalculate_at(Object3D* parent)
 void Scene::recalculate_from_root()
 {
 	recalculate_at(scene_root_);
-	for ( const auto c : all_collision_channels)
+	for (const auto c : all_collision_channels)
 	{
 		recalculate_collision_channel_bb_hierarchy(c);
 	}
-
 }
 
 
@@ -194,11 +193,27 @@ StructColorRange* Scene::get_ao_color_at(int samples, glm::vec3 ws_pos) const
 	return sky_box_->get_sky_box_ao_color_range();
 }
 
+void Scene::get_gaussian_approx_at(glm::vec3 ws_pos, std::vector<gaussian>* result) const
+{
+	if (gaussianinzers_.size() == 0)
+	{
+		return;
+	}
+
+	for (int i = 0; i < gaussian_samples_per_object; ++i)
+	{
+		if (gaussianinzers_.at(0)->samples().size() > i)
+		{
+			result->push_back(gaussianinzers_.at(0)->samples().at(i));
+		}
+	}
+}
+
 void Scene::register_global_light(direct_light* direct_light)
 {
 	if (direct_light_ != nullptr)
 	{
-		std::cerr<<"Scene already has a direct light\n";
+		std::cerr << "Scene already has a direct light\n";
 		return;
 	}
 	has_direct_light_ = true;
@@ -209,13 +224,17 @@ void Scene::register_sky_box(sky_box* skybox)
 {
 	if (direct_light_ != nullptr)
 	{
-		std::cerr<<"Scene already has a skybox light\n";
+		std::cerr << "Scene already has a skybox light\n";
 		return;
 	}
 	has_sky_box = true;
 	sky_box_ = skybox;
 }
 
+void Scene::register_gaussianizer(gaussianizer* gaussianizer)
+{
+	gaussianinzers_.push_back(gaussianizer);
+}
 
 
 Object3D* Scene::get_root() const
@@ -267,7 +286,8 @@ void Scene::light_pass(camera* current_camera) const
 	}
 }
 
-void Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box, collision_channel channel, std::vector<collider_modifier*>* result)
+void Scene::get_colliders_in_bounding_box(StructBoundingBox* bounding_box, collision_channel channel,
+                                          std::vector<collider_modifier*>* result)
 {
 	for (auto element : get_colliders(channel))
 	{

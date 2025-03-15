@@ -9,7 +9,8 @@ public:
 	explicit gaussianizer(Object3D* parent)
 		: Object3D(parent)
 	{
-		//parent->get_scene()->register_gaussianizer(this);
+		parent->get_scene()->register_gaussianizer(this);
+		name = "gaussianizer";
 	}
 
 	void draw_object_specific_ui() override;

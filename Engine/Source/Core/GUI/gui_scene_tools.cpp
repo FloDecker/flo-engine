@@ -10,5 +10,7 @@ void gui_scene_tools::gui_tick()
 	{
 		scene_->recalculate_from_root();
 	}
+
+	ImGui::DragInt("Gaussian samples per object", &scene_->gaussian_samples_per_object);
 	ImGui::End();
 }

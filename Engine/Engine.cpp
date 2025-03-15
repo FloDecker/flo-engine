@@ -34,6 +34,7 @@
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
 #include "Source/Core/Scene/Primitive3D/plane_3d.h"
+#include "Source/Core/Scene/SceneTools/gaussianizer.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -357,6 +358,7 @@ int main()
 	scene->get_physics_engine()->add_spring(spring3, spring1, 200.0);
 	scene->get_physics_engine()->add_spring(spring2, spring4, 200.0);
 
+	auto g = new gaussianizer(scene->get_root());
 
 	{
 		/*
