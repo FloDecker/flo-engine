@@ -7,7 +7,7 @@
 #include "../Scene/Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 
-ray_cast_result RayCast::ray_cast(Scene* scene_context,glm::vec3 ray_cast_origin,
+ray_cast_result RayCast::ray_cast(Scene* scene_context, glm::vec3 ray_cast_origin,
                                   glm::vec3 ray_cast_direction,
                                   float length,
                                   bool ignore_back_face)
@@ -35,7 +35,7 @@ void RayCast::recurse_scene_model_ray_cast(ray_cast_result* ray_cast_hit, Object
 	{
 		auto collider = dynamic_cast<collider_modifier*>(obj);
 		collider->ray_intersection_world_space(ray_cast_origin, ray_cast_direction_normalized, length, ignore_back_face,
-										  ray_cast_hit);
+		                                       ray_cast_hit);
 		if (ray_cast_hit->hit)
 		{
 			return;
@@ -68,18 +68,17 @@ void RayCast::recurse_proximity_check(ray_cast_result* result, Object3D* object,
 	{
 		recurse_proximity_check(result, child, proximity_center, radius);
 	}
-	return;
 }
 
 
 //EDITOR ONLY RAY CAST FOR OBJECT SELECTION 
 
 ray_cast_result RayCast::ray_cast_editor(Scene* scene_context,
-                                      glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction, bool ignore_back_face)
+                                         glm::vec3 ray_cast_origin, glm::vec3 ray_cast_direction, bool ignore_back_face)
 {
 	auto cast_hit = ray_cast_result();
 
-	recurse_scene_model_ray_cast(&cast_hit,scene_context->get_root(), ray_cast_origin,
+	recurse_scene_model_ray_cast(&cast_hit, scene_context->get_root(), ray_cast_origin,
 	                             normalize(ray_cast_direction), 100000.0, ignore_back_face);
 
 	return cast_hit;

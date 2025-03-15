@@ -2,6 +2,7 @@
 #include <vec3.hpp>
 
 class Object3D;
+
 struct ray_cast_result
 {
 	bool hit = false; //if the raycast hit something

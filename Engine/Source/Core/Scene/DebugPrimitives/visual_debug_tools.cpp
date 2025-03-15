@@ -43,7 +43,7 @@ void visual_debug_tools::draw_debug_cube(StructBoundingBox* bb, float time, glm:
 {
 	auto pos = BoundingBoxHelper::get_center_of_bb(bb);
 	auto scale = BoundingBoxHelper::get_scale_of_bb(bb);
-	draw_debug_cube(pos,time,glm::quat(),scale, color);
+	draw_debug_cube(pos, time, glm::quat(), scale, color);
 }
 
 void visual_debug_tools::draw_debug_tools(float delta)

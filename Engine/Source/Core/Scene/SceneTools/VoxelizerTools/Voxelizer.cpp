@@ -9,7 +9,7 @@
 
 #define FLOATING_POINT_ACCEPTANCE 0.02
 
-Voxelizer::Voxelizer(Object3D *parent): AbstractVoxelizer(
+Voxelizer::Voxelizer(Object3D* parent): AbstractVoxelizer(
 	parent)
 {
 };
@@ -50,8 +50,8 @@ void Voxelizer::recalculate()
 	auto start = std::chrono::system_clock::now();
 
 	auto transform_global = getGlobalTransform();
-	glm::vec3 upper_right_corner = glm::round(transform_global * glm::vec4(1, 1, 1, 1));
-	glm::vec3 lower_left_corner = glm::round(transform_global * glm::vec4(-1, -1, -1, 1));
+	glm::vec3 upper_right_corner = round(transform_global * glm::vec4(1, 1, 1, 1));
+	glm::vec3 lower_left_corner = round(transform_global * glm::vec4(-1, -1, -1, 1));
 
 	unsigned int distance_x = static_cast<int>(abs(upper_right_corner.x - lower_left_corner.x)) * voxel_precision;
 	unsigned int distance_y = static_cast<int>(abs(upper_right_corner.y - lower_left_corner.y)) * voxel_precision;
@@ -86,7 +86,7 @@ void Voxelizer::recalculate()
 //(just use the distance function it's way faster to traverse)
 void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
 {
-	auto transform_global_inverse = glm::inverse(getGlobalTransform());
+	auto transform_global_inverse = inverse(getGlobalTransform());
 
 
 	for (auto v : voxel_positions_)
@@ -138,27 +138,27 @@ void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
 
 
 						//just for debugging
-					
+
 						if (current_level == 3)
 						{
-						    auto transform_global = getGlobalTransform();
-						    glm::vec3 ws_lower_left = glm::round(transform_global * glm::vec4(-1, -1, -1, 1));
-						
-						    float step_size = 1.0f / static_cast<float>(voxel_precision);
-						    auto ws_pos = ws_lower_left + static_cast<glm::vec3>(test_pos) * step_size + step_size * 0.5f;
-						
-						    auto c = new Cube3D(this);
+							auto transform_global = getGlobalTransform();
+							glm::vec3 ws_lower_left = round(transform_global * glm::vec4(-1, -1, -1, 1));
 
-						    
-						    this->addChild(c);
-						    c->setScale(glm::vec3(0.01,0.01,0.01));
-						    float interpol;
-						    interpol = static_cast<float>(current_level) / 4.0f;
+							float step_size = 1.0f / static_cast<float>(voxel_precision);
+							auto ws_pos = ws_lower_left + static_cast<glm::vec3>(test_pos) * step_size + step_size *
+								0.5f;
 
-						    c->color = glm::vec3(1, 0, 0)*interpol+glm::vec3(0, 1, 0)*(1.0f-interpol);
-						    c->set_position_global(ws_pos);
+							auto c = new Cube3D(this);
+
+
+							this->addChild(c);
+							c->setScale(glm::vec3(0.01, 0.01, 0.01));
+							float interpol;
+							interpol = static_cast<float>(current_level) / 4.0f;
+
+							c->color = glm::vec3(1, 0, 0) * interpol + glm::vec3(0, 1, 0) * (1.0f - interpol);
+							c->set_position_global(ws_pos);
 						}
-
 					}
 				}
 			}
@@ -178,8 +178,8 @@ bool Voxelizer::create_level_set_matrix()
 		return false;
 	}
 	auto transform_global = getGlobalTransform();
-	glm::vec3 upper_right_corner = glm::round(transform_global * glm::vec4(1, 1, 1, 1));
-	glm::vec3 lower_left_corner = glm::round(transform_global * glm::vec4(-1, -1, -1, 1));
+	glm::vec3 upper_right_corner = round(transform_global * glm::vec4(1, 1, 1, 1));
+	glm::vec3 lower_left_corner = round(transform_global * glm::vec4(-1, -1, -1, 1));
 	unsigned int distance_x = static_cast<int>(abs(upper_right_corner.x - lower_left_corner.x)) * voxel_precision;
 	unsigned int distance_y = static_cast<int>(abs(upper_right_corner.y - lower_left_corner.y)) * voxel_precision;
 	unsigned int distance_z = static_cast<int>(abs(upper_right_corner.z - lower_left_corner.z)) * voxel_precision;
@@ -293,7 +293,7 @@ glm::vec3 Voxelizer::get_ws_pos_from_voxel_pos(glm::i16vec3 pos) const
 
 glm::i16vec3 Voxelizer::get_level_set_matrix_pos_from_ws(const glm::vec3& ws_pos)
 {
-	auto transform_global_inverse = glm::inverse(getGlobalTransform()); //TODO: replace with inverse from object 3d
+	auto transform_global_inverse = inverse(getGlobalTransform()); //TODO: replace with inverse from object 3d
 	glm::vec3 object_space = transform_global_inverse * glm::vec4(ws_pos, 1.0);
 	object_space *= 0.5f;
 	object_space += glm::vec3(0.5);
@@ -315,58 +315,59 @@ int Voxelizer::get_unique_pos_id_in_matrix(glm::i16vec3 pos) const
 }
 
 
-void Voxelizer::expand_polygon_to_zero_level_set(collider_modifier *collider, unsigned int vertex_id_0, struct_vertex_array* vertex_array, glm::i16vec3 voxel_to_expand_from, float radius)
+void Voxelizer::expand_polygon_to_zero_level_set(collider_modifier* collider, unsigned int vertex_id_0,
+                                                 struct_vertex_array* vertex_array, glm::i16vec3 voxel_to_expand_from,
+                                                 float radius)
 {
-// 	std::vector<glm::i16vec3> positions_to_check = {voxel_to_expand_from};
-//
-// 	glm::vec3 voxel_pos_ws = get_ws_pos_from_voxel_pos(voxel_to_expand_from);
-// 	auto global_inverse = glm::inverse(collider->get_parent()->getGlobalTransform());
-// 	glm::vec3 proximity_center_local = global_inverse * glm::vec4(voxel_pos_ws, 1);
-// 	if (!collider->is_in_proximity_vertex(radius,vertex_id_0,proximity_center_local,vertex_array))
-// 		return;
-// 	insert_into_level_set_matrix(voxel_to_expand_from, 0);
-//
-// 	std::set<int> set_x ={get_unique_pos_id_in_matrix(voxel_to_expand_from)};
-// 	
-// 	while (!positions_to_check.empty())
-// 	{
-// 		glm::i16vec3 current = positions_to_check.back();
-// 		positions_to_check.pop_back();
-// 		glm::vec3 current_ws = get_ws_pos_from_voxel_pos(current);
-// 		zero_level_set.emplace_back(current);
-// 		for (auto direction : Voxelizer::cubic_expansion_directions)
-// 		{
-// 			auto p = current + direction;
-// 			if (is_in_level_set_matrix(p))
-// 			{
-// 				
-// 				proximity_center_local = global_inverse * glm::vec4(get_ws_pos_from_voxel_pos(p), 1);
-// 				if (set_x.find(get_unique_pos_id_in_matrix(p)) == set_x.end() && collider->is_in_proximity_vertex(radius, vertex_id_0, proximity_center_local,
-// 					                                           vertex_array))
-// 				{
-// 					set_x.insert(get_unique_pos_id_in_matrix(p));
-//
-// 					positions_to_check.emplace_back(p);
-// 					insert_into_level_set_matrix(p, 0);
-// 					//deBUG
-// 					//auto c = new Cube3D(global_context_);
-// 					//this->addChild(c);
-// 					//c->setScale(glm::vec3(0.01));
-// 					//c->color = {0, 1, 0};
-// 					//c->set_position_global(get_ws_pos_from_voxel_pos(p));
-// 				}
-// 			}
-// 		}
-// 	}
-//
-// 	//zero_level_set.push_back(voxel_to_expand_from);
+	// 	std::vector<glm::i16vec3> positions_to_check = {voxel_to_expand_from};
+	//
+	// 	glm::vec3 voxel_pos_ws = get_ws_pos_from_voxel_pos(voxel_to_expand_from);
+	// 	auto global_inverse = glm::inverse(collider->get_parent()->getGlobalTransform());
+	// 	glm::vec3 proximity_center_local = global_inverse * glm::vec4(voxel_pos_ws, 1);
+	// 	if (!collider->is_in_proximity_vertex(radius,vertex_id_0,proximity_center_local,vertex_array))
+	// 		return;
+	// 	insert_into_level_set_matrix(voxel_to_expand_from, 0);
+	//
+	// 	std::set<int> set_x ={get_unique_pos_id_in_matrix(voxel_to_expand_from)};
+	// 	
+	// 	while (!positions_to_check.empty())
+	// 	{
+	// 		glm::i16vec3 current = positions_to_check.back();
+	// 		positions_to_check.pop_back();
+	// 		glm::vec3 current_ws = get_ws_pos_from_voxel_pos(current);
+	// 		zero_level_set.emplace_back(current);
+	// 		for (auto direction : Voxelizer::cubic_expansion_directions)
+	// 		{
+	// 			auto p = current + direction;
+	// 			if (is_in_level_set_matrix(p))
+	// 			{
+	// 				
+	// 				proximity_center_local = global_inverse * glm::vec4(get_ws_pos_from_voxel_pos(p), 1);
+	// 				if (set_x.find(get_unique_pos_id_in_matrix(p)) == set_x.end() && collider->is_in_proximity_vertex(radius, vertex_id_0, proximity_center_local,
+	// 					                                           vertex_array))
+	// 				{
+	// 					set_x.insert(get_unique_pos_id_in_matrix(p));
+	//
+	// 					positions_to_check.emplace_back(p);
+	// 					insert_into_level_set_matrix(p, 0);
+	// 					//deBUG
+	// 					//auto c = new Cube3D(global_context_);
+	// 					//this->addChild(c);
+	// 					//c->setScale(glm::vec3(0.01));
+	// 					//c->color = {0, 1, 0};
+	// 					//c->set_position_global(get_ws_pos_from_voxel_pos(p));
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	//
+	// 	//zero_level_set.push_back(voxel_to_expand_from);
 }
 
 void Voxelizer::calculate_area_filled_by_polygons(Scene* scene_context)
 {
 	//TODO : implement
-	std::cout<< "calculate_area_filled_by_polygons is not implemented\n" << std::endl;
-	return;
+	std::cout << "calculate_area_filled_by_polygons is not implemented\n" << std::endl;
 	// create_level_set_matrix();
 	// const auto b = get_as_bounding_box();
 	// std::vector<std::tuple<MeshCollider*, std::vector<vertex_array_filter>*>>* filtered_colliders = scene_context->
@@ -429,7 +430,7 @@ void Voxelizer::calculate_area_filled_recursive(Scene* scene_context, glm::vec3 
 			step_size * 0.5f;
 
 		//float radius = glm::length(glm::vec3(step_size)) * 0.5f;
-		float radius = glm::length(glm::vec3(step_size)) * distance_x * 0.5;
+		float radius = length(glm::vec3(step_size)) * distance_x * 0.5;
 		ray_cast_result result;
 		scene_->get_bb(VISIBILITY)->scene_geometry_proximity_check(center, radius, &result);
 		if (result.hit)
@@ -450,28 +451,25 @@ void Voxelizer::calculate_area_filled_recursive(Scene* scene_context, glm::vec3 
 				zero_level_set.push_back(voxel_lower_left);
 				return;
 			}
-			else
-			{
-				//auto c = new Cube3D(global_context_);
-				//this->addChild(c);
-				//c->setScale(distance_x * (step_size / this->get_scale().x), distance_x * (step_size / this->get_scale().y),
-				//            distance_x * (step_size / this->get_scale().z));
-				//c->color = {1, 0, 0};
-				//c->set_position_global(center);
+			//auto c = new Cube3D(global_context_);
+			//this->addChild(c);
+			//c->setScale(distance_x * (step_size / this->get_scale().x), distance_x * (step_size / this->get_scale().y),
+			//            distance_x * (step_size / this->get_scale().z));
+			//c->color = {1, 0, 0};
+			//c->set_position_global(center);
 
-				int distance = (distance_x + 1) / 2;
-				glm::i16vec3 offset_of_chunk = glm::i16vec3(distance);
-				for (int x = 0; x <= 1; x++)
+			int distance = (distance_x + 1) / 2;
+			auto offset_of_chunk = glm::i16vec3(distance);
+			for (int x = 0; x <= 1; x++)
+			{
+				for (int y = 0; y <= 1; y++)
 				{
-					for (int y = 0; y <= 1; y++)
+					for (int z = 0; z <= 1; z++)
 					{
-						for (int z = 0; z <= 1; z++)
-						{
-							glm::i16vec3 offset = {x * distance, y * distance, z * distance};
-							calculate_area_filled_recursive(scene_context, ws_upper_right,
-							                                ws_lower_left, voxel_lower_left + offset + offset_of_chunk,
-							                                voxel_lower_left + offset);
-						}
+						glm::i16vec3 offset = {x * distance, y * distance, z * distance};
+						calculate_area_filled_recursive(scene_context, ws_upper_right,
+						                                ws_lower_left, voxel_lower_left + offset + offset_of_chunk,
+						                                voxel_lower_left + offset);
 					}
 				}
 			}

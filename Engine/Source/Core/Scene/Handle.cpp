@@ -24,7 +24,7 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
 	auto* handler_blue = new ShaderProgram();
 	handler_blue->loadFromFile("EngineContent/Shader/HandlerBlue.glsl");
 	handler_blue->compileShader();
-	
+
 	arrow_x = new Mesh3D(this, engine_handler_arrow_model);
 	arrow_x->set_material(handler_red);
 	arrow_x->setRotationLocalDegrees(0, 90, 0);
@@ -43,7 +43,7 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
 	arrow_x_collider_->remove_collision_channel(VISIBILITY);
 	arrow_y_collider_->remove_collision_channel(VISIBILITY);
 	arrow_z_collider_->remove_collision_channel(VISIBILITY);
-	
+
 	detach();
 
 	IGNORE_IN_SCENE_TREE_VIEW = true;
@@ -83,7 +83,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 	if (cast_hit.hit)
 	{
 		handler_status = move_global_x;
-		offset_ = glm::vec3(cast_hit.hit_local.z,0,0);
+		offset_ = glm::vec3(cast_hit.hit_local.z, 0, 0);
 		return;
 	}
 
@@ -91,7 +91,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 	if (cast_hit.hit)
 	{
 		handler_status = move_global_y;
-		offset_ = glm::vec3(0,cast_hit.hit_local.z,0);
+		offset_ = glm::vec3(0, cast_hit.hit_local.z, 0);
 		return;
 	}
 
@@ -100,7 +100,7 @@ void Handle::editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 	if (cast_hit.hit)
 	{
 		handler_status = move_global_z;
-		offset_ = glm::vec3(0,0,cast_hit.hit_local.z);
+		offset_ = glm::vec3(0, 0, cast_hit.hit_local.z);
 	}
 }
 
@@ -119,7 +119,7 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		return;
 	case move_global_x:
 		RayIntersectionHelper::ray_plane_intersection(&intersection, camera_pos, ray_direction,
-		                                            attached_object_3d_->getWorldPosition(), vec_z);
+		                                              attached_object_3d_->getWorldPosition(), vec_z);
 		if (intersection.intersected)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
@@ -131,7 +131,7 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		return;
 	case move_global_y:
 		RayIntersectionHelper::ray_plane_intersection(&intersection, camera_pos, ray_direction,
-		                                            attached_object_3d_->getWorldPosition(), vec_z);
+		                                              attached_object_3d_->getWorldPosition(), vec_z);
 		if (intersection.intersected)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
@@ -144,7 +144,7 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 		return;
 	case move_global_z:
 		RayIntersectionHelper::ray_plane_intersection(&intersection, camera_pos, ray_direction,
-		                                            attached_object_3d_->getWorldPosition(), vec_x);
+		                                              attached_object_3d_->getWorldPosition(), vec_x);
 		if (intersection.intersected)
 		{
 			auto current_object_pos = attached_object_3d_->getWorldPosition();
@@ -154,7 +154,5 @@ void Handle::editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction)
 			attached_object_3d_->set_position_global(pos);
 			this->set_position_global(pos);
 		}
-		return;
 	}
-
 }

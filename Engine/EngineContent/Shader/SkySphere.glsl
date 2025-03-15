@@ -4,14 +4,14 @@ out vec3 pos_ws;
 void main() {
     pos_ws = (mMatrix * vec4(aPos, 1.0)).xyz;
     vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
-    gl_Position = pMatrix * vertexCamSpace; 
+    gl_Position = pMatrix * vertexCamSpace;
 }
 
 [fragment]
 float SKY_SPHERE_SCALE = 512.0;
-vec3 COLOR_SKY_BOTTOM = vec3(0.2,0.3,0.4);
-vec3 COLOR_SKY_MIDDLE = vec3(0.5294,0.8078,0.9215);
-vec3 COLOR_SKY_TOP = vec3(0.3882,0.8980,0.9490);
+vec3 COLOR_SKY_BOTTOM = vec3(0.2, 0.3, 0.4);
+vec3 COLOR_SKY_MIDDLE = vec3(0.5294, 0.8078, 0.9215);
+vec3 COLOR_SKY_TOP = vec3(0.3882, 0.8980, 0.9490);
 
 float TRANSITION_0 = 0.1;
 float TRANSITION_1 = 0.5;
@@ -54,10 +54,10 @@ float pos0, float pos1, float pos2) {
 in vec3 pos_ws;
 void main() {
 
-    float heigt = (pos_ws.y/(SKY_SPHERE_SCALE*2)+0.5);  
-    float f_0 = smoothstep(TRANSITION_0,TRANSITION_1,heigt);
-    float f_1 = smoothstep(TRANSITION_2,TRANSITION_3,heigt);
-    vec3 color_mix = sampleColorRange(heigt,u_ambient_light_colors[0] , u_ambient_light_colors[1] , u_ambient_light_colors[2],
+    float heigt = (pos_ws.y/(SKY_SPHERE_SCALE*2)+0.5);
+    float f_0 = smoothstep(TRANSITION_0, TRANSITION_1, heigt);
+    float f_1 = smoothstep(TRANSITION_2, TRANSITION_3, heigt);
+    vec3 color_mix = sampleColorRange(heigt, u_ambient_light_colors[0], u_ambient_light_colors[1], u_ambient_light_colors[2],
     u_ambient_light_colors_sample_positions[0], u_ambient_light_colors_sample_positions[1], u_ambient_light_colors_sample_positions[2]);
-    FragColor = vec4(color_mix,1.0);
+    FragColor = vec4(color_mix, 1.0);
 }

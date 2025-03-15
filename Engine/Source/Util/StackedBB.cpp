@@ -3,14 +3,14 @@
 #include "../../Core/Scene/Modifiers/Implementations/Colliders/mesh_collider.h"
 #include "../Core/Scene/Scene.h"
 
-StackedBB::StackedBB(Scene *scene, std::vector<collider_modifier*> leafs)
+StackedBB::StackedBB(Scene* scene, std::vector<collider_modifier*> leafs)
 {
 	leaf_nodes = leafs;
 	scene_ = scene;
 	calculateSceneTree();
 }
 
-StackedBB::StackedBB(Scene *scene)
+StackedBB::StackedBB(Scene* scene)
 
 {
 	scene_ = scene;
@@ -28,7 +28,7 @@ void StackedBB::insert_leaf_node(collider_modifier* leaf)
 
 bool StackedBB::contains_leaf_node(const collider_modifier* leaf) const
 {
-	for (const auto l: leaf_nodes)
+	for (const auto l : leaf_nodes)
 	{
 		if (l == leaf)
 		{
@@ -40,7 +40,7 @@ bool StackedBB::contains_leaf_node(const collider_modifier* leaf) const
 
 void StackedBB::recalculate()
 {
-	if(axis_aligned_bb_tree_)
+	if (axis_aligned_bb_tree_)
 	{
 		free(axis_aligned_bb_tree_);
 	}
@@ -121,7 +121,6 @@ void StackedBB::calculateSceneTree()
 		};
 
 
-		
 		//TODO REMOVE THIS TEST
 		//auto c = new Cube3D(global_context_);
 		//scene_root_->addChild(c);
@@ -130,8 +129,9 @@ void StackedBB::calculateSceneTree()
 		//c->set_position_global(BoundingBoxHelper::get_center_of_bb(&temp_bb));
 		////////////////////TEST END //////////////////////////
 		///
-		glm::vec3 color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes.size()), 1};
-		scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb),2,glm::quat(),BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
+		glm::vec3 color = {1, static_cast<float>(i) / static_cast<float>(leaf_nodes.size()), 1};
+		scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb), 2, glm::quat(),
+		                                           BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
 
 		//add new bounding box containing both objects into the array
 		axis_aligned_bb_tree_[leaf_nodes.size() + i] = temp;
@@ -236,7 +236,7 @@ bool StackedBB::is_bb_element_leaf_node(const kdTreeElement* leaf_node)
 }
 
 void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center,
-                                                             float radius, ray_cast_result *result)
+                                               float radius, ray_cast_result* result)
 {
 	result->hit = false;
 	result->distance_from_origin = std::numeric_limits<float>::max();
@@ -251,8 +251,8 @@ void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center
 }
 
 void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
-                                                            const glm::vec3& proximity_center,
-                                                            float radius, ray_cast_result *result)
+                                                const glm::vec3& proximity_center,
+                                                float radius, ray_cast_result* result)
 {
 	if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, proximity_center, radius))
 	{
@@ -272,13 +272,13 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 	//not a leaf node -> continue in the closest child
 	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
 	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
-	if (glm::distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb), proximity_center) <
-		glm::distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb), proximity_center))
+	if (distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb), proximity_center) <
+		distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb), proximity_center))
 	{
 		//child 1 closer
 		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
 		if (result->hit) return;
-		
+
 		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
 		if (result->hit) return;
 	}
@@ -286,7 +286,7 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 	{
 		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
 		if (result->hit) return;
-		
+
 		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
 		if (result->hit) return;
 	}

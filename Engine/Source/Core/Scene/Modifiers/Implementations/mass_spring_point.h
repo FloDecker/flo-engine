@@ -7,10 +7,11 @@
 
 class PhysicsEngine;
 class mass_spring_point;
+
 struct spring
 {
-	mass_spring_point *point_1;
-	mass_spring_point *point_2;
+	mass_spring_point* point_1;
+	mass_spring_point* point_2;
 	float stiffness;
 	float initial_length;
 };
@@ -24,4 +25,3 @@ public:
 	void draw_gui() override;
 	float damp = 0.0f;
 };
-

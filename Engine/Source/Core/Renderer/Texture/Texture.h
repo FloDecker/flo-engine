@@ -3,5 +3,7 @@
 class Texture
 {
 public:
-    virtual void use(unsigned int textureUnit) {}
+	virtual void use(unsigned int textureUnit)
+	{
+	}
 };

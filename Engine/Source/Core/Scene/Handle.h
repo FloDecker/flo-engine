@@ -7,52 +7,50 @@ class Collider;
 
 enum HandlerType
 {
-    not_transforming,
-    move_global_x,
-    move_global_y,
-    move_global_z
+	not_transforming,
+	move_global_x,
+	move_global_y,
+	move_global_z
 };
 
 class Handle : public Object3D
 {
 public:
-    explicit Handle(Scene *scene);
-    void attach_to_object(Object3D* object_3d);
-    void detach();
-    bool is_attached() const;
-    bool is_moving_coord() const;
-    void editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction);
-    void editor_release_handle();
-    void editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction);
+	explicit Handle(Scene* scene);
+	void attach_to_object(Object3D* object_3d);
+	void detach();
+	bool is_attached() const;
+	bool is_moving_coord() const;
+	void editor_click_handle(glm::vec3 camera_pos, glm::vec3 ray_direction);
+	void editor_release_handle();
+	void editor_move_handle(glm::vec3 camera_pos, glm::vec3 ray_direction);
 
-    glm::vec3 last_pos_ = glm::vec3(0, 0, 0);
+	glm::vec3 last_pos_ = glm::vec3(0, 0, 0);
 
-    
-    [[nodiscard]] Object3D* attached_object_3d() const
-    {
-        return attached_object_3d_;
-    }
-    
-private:
-    Mesh3D *arrow_x;
-    Mesh3D *arrow_y;
-    Mesh3D *arrow_z;
 
-    collider_modifier *arrow_x_collider_;
-    collider_modifier *arrow_y_collider_;
-    collider_modifier *arrow_z_collider_;
-    Object3D* attached_object_3d_;
-
+	[[nodiscard]] Object3D* attached_object_3d() const
+	{
+		return attached_object_3d_;
+	}
 
 private:
-    bool attached_ = false;
-    bool handle_mode_global_ = true;
-    HandlerType handler_status = not_transforming;
+	Mesh3D* arrow_x;
+	Mesh3D* arrow_y;
+	Mesh3D* arrow_z;
 
-    glm::vec3 offset_;
-    //-1 not attached
-    //0 = x
-    //1 = y
-    //2 = z
-    
+	collider_modifier* arrow_x_collider_;
+	collider_modifier* arrow_y_collider_;
+	collider_modifier* arrow_z_collider_;
+	Object3D* attached_object_3d_;
+
+
+	bool attached_ = false;
+	bool handle_mode_global_ = true;
+	HandlerType handler_status = not_transforming;
+
+	glm::vec3 offset_;
+	//-1 not attached
+	//0 = x
+	//1 = y
+	//2 = z
 };

@@ -8,11 +8,11 @@
 class camera
 {
 public:
-	camera(float width, float height, eventpp::CallbackList<void (glm::ivec2)> *camera_change_dispatcher);
+	camera(float width, float height, eventpp::CallbackList<void (glm::ivec2)>* camera_change_dispatcher);
 	glm::mat4* getProjection();
 	glm::mat4* getView();
 	void setViewPortDimension(glm::i16vec2 dimentions);
-	void set_render_target(framebuffer_object *target);
+	void set_render_target(framebuffer_object* target);
 	void use() const; //set this render target as active 
 	void setViewPortDimension(float width, float height);
 	void setFOV(float FOV);
@@ -32,7 +32,7 @@ private:
 
 	//specifies the render target the camera is attached to
 	bool has_attached_render_target_ = false;
-	framebuffer_object *camera_render_target_ = nullptr;
+	framebuffer_object* camera_render_target_ = nullptr;
 	glm::vec3 viewDirection_;
 	glm::vec3 positionWS_;
 

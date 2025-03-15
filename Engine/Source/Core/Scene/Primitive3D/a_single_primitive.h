@@ -8,7 +8,7 @@ class a_single_primitive : public Object3D, public i_set_material
 public:
 	bool set_material(ShaderProgram* shader_program) override;
 
-	explicit a_single_primitive(Object3D* parent, primitive_instance *primitive): Object3D(parent)
+	explicit a_single_primitive(Object3D* parent, primitive_instance* primitive): Object3D(parent)
 	{
 		primitive_ = primitive;
 	}
@@ -18,8 +18,6 @@ protected:
 	int draw_self_shadow_pass() override;
 	int draw_self_custom_pass(ShaderProgram* shader_program) override;
 
-	
 private:
-	primitive_instance * primitive_;
+	primitive_instance* primitive_;
 };
-

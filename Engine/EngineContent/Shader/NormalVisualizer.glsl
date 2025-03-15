@@ -12,5 +12,5 @@ void main() {
 flat in vec3 normal_ws;
 
 void main() {
-    FragColor = vec4(normal_ws,1.0);
+    FragColor = vec4(normal_ws, 1.0);
 }

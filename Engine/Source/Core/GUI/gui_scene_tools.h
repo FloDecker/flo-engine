@@ -15,5 +15,5 @@ protected:
 	void gui_tick() override;
 
 private:
-	Scene *scene_;
+	Scene* scene_;
 };

@@ -35,27 +35,26 @@ void physics_object_modifier::draw_gui()
 	ImGui::SeparatorText("Physics Object");
 	ImGui::Checkbox("Fix object", &is_fixed);
 	ImGui::Checkbox("Gravity enabled", &gravity_enabled);
-	ImGui::InputFloat("Mass",&this->mass);
-
+	ImGui::InputFloat("Mass", &this->mass);
 }
 
 void physics_object_modifier::calculate_acceleration()
 {
-	acceleration_ = (force_/mass);
+	acceleration_ = (force_ / mass);
 	if (gravity_enabled)
 	{
-		acceleration_+=physics_constants::gravity_vector;
+		acceleration_ += physics_constants::gravity_vector;
 	}
 }
 
-void physics_object_modifier::integrate_velocity(integrator *integrator, const float delta)
+void physics_object_modifier::integrate_velocity(integrator* integrator, const float delta)
 {
-	velocity_ = integrator->integrate(velocity_,acceleration_,delta);
+	velocity_ = integrator->integrate(velocity_, acceleration_, delta);
 }
 
 void physics_object_modifier::integrate_position(integrator* integrator, float delta) const
 {
-	auto pos_delta = integrator->integrate_delta_only(velocity_,delta);
+	auto pos_delta = integrator->integrate_delta_only(velocity_, delta);
 	parent->move_global(pos_delta);
 }
 

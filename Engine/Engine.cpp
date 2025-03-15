@@ -150,7 +150,7 @@ int main()
 	light_pass_shader->loadFromFile("EngineContent/Shader/DepthOnlyLightpassShader.glsl");
 	light_pass_shader->compileShader();
 	global_context.light_pass_depth_only_shader = light_pass_shader;
-	
+
 	global_context.global_primitives = {
 		.cube = new Cube,
 		.line = new Line,
@@ -171,7 +171,7 @@ int main()
 		.light_pass_depth_only_shader = light_pass_shader,
 	};
 	editorRenderContext->pass = render_pass_main;
-	
+
 
 	//register interaction callbacks
 	glfwSetKeyCallback(window, key_callback);
@@ -183,7 +183,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	auto editor3DCamera = new Camera3D(scene->get_root(), editorRenderContext);
-	
+
 	double renderFrameStart;
 
 
@@ -242,11 +242,10 @@ int main()
 
 	auto* lightTestMaterial = new ShaderProgram();
 	lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
-	lightTestMaterial->set_shader_header_include(DYNAMIC_DIRECTIONAL_LIGHT,true);
-	lightTestMaterial->set_shader_header_include(DYNAMIC_AMBIENT_LIGHT,true);
+	lightTestMaterial->set_shader_header_include(DYNAMIC_DIRECTIONAL_LIGHT, true);
+	lightTestMaterial->set_shader_header_include(DYNAMIC_AMBIENT_LIGHT, true);
 	lightTestMaterial->compileShader();
 
-	
 
 	auto* gaussian_gi_shader = new ShaderProgram();
 	gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
@@ -257,7 +256,6 @@ int main()
 	worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
 	worldPosMat->compileShader();
 
-	
 
 	plane->materials.push_back(lightTestMaterial);
 	sphere->materials.push_back(lightTestMaterial);
@@ -283,11 +281,11 @@ int main()
 	mSphere3->setPositionLocal(0.9, -0.55, -4.3);
 	mSphere3->name = "sphere 3";
 	mSphere3->add_modifier(new physics_object_modifier(mSphere3));
-	
+
 
 	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_1->name = "collision_test_cube_1";
-	collision_test_cube_1->set_position_global(0,-3,0);
+	collision_test_cube_1->set_position_global(0, -3, 0);
 	collision_test_cube_1->set_material(lightTestMaterial);
 	collision_test_cube_1->add_modifier(new box_collider(collision_test_cube_1));
 
@@ -301,11 +299,11 @@ int main()
 	collision_test_cube_2->set_material(lightTestMaterial);
 	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2));
 	collision_test_cube_2->add_modifier(new rigid_body(collision_test_cube_2));
-	
-	
+
+
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
-	mInertiaTest->set_position_global(20,20,20);
+	mInertiaTest->set_position_global(20, 20, 20);
 	mInertiaTest->set_material(lightTestMaterial);
 
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
@@ -470,8 +468,8 @@ int main()
 	scene->recalculate_from_root();
 
 	//ADD DIRECT LIGHT
-	auto direct_scene_light = new direct_light(scene->get_root(), 1024,1024);
-	direct_scene_light->setRotationLocal(-90,0,0);
+	auto direct_scene_light = new direct_light(scene->get_root(), 1024, 1024);
+	direct_scene_light->setRotationLocal(-90, 0, 0);
 	direct_scene_light->intensity = 1;
 
 
@@ -485,12 +483,12 @@ int main()
 	object_plane->set_material(gaussian_gi_shader);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
-	object_plane->setScale(50,50,1);
+	object_plane->setScale(50, 50, 1);
 
 	auto a = new plane_3d(scene->get_root());
 
 	//object_plane->setScale(20);
-	
+
 	//WIDNOWS
 	//INTI GUI MANAGER
 	guiManager = new GUIManager();
@@ -498,14 +496,14 @@ int main()
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
 	guiManager->addGUI(new gui_scene_tools(scene));
-	
+
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
 
 	//INIT TEXTURES FOR RENDER
 	auto framebuffer_texture_color = new Texture2D();
 	framebuffer_texture_color->initialize_as_frame_buffer(windowSize.x, windowSize.y);
-	
+
 	auto framebuffer_texture_depth = new Texture2D();
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
 
@@ -518,7 +516,7 @@ int main()
 
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
-	pp_shader->set_shader_header_include(DEFAULT_HEADERS,false);
+	pp_shader->set_shader_header_include(DEFAULT_HEADERS, false);
 	pp_shader->compileShader();
 	pp_shader->addTexture(framebuffer_texture_color, "color_framebuffer");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
@@ -530,12 +528,12 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		renderFrameStart = glfwGetTime();
-	
+
 		//lightpass 
-		scene->light_pass(editor3DCamera->get_camera()); 
+		scene->light_pass(editor3DCamera->get_camera());
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, windowSize.x, windowSize.y);
-		
+
 		glfwPollEvents(); //input events
 		processInput(editor3DCamera, scene, window); //low level input processing
 
@@ -560,8 +558,8 @@ int main()
 			auto modifiers = scene->handle()->attached_object_3d()->get_modifiers_by_id(10);
 			for (auto modifier : modifiers)
 			{
-				rigid_body *r = dynamic_cast<rigid_body *>(modifier);
-				if (r!= nullptr)
+				auto r = dynamic_cast<rigid_body*>(modifier);
+				if (r != nullptr)
 				{
 					glm::vec3 handler_delta = (scene->handle()->getWorldPosition() - scene->handle()->last_pos_) *
 						static_cast<float>(1.0f / editorRenderContext->deltaTime);
@@ -573,8 +571,8 @@ int main()
 				}
 			}
 		}
-		
-		
+
+
 		//run physics step
 		scene->get_physics_engine()->evaluate_physics_step(editorRenderContext->deltaTime);
 
@@ -584,8 +582,8 @@ int main()
 		gaussian_gi_shader->recompile_if_changed();
 		auto rot = glfwGetTime() * 10;
 		handlertest->look_at_local(mSphere1->getWorldPosition());
-		
-		
+
+
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();
 
@@ -593,16 +591,15 @@ int main()
 		scene->draw_debug_tools(editorRenderContext);
 		//draw scene elements
 		scene->draw_scene(editorRenderContext);
-		
 
-		
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 		glViewport(0, 0, windowSize.x, windowSize.y);
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
 		//post-processing
-		
+
 		pp_shader->use();
 		quad_screen->draw();
 		glEnable(GL_DEPTH_TEST);
@@ -735,7 +732,8 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 				else
 				{
 					//if handle is active check first intersection with handle
-					ray_cast_result a = scene->ray_cast_in_scene_unoptimized(ray_origin,ray_direction,100000, VISIBILITY);
+					ray_cast_result a = scene->ray_cast_in_scene_unoptimized(
+						ray_origin, ray_direction, 100000, VISIBILITY);
 					if (a.hit)
 					{
 						scene->select_object(a.object_3d);

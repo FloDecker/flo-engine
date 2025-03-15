@@ -85,17 +85,17 @@ float intersection_df(vec3 in_field_pos, vec3 trace_direction) {
 
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 box_distances = abs(v_lower_right_upper_left);
-    
+
     vec3 trace_start = in_field_pos;
-    
+
     float last_a = 0.0;
-    
+
     for (int i=0; i < 100; i++) {
-        
-        float a = world_space_coord_voxel_field_lookup(in_field_pos,box_distances).a;
+
+        float a = world_space_coord_voxel_field_lookup(in_field_pos, box_distances).a;
         float d = a * max_travel_distance;
         if (a < 0.07 && last_a > a) {
-            return distance(trace_start,in_field_pos)/trace_direction_length;
+            return distance(trace_start, in_field_pos)/trace_direction_length;
         }
 
         if (!is_in_volume(in_field_pos)) {
@@ -115,13 +115,13 @@ float trace_primary_ray(vec3 trace_start, vec3 trace_direction){
 
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 box_distances = abs(v_lower_right_upper_left);
-    
-    float a = world_space_coord_voxel_field_lookup(trace_start,box_distances).a;
-    float b = world_space_coord_voxel_field_lookup(trace_start+trace_direction*voxel_size,box_distances).a;
+
+    float a = world_space_coord_voxel_field_lookup(trace_start, box_distances).a;
+    float b = world_space_coord_voxel_field_lookup(trace_start+trace_direction*voxel_size, box_distances).a;
     float p  = 0.1;
     //return a;
     return float(a >= p && a < p+0.05);
-    if(b-a >=0.07){
+    if (b-a >=0.07){
         return 1.0;
     }
     else return 0;
@@ -142,10 +142,10 @@ float intersection_df_test(vec3 trace_start, vec3 trace_direction) {
         }
         in_field_pos+=trace_direction * 0.5;
     }
-    
+
 
     for (int i=0; i < 400; i++) {
-        float a = world_space_coord_voxel_field_lookup(in_field_pos,box_distances).a;
+        float a = world_space_coord_voxel_field_lookup(in_field_pos, box_distances).a;
         float d = a * max_travel_distance;
         if (a < 0.07) {
             return 0.01*i;
@@ -165,10 +165,10 @@ void main() {
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 box_distances = abs(v_lower_right_upper_left);
     vec3 direction =  normalize(vec3(1, 1, 1));
-    
+
     vec3 surfaceNormal = calculateNormalFromDistanceFunction(pos_ws, box_distances);
     float d = intersection_df(pos_ws + normal_ws*0.0, direction);
-    
+
     FragColor = vec4(-surfaceNormal, 1.0);
     //if(dot(normal_ws, direction) < 0) {
     //    FragColor = vec4(0.0,0.0,1.0, 1.0);
@@ -176,16 +176,16 @@ void main() {
     //}
 
 
-    FragColor = vec4(vec3(trace_primary_ray(pos_ws,direction)),1.0);
+    FragColor = vec4(vec3(trace_primary_ray(pos_ws, direction)), 1.0);
     return;
 
     if (!is_in_volume(pos_ws)){
-        FragColor = vec4(1.0,0.0,0.0, 1.0);
+        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
         return;
     }
 
     if (d < 0){
-        FragColor = vec4(0.0,1.0,0.0, 1.0);
+        FragColor = vec4(0.0, 1.0, 0.0, 1.0);
         return;
     }
     FragColor = vec4(vec3(d), 1.0);

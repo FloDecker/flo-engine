@@ -38,7 +38,7 @@ void Texture2D::initialize_as_depth_map_render_target(const unsigned int width, 
 	glGenTextures(1, &_texture);
 	glBindTexture(GL_TEXTURE_2D, _texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-	             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -59,7 +59,7 @@ void Texture2D::initialize_as_frame_buffer(unsigned int width, unsigned int heig
 	glGenTextures(1, &_texture);
 	glBindTexture(GL_TEXTURE_2D, _texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -101,13 +101,13 @@ void Texture2D::resize(unsigned int width, unsigned int height)
 		height_ = height;
 		glBindTexture(GL_TEXTURE_2D, _texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-		             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		break;
 	case FRAME_BUFFER_COLOR:
 		width_ = width;
 		height_ = height;
 		glBindTexture(GL_TEXTURE_2D, _texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		break;
 	case IMAGE_TEXTURE:
 		std::cerr << "Can't resize texture\n";

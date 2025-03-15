@@ -14,7 +14,7 @@ public:
 	static glm::i16vec3 cubic_expansion_directions[26];
 
 
-	explicit Voxelizer(Object3D *parent);
+	explicit Voxelizer(Object3D* parent);
 	void recalculate() override;
 	void load_into_voxel_texture(Texture3D* texture_3d) override;
 	void load_into_voxel_texture_df(Texture3D* texture_3d);
@@ -31,6 +31,7 @@ public:
 	glm::i16vec3 get_level_set_matrix_pos_from_ws(const glm::vec3& ws_pos);
 
 	int get_unique_pos_id_in_matrix(glm::i16vec3 p) const;
+
 private:
 	int* level_set_matrix = nullptr;
 	bool is_level_set_matrix_initialized_ = false;
@@ -41,7 +42,8 @@ private:
 
 	//takes a voxel position and 3 vertices that define a triangle in world space, then it recursively expands the zero level set
 	//on the triangle surface
-	void expand_polygon_to_zero_level_set(collider_modifier* collider, unsigned int vertex_id_0, struct_vertex_array* vertex_array,
+	void expand_polygon_to_zero_level_set(collider_modifier* collider, unsigned int vertex_id_0,
+	                                      struct_vertex_array* vertex_array,
 	                                      glm::i16vec3 voxel_to_expand_from,
 	                                      float radius);
 
@@ -51,6 +53,4 @@ private:
 	void calculate_area_filled_by_polygons(Scene* scene_context);
 	void calculate_area_filled_recursive(Scene* scene_context, glm::vec3 ws_upper_right, glm::vec3 ws_lower_left,
 	                                     glm::i16vec3 voxel_upper_right, glm::i16vec3 voxel_lower_left);
-
-protected:
 };

@@ -23,18 +23,15 @@ struct RenderFlags
 };
 
 
-	
-
-
 //holds the information needed to render the current frame 
 struct RenderContext
 {
-	camera *camera = nullptr;
-	light *light = nullptr;
+	camera* camera = nullptr;
+	light* light = nullptr;
 	double deltaTime = 0;
 	RenderFlags flags;
 	render_pass pass = render_pass_main;
-	ShaderProgram *custom_shader = nullptr;
+	ShaderProgram* custom_shader = nullptr;
 
 	//global shaders
 	ShaderProgram* default_shader;

@@ -10,7 +10,6 @@ public:
 protected:
 	void gui_tick() override;
 
-public:
 private:
-	Logger *logger_;
+	Logger* logger_;
 };

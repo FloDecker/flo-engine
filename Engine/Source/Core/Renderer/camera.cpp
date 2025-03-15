@@ -9,8 +9,6 @@ camera::camera(float width, float height, eventpp::CallbackList<void (glm::ivec2
 	{
 		setViewPortDimension(i);
 	});
-	
-	
 }
 
 void camera::setViewPortDimension(glm::i16vec2 dimentions)
@@ -41,14 +39,15 @@ void camera::setViewPortDimension(float width, float height)
 	//update render target if attached
 	if (has_attached_render_target_)
 	{
-		camera_render_target_->resize_attach_textures(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+		camera_render_target_->resize_attach_textures(static_cast<unsigned int>(width),
+		                                              static_cast<unsigned int>(height));
 	}
 }
 
 void camera::recalculateProjection()
 {
 	this->projection = glm::perspective(glm::radians(FOV_), this->width_ / this->height_, nearClippingPlane_,
-										farClippingPlane_);
+	                                    farClippingPlane_);
 }
 
 void camera::setClippingPlanes(float near, float far)
@@ -84,7 +83,7 @@ glm::vec3* camera::getWorldPosition()
 
 void camera::calculateView(glm::mat4 cameraTransform, glm::vec3 cameraPos, glm::vec3 cameraViewDirection)
 {
-	view = glm::inverse(cameraTransform);
+	view = inverse(cameraTransform);
 	positionWS_ = cameraPos;
 	viewDirection_ = cameraViewDirection;
 }

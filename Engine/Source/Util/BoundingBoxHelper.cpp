@@ -25,17 +25,18 @@ void BoundingBoxHelper::get_bounding_box_from_vertex_array(StructBoundingBox* bb
 }
 
 std::vector<glm::vec3> BoundingBoxHelper::get_edges_of_bounding_box(StructBoundingBox* bb,
-                                                                    const glm::mat4x4& transformation_matrix = glm::mat4x4())
+                                                                    const glm::mat4x4& transformation_matrix =
+	                                                                    glm::mat4x4())
 {
 	std::vector<glm::vec3> result = {
-		 bb->min,
+		bb->min,
 		{bb->max.x, bb->min.y, bb->min.z},
 		{bb->min.x, bb->max.y, bb->min.z},
 		{bb->min.x, bb->min.y, bb->max.z},
 		{bb->max.x, bb->max.y, bb->min.z},
 		{bb->max.x, bb->min.y, bb->max.z},
 		{bb->min.x, bb->max.y, bb->max.z},
-		 bb->max
+		bb->max
 	};
 
 	if (transformation_matrix == glm::mat4x4())
@@ -47,7 +48,7 @@ std::vector<glm::vec3> BoundingBoxHelper::get_edges_of_bounding_box(StructBoundi
 	{
 		result[i] = transformation_matrix * glm::vec4(result[i], 1);
 	}
-	
+
 	return result;
 }
 
@@ -68,10 +69,11 @@ void BoundingBoxHelper::get_bounding_box_containing_points(StructBoundingBox* bb
 }
 
 void BoundingBoxHelper::transform_local_bb_to_world_space_axis_aligned(StructBoundingBox* world_space_result,
-	StructBoundingBox* local_bb, const glm::mat4x4& transformation_matrix)
+                                                                       StructBoundingBox* local_bb,
+                                                                       const glm::mat4x4& transformation_matrix)
 {
-	const auto p = get_edges_of_bounding_box(local_bb,transformation_matrix);
-	get_bounding_box_containing_points(world_space_result,&p);
+	const auto p = get_edges_of_bounding_box(local_bb, transformation_matrix);
+	get_bounding_box_containing_points(world_space_result, &p);
 }
 
 void BoundingBoxHelper::get_combined_bounding_box(StructBoundingBox* resulting_box, const StructBoundingBox* box_a,
@@ -88,7 +90,7 @@ void BoundingBoxHelper::get_combined_bounding_box(StructBoundingBox* resulting_b
 void BoundingBoxHelper::bounding_box_to_sphere(StructBoundingSphere* result_sphere,
                                                const StructBoundingBox* bounding_box)
 {
-	result_sphere->radius = glm::distance(bounding_box->max, bounding_box->min);
+	result_sphere->radius = distance(bounding_box->max, bounding_box->min);
 	result_sphere->center = (bounding_box->max + bounding_box->min) * 0.5f;
 }
 
@@ -143,7 +145,7 @@ void BoundingBoxHelper::remove_vertices_not_contained(const StructBoundingBox* b
                                                       std::vector<glm::vec3>* vertices)
 {
 	auto condition = [bounding_box](glm::vec3 x) { return !is_in_bounding_box(bounding_box, x); };
-	vertices->erase(std::remove_if(vertices->begin(), vertices->end(), condition), vertices->end());
+	std::erase_if(*vertices, condition);
 }
 
 std::array<glm::vec3, 8> BoundingBoxHelper::get_vertices(const StructBoundingBox* bounding_box,
@@ -178,11 +180,12 @@ glm::vec3 BoundingBoxHelper::get_half_sizes_of_bb(const StructBoundingBox* bound
 
 float BoundingBoxHelper::get_max_length_of_bb(const StructBoundingBox* bounding_box)
 {
-	return glm::length(get_scale_of_bb(bounding_box));
+	return length(get_scale_of_bb(bounding_box));
 }
 
 bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox* bb,
-	glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws, ray_cast_result *intersection)
+                                                         glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws,
+                                                         ray_cast_result* intersection)
 {
 	*intersection = {};
 	glm::vec3 normals[6] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
@@ -202,7 +205,7 @@ bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox
 		glm::vec3 intersection_point;
 		if (ray_plane_intersection(ray_origin_ws, ray_direction_ws, points[i], normals[i], t, intersection_point))
 		{
-			if (is_in_bounding_box(bb,intersection_point,0.001))
+			if (is_in_bounding_box(bb, intersection_point, 0.001))
 			{
 				if (t < nearestT)
 				{
@@ -217,7 +220,7 @@ bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox
 	intersection->hit = hit;
 	if (hit)
 	{
-		intersection->distance_from_origin = glm::distance(ray_origin_ws, hitPoint);
+		intersection->distance_from_origin = distance(ray_origin_ws, hitPoint);
 		intersection->hit_local = hitPoint;
 		intersection->hit_world_space = hitPoint;
 		intersection->hit_normal_local = hitNormal;
@@ -227,28 +230,29 @@ bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox
 }
 
 
-
 bool BoundingBoxHelper::ray_plane_intersection(
 	const glm::vec3& rayOrigin, const glm::vec3& rayDir, // Ray: Origin & Direction
 	const glm::vec3& planePoint, const glm::vec3& planeNormal, // Plane: Point & Normal
-	float& t, glm::vec3& intersectionPoint) 
+	float& t, glm::vec3& intersectionPoint)
 {
-	float denom = glm::dot(rayDir, planeNormal);
+	float denom = dot(rayDir, planeNormal);
 
 	// Check if the ray is parallel to the plane
-	if (fabs(denom) < 1e-6) {
+	if (fabs(denom) < 1e-6)
+	{
 		return false; // No intersection
 	}
 
-	t = glm::dot(planePoint - rayOrigin, planeNormal) / denom;
+	t = dot(planePoint - rayOrigin, planeNormal) / denom;
 
 	// If t < 0, the intersection is behind the ray's origin
-	if (t < 0) {
-		return false; 
+	if (t < 0)
+	{
+		return false;
 	}
 
 	intersectionPoint = rayOrigin + t * rayDir;
-	return true; 
+	return true;
 }
 
 
@@ -507,14 +511,14 @@ float BoundingBoxHelper::penetration_depth(glm::vec3 axis_to_check, glm::vec3 ha
 {
 	float proj_a = project_cube_on_axis(axis_to_check, half_sizes_a, axis_world_space_a);
 	float proj_b = project_cube_on_axis(axis_to_check, half_sizes_b, axis_world_space_b);
-	float dist = fabs(glm::dot(center_distance, axis_to_check));
+	float dist = fabs(dot(center_distance, axis_to_check));
 
-	return  (proj_a + proj_b) - dist;
+	return (proj_a + proj_b) - dist;
 }
 
 struct_intersection BoundingBoxHelper::are_intersecting(const StructBoundingBox* bounding_box_a,
-                                                     const StructBoundingBox* bounding_box_b,
-                                                     const glm::mat4& transform_a, const glm::mat4& transform_b)
+                                                        const StructBoundingBox* bounding_box_b,
+                                                        const glm::mat4& transform_a, const glm::mat4& transform_b)
 {
 	struct_intersection return_struct;
 
@@ -529,11 +533,11 @@ struct_intersection BoundingBoxHelper::are_intersecting(const StructBoundingBox*
 	glm::vec3 b_normals[3] = {b_x, b_y, b_z};
 
 	glm::vec3 cross_normals[9] = {
-		glm::cross(a_x, b_x), glm::cross(a_x, b_y), glm::cross(a_x, b_z),
-		glm::cross(a_y, b_x), glm::cross(a_y, b_y), glm::cross(a_y, b_z),
-		glm::cross(a_z, b_x), glm::cross(a_z, b_y), glm::cross(a_z, b_z)
+		cross(a_x, b_x), cross(a_x, b_y), cross(a_x, b_z),
+		cross(a_y, b_x), cross(a_y, b_y), cross(a_y, b_z),
+		cross(a_z, b_x), cross(a_z, b_y), cross(a_z, b_z)
 	};
-	
+
 
 	float min_penetration = FLT_MAX;
 	glm::vec3 best_axis;
@@ -584,8 +588,8 @@ struct_intersection BoundingBoxHelper::are_intersecting(const StructBoundingBox*
 	{
 		auto axis = normalize(b_normals[i]);
 		float penetration = penetration_depth(axis, half_sizes_a,
-											  axis_world_space_a, half_sizes_b,
-											  axis_world_space_b, center_distance);
+		                                      axis_world_space_a, half_sizes_b,
+		                                      axis_world_space_b, center_distance);
 		if (penetration < 0) return {}; // Separating axis found, no collision
 
 		//check normals of a
@@ -602,8 +606,8 @@ struct_intersection BoundingBoxHelper::are_intersecting(const StructBoundingBox*
 	{
 		auto axis = normalize(cross_normals[i]);
 		float penetration = penetration_depth(axis, half_sizes_a,
-											  axis_world_space_a, half_sizes_b,
-											  axis_world_space_b, center_distance);
+		                                      axis_world_space_a, half_sizes_b,
+		                                      axis_world_space_b, center_distance);
 		if (penetration < 0) return {}; // Separating axis found, no collision
 
 		//check normals of a
@@ -617,11 +621,11 @@ struct_intersection BoundingBoxHelper::are_intersecting(const StructBoundingBox*
 
 	printf("intersection_type %i \n", intersection_type);
 
-	if (glm::dot(center_distance, best_axis) < 0) best_axis = -best_axis;
+	if (dot(center_distance, best_axis) < 0) best_axis = -best_axis;
 	return_struct.intersected = true;
 	return_struct.collision_normal = best_axis;
 
-	float estimated_depth = fabs(glm::dot(center_distance, best_axis));
+	float estimated_depth = fabs(dot(center_distance, best_axis));
 	return_struct.collision_point = glm::vec3(
 		transform_b * glm::vec4(get_center_of_bb(bounding_box_b) + best_axis * (estimated_depth * 0.5f), 1));
 	return return_struct;

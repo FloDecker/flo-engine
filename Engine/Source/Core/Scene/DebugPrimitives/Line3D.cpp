@@ -38,7 +38,6 @@ void Line3D::set_positions(glm::vec3 pos_0, glm::vec3 pos_1)
 	this->setScale(distance, distance, distance);
 	this->set_position_global(pos_0);
 	auto direction_normalized = normalize(pos_0 - pos_1);
-	
-	setRotationLocal(glm::quatLookAt(direction_normalized,vec_y));
-	
+
+	setRotationLocal(quatLookAt(direction_normalized, vec_y));
 }

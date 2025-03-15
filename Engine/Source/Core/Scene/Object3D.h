@@ -21,13 +21,13 @@ constexpr auto vec_x = glm::vec3(1, 0, 0);
 constexpr auto vec_y = glm::vec3(0, 1, 0);
 constexpr auto vec_z = glm::vec3(0, 0, 1);
 
-constexpr auto vec_x_w_vector = glm::vec4(1, 0, 0,0);
-constexpr auto vec_y_w_vector = glm::vec4(0, 1, 0,0);
-constexpr auto vec_z_w_vector = glm::vec4(0, 0, 1,0);
+constexpr auto vec_x_w_vector = glm::vec4(1, 0, 0, 0);
+constexpr auto vec_y_w_vector = glm::vec4(0, 1, 0, 0);
+constexpr auto vec_z_w_vector = glm::vec4(0, 0, 1, 0);
 
-constexpr auto vec_x_w_point = glm::vec4(1, 0, 0,1);
-constexpr auto vec_y_w_point = glm::vec4(0, 1, 0,1);
-constexpr auto vec_z_w_point = glm::vec4(0, 0, 1,1);
+constexpr auto vec_x_w_point = glm::vec4(1, 0, 0, 1);
+constexpr auto vec_y_w_point = glm::vec4(0, 1, 0, 1);
+constexpr auto vec_z_w_point = glm::vec4(0, 0, 1, 1);
 
 
 //an object is the most basic type in a Scene
@@ -60,8 +60,6 @@ class Object3D
 
 	glm::vec3 transform_angles_engine_to_quat(glm::vec3 angles);
 	glm::vec3 transform_angles_glm_to_engine(glm::vec3 angles);
-
-	
 
 public:
 	Object3D(Object3D* parent);
@@ -131,7 +129,7 @@ public:
 
 	glm::quat get_quaternion_rotation() const;
 
-	Scene * get_scene() const;
+	Scene* get_scene() const;
 
 	////////////
 	void addChild(Object3D* child);
@@ -154,7 +152,7 @@ protected:
 	glm::vec3 rightVectorLocal = glm::vec3(1, 0, 0);
 	virtual int drawSelf(); //implement drawing code here,its executed when traversing the scene tree every frame 
 	virtual int draw_self_shadow_pass(); //called when running shadow pass
-	virtual int draw_self_custom_pass(ShaderProgram *shader_program); //called when running custom pass
+	virtual int draw_self_custom_pass(ShaderProgram* shader_program); //called when running custom pass
 	virtual void on_transform_changed(); //called whenever the objects transforms change
 
 	//FLAGS

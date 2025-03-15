@@ -35,24 +35,24 @@ vec3 get_distance_blur(float distance) {
     float offset = 1.0 / distance;
 
     vec2 offsets[9] = vec2[](
-    vec2(-offset,  offset),
-    vec2( 0.0f,    offset),
-    vec2( offset,  offset),
-    vec2(-offset,  0.0f),
-    vec2( 0.0f,    0.0f),
-    vec2( offset,  0.0f),
+    vec2(-offset, offset),
+    vec2(0.0f, offset),
+    vec2(offset, offset),
+    vec2(-offset, 0.0f),
+    vec2(0.0f, 0.0f),
+    vec2(offset, 0.0f),
     vec2(-offset, -offset),
-    vec2( 0.0f,   -offset),
-    vec2( offset, -offset)
+    vec2(0.0f, -offset),
+    vec2(offset, -offset)
     );
 
     vec3 sampleTex[9];
-    for(int i = 0; i < 9; i++)
+    for (int i = 0; i < 9; i++)
     {
         sampleTex[i] = vec3(texture(color_framebuffer, TexCoords.st + offsets[i]));
     }
     vec3 col = vec3(0.0);
-    for(int i = 0; i < 9; i++) {
+    for (int i = 0; i < 9; i++) {
         col += sampleTex[i] * kernel[i];
     }
     return col;
@@ -67,10 +67,10 @@ void main()
     vec3 light_map_sampled = vec3(texture(light_map, TexCoords*2.0));
 
     //color = vec3(d*100000);
-   
+
     //FragColor = vec4(vec3(color),1.0);
 
-    FragColor = vec4(vec3(color),1.0);
-    
+    FragColor = vec4(vec3(color), 1.0);
+
     //FragColor = vec4(0.4);
 }

@@ -8,7 +8,7 @@ class GUIManager
 public:
 	void addGUI(GUIBase* gui);
 	void tickGUI() const;
+
 private:
 	std::vector<GUIBase*> GUIs;
-	
 };

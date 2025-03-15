@@ -12,7 +12,7 @@ rigid_body::rigid_body(Object3D* parent_game_object_3d)
 	auto parent_collider = parent_game_object_3d->get_modifiers_by_id(100);
 	for (auto modifier : parent_collider)
 	{
-		collider_modifier* c = dynamic_cast<collider_modifier*>(modifier);
+		auto c = dynamic_cast<collider_modifier*>(modifier);
 		if (c == nullptr)
 		{
 			std::cerr << "tried casting modifier with id 100 but couldn't cast object to collider modifier\n";
@@ -23,7 +23,7 @@ rigid_body::rigid_body(Object3D* parent_game_object_3d)
 			c->associated_rigid_body = this;
 		}
 	}
-	
+
 	//pos_center_of_mass_object_space_ = collider->get_center_of_mass_local();
 	//pos_center_of_mass_object_space_initial_ = pos_center_of_mass_object_space_;
 
@@ -39,7 +39,6 @@ rigid_body::rigid_body(Object3D* parent_game_object_3d)
 	// 	}
 	// }
 
-	
 
 	//TODO : fix this 
 	//inverse_inertia_tensor_object_space_ = inverse(collider_->get_inertia_tensor());

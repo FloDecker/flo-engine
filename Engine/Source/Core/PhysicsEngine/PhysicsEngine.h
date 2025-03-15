@@ -14,7 +14,6 @@ namespace physics_constants
 {
 	static constexpr float gravity = -9.81f;
 	static constexpr auto gravity_vector = glm::vec3(0.0f, gravity, 0.0f);
-	
 }
 
 class PhysicsEngine
@@ -29,20 +28,19 @@ public:
 
 	// mass spring
 	void register_mass_spring_object(physics_object_modifier* object);
-	bool add_spring(mass_spring_point *point_1, mass_spring_point *point_2, float stiffness);
+	bool add_spring(mass_spring_point* point_1, mass_spring_point* point_2, float stiffness);
 
 	//rigid body
 	void register_rigid_body(rigid_body* rigid_body);
-	
+
 	//integration methods
 	euler_integrator* integrator_euler = new euler_integrator();
 
-	
 private:
 	std::vector<physics_object_modifier*> mass_spring_objects_; //all physic objects to consider in simulation
 	std::vector<spring*> springs_; //springs for mass spring systems
 
 	std::vector<rigid_body*> rigid_bodies_;
-	
-	Scene *scene_;
+
+	Scene* scene_;
 };

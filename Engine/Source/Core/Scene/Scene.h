@@ -20,7 +20,6 @@ class PhysicsEngine;
 class sky_box;
 
 
-
 class SceneRoot : public Object3D
 {
 public:
@@ -29,23 +28,21 @@ public:
 };
 
 
-
-
 //scene context contains scene specific information
 class Scene
 {
 public:
 	Scene(GlobalContext* global_context, const std::string& name);
 	std::vector<PointLight*> get_scene_point_lights();
-	direct_light *get_scene_direct_light() const;
+	direct_light* get_scene_direct_light() const;
 	void recalculate_at(Object3D* parent);
 	void recalculate_from_root();
 	Object3D* get_root() const;
 	GlobalContext* get_global_context() const;
 	PhysicsEngine* get_physics_engine() const;
-	
+
 	StackedBB* get_bb(collision_channel c) const;
-	
+
 	visual_debug_tools* get_debug_tools() const;
 
 	//render passes
@@ -59,7 +56,7 @@ public:
 	void deselect();
 
 	void get_colliders_in_bounding_box(StructBoundingBox* bounding_box,
-	collision_channel channel, std::vector<collider_modifier*>* result);
+	                                   collision_channel channel, std::vector<collider_modifier*>* result);
 
 	//NOT IMPLEMENTED
 	std::vector<glm::vec3>* get_polygons_in_bounding_box(StructBoundingBox* bounding_box) const;
@@ -77,9 +74,9 @@ public:
 	StructColorRange* get_ao_color_at(int samples, glm::vec3 ws_pos) const;
 
 	//register scene objects
-	void register_global_light(direct_light *direct_light);
-	void register_sky_box(sky_box *skybox);
-	
+	void register_global_light(direct_light* direct_light);
+	void register_sky_box(sky_box* skybox);
+
 	//register collider
 	void register_collider(collider_modifier* collider);
 
@@ -87,14 +84,14 @@ public:
 	//COLLISIONS AND INTERSECTIONS
 
 	void recalculate_collision_channel_bb_hierarchy(collision_channel channel) const;
-	
+
 	//get colliders by collision channel
 	std::vector<collider_modifier*> get_colliders(collision_channel collision_channel);
 	std::vector<collider_intersection> generate_overlaps_in_channel(collision_channel channel);
 
 	//ray trace in scene (theses always work independent of the bb tree 
-	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance, collision_channel collision_channel);
-
+	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
+	                                              collision_channel collision_channel);
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
@@ -122,13 +119,11 @@ private:
 
 	//direct light
 	bool has_direct_light_ = false;
-	direct_light *direct_light_ = nullptr;
+	direct_light* direct_light_ = nullptr;
 
 	//skybox
 	bool has_sky_box = false;
-	sky_box *sky_box_ = nullptr;
+	sky_box* sky_box_ = nullptr;
 
-	RenderContext *light_pass_render_context_;
-
-
+	RenderContext* light_pass_render_context_;
 };
