@@ -11,11 +11,12 @@
 #include "../../Scene/Object3D.h"
 #include "../RenderContext.h"
 #include "../../Scene/Scene.h"
+#include "../../Scene/SceneTools/gaussianizer.h"
 
 
 class Texture;
-const char* vertexShaderTag = "[vertex]";
-const char* fragmentShaderTag = "[fragment]";
+auto vertexShaderTag = "[vertex]";
+auto fragmentShaderTag = "[fragment]";
 
 void ShaderProgram::createVertexShaderInstruction(std::string* strPointer) const
 {
@@ -46,7 +47,7 @@ void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) con
 		strPointer->append(FRAGMENT_SHADER_HEADER_AMBIENT_LIGHT);
 		strPointer->append("\n");
 	}
-	
+
 	strPointer->append(this->fragmentShader_);
 }
 
@@ -128,9 +129,9 @@ int ShaderProgram::compileShader(bool recompile)
 
 	std::string vertexShaderComplete;
 	this->createVertexShaderInstruction(&vertexShaderComplete);
-	char* pVertex = (char*)(malloc(vertexShaderComplete.size() + 1));
+	auto pVertex = static_cast<char*>(malloc(vertexShaderComplete.size() + 1));
 	memcpy_s(pVertex, vertexShaderComplete.size() + 1, vertexShaderComplete.data(), vertexShaderComplete.size() + 1);
-	glShaderSource(vertexShader, 1, &pVertex,NULL);
+	glShaderSource(vertexShader, 1, &pVertex, nullptr);
 	glCompileShader(vertexShader);
 
 	int success;
@@ -139,7 +140,7 @@ int ShaderProgram::compileShader(bool recompile)
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
 		std::cout << "Failed to compile vertex shader Log: " << infoLog << std::endl;
 		std::cout << "FAILED VERTEX SHADER:" << std::endl;
 		std::cout << pVertex << std::endl;
@@ -162,17 +163,17 @@ int ShaderProgram::compileShader(bool recompile)
 
 	std::string fragmentShaderComplete;
 	this->createFragmentShaderInstruction(&fragmentShaderComplete);
-	char* pFragment = static_cast<char*>(malloc(fragmentShaderComplete.size() + 1));
+	auto pFragment = static_cast<char*>(malloc(fragmentShaderComplete.size() + 1));
 	memcpy_s(pFragment, fragmentShaderComplete.size() + 1, fragmentShaderComplete.data(),
 	         fragmentShaderComplete.size() + 1);
-	glShaderSource(fragmentShader, 1, &pFragment,NULL);
+	glShaderSource(fragmentShader, 1, &pFragment, nullptr);
 	glCompileShader(fragmentShader);
 
 
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
 		std::cout << "Failed to compile fragment shader Log: " << infoLog << std::endl;
 		std::cout << "FAILED FRAGMENT SHADER:" << std::endl;
 		std::cout << pFragment << std::endl;
@@ -209,10 +210,10 @@ int ShaderProgram::compileShader(bool recompile)
 	glLinkProgram(this->shaderProgram_);
 
 	GLint isLinked = 0;
-	glGetProgramiv(this->shaderProgram_, GL_LINK_STATUS, (int*)&isLinked);
+	glGetProgramiv(this->shaderProgram_, GL_LINK_STATUS, &isLinked);
 	if (isLinked == GL_FALSE)
 	{
-		glGetProgramInfoLog(this->shaderProgram_, 512, NULL, infoLog);
+		glGetProgramInfoLog(this->shaderProgram_, 512, nullptr, infoLog);
 		std::cout << "Failed to link shader " << infoLog << std::endl;
 	}
 
@@ -253,10 +254,10 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 {
 	if (flag_include_default_header_)
 	{
-		this->setUniformMatrix4("mMatrix", glm::value_ptr(object_3d->getGlobalTransform()));
-		this->setUniformMatrix4("vMatrix", glm::value_ptr(*renderContext->camera->getView()));
-		this->setUniformMatrix4("pMatrix", glm::value_ptr(*renderContext->camera->getProjection()));
-		this->set_uniform_vec3_f("cameraPosWS", glm::value_ptr(*renderContext->camera->getWorldPosition()));
+		this->setUniformMatrix4("mMatrix", value_ptr(object_3d->getGlobalTransform()));
+		this->setUniformMatrix4("vMatrix", value_ptr(*renderContext->camera->getView()));
+		this->setUniformMatrix4("pMatrix", value_ptr(*renderContext->camera->getProjection()));
+		this->set_uniform_vec3_f("cameraPosWS", value_ptr(*renderContext->camera->getWorldPosition()));
 	}
 
 	//if (flag_include_dynamic_directional_light_)
@@ -265,9 +266,23 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 	//}
 	if (flag_include_dynamic_ambient_light_)
 	{
-		StructColorRange *color_range = object_3d->get_scene()->get_ao_color_at(0,glm::vec3(0,0,0));
+		StructColorRange* color_range = object_3d->get_scene()->get_ao_color_at(0, glm::vec3(0, 0, 0));
 		this->set_uniform_array_float(name_ambient_light_colors_sample_positions, &color_range->sample_points);
 		this->set_uniform_array_vec3_f(name_u_ambient_light_colors, &color_range->colors);
+	}
+
+	if (flag_gaussian_lighting_)
+	{
+		auto result = std::vector<gaussian>();
+		object_3d->get_scene()->get_gaussian_approx_at(object_3d->getWorldPosition(), &result);
+		for (unsigned int i = 0; i < result.size(); ++i)
+		{
+			std::string baseName = "gaussians[" + std::to_string(i) + "]";
+			set_uniform_vec3_f((baseName + ".mean").c_str(), value_ptr(result[i].mean));
+			set_uniform_vec3_f((baseName + ".normal").c_str(), value_ptr(result[i].normal));
+			set_uniform_vec3_f((baseName + ".color").c_str(), value_ptr(result[i].color));
+			set_uniform_float((baseName + ".radius").c_str(), result[i].radius);
+		}
 	}
 }
 
@@ -284,8 +299,8 @@ void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
 {
 	addTexture(texture, samplerName);
 	//TODO change name depending on sampler name
-	set_uniform_vec3_f("voxel_field_lower_left", glm::value_ptr(texture->get_voxel_field_lower_left()));
-	set_uniform_vec3_f("voxel_field_upper_right", glm::value_ptr(texture->get_voxel_field_upper_right()));
+	set_uniform_vec3_f("voxel_field_lower_left", value_ptr(texture->get_voxel_field_lower_left()));
+	set_uniform_vec3_f("voxel_field_upper_right", value_ptr(texture->get_voxel_field_upper_right()));
 
 	set_uniform_float("voxel_field_step_size", texture->get_step_size());
 
@@ -306,6 +321,9 @@ void ShaderProgram::set_shader_header_include(shader_header_includes include, bo
 		break;
 	case DYNAMIC_AMBIENT_LIGHT:
 		flag_include_dynamic_ambient_light_ = include_header;
+		break;
+	case GAUSSIAN_LIGHTING:
+		flag_gaussian_lighting_ = include_header;
 		break;
 	}
 	if (compiled) compileShader(true);
@@ -353,9 +371,9 @@ void ShaderProgram::set_uniform_array_vec3_f(const GLchar* name, const std::vect
 	{
 		std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
 	}
-	
+
 	GLint location = glGetUniformLocation(shaderProgram_, name);
-	glUniform3fv(location, color_array->size(), glm::value_ptr(color_array->at(0)));
+	glUniform3fv(location, color_array->size(), value_ptr(color_array->at(0)));
 }
 
 void ShaderProgram::setUniformMatrix4(const GLchar* name, const GLfloat* value)
@@ -384,7 +402,7 @@ void ShaderProgram::set_uniform_array_float(const GLchar* name, const std::vecto
 	{
 		std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
 	}
-	
+
 	GLint location = glGetUniformLocation(shaderProgram_, name);
 	glUniform1fv(location, float_array->size(), float_array->data());
 }

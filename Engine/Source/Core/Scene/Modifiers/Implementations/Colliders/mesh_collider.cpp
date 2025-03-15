@@ -96,11 +96,11 @@ void mesh_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::v
 				ray_cast_result_out->hit_normal_local = face_normal;
 				ray_cast_result_out->hit_world_space = hit_ws;
 				ray_cast_result_out->hit_normal_world_space = parent->getGlobalTransform() * glm::vec4(
-				ray_cast_result_out->hit_normal_local, 0);
+					ray_cast_result_out->hit_normal_local, 0);
 				ray_cast_result_out->object_3d = parent;
 				ray_cast_result_out->vertex_indices[0] = vertex_array->indices->at(i);
-				ray_cast_result_out->vertex_indices[1] = vertex_array->indices->at(i+1);
-				ray_cast_result_out->vertex_indices[2] = vertex_array->indices->at(i+2);
+				ray_cast_result_out->vertex_indices[1] = vertex_array->indices->at(i + 1);
+				ray_cast_result_out->vertex_indices[2] = vertex_array->indices->at(i + 2);
 			}
 		}
 	}
@@ -120,7 +120,7 @@ struct_intersection mesh_collider::check_intersection_with(box_collider* box)
 void mesh_collider::is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_result* result)
 {
 	ray_cast_result temp_ray_cast_result;
-	
+
 	const std::vector<struct_vertex_array*>* vertex_arrays_of_geometry = &vertex_arrays_;
 	for (unsigned int a = 0; a < vertex_arrays_of_geometry->size(); a++)
 	{
@@ -130,10 +130,10 @@ void mesh_collider::is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_
 			std::memcpy(result, &temp_ray_cast_result, sizeof(ray_cast_result));
 		}
 	}
-
 }
 
-void mesh_collider::is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id, ray_cast_result* result) const
+void mesh_collider::is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id,
+                                                 ray_cast_result* result) const
 {
 	result->hit = false;
 	result->distance_from_origin = std::numeric_limits<float>::max();
@@ -147,21 +147,24 @@ void mesh_collider::is_in_proximity_vertex_array(glm::vec3 center_ws, float radi
 		vertex v0 = vertex_array->vertices->at(vertex_array->indices->at(i));
 		vertex v1 = vertex_array->vertices->at(vertex_array->indices->at(i + 1));
 		vertex v2 = vertex_array->vertices->at(vertex_array->indices->at(i + 2));
-		glm::vec3 face_normal = glm::normalize(v0.normal + v1.normal + v2.normal);
+		glm::vec3 face_normal = normalize(v0.normal + v1.normal + v2.normal);
 
-		RayIntersectionHelper::get_closest_point_on_triangle(v0.position,v1.position,v2.position,proximity_center_local, &temp_result);
+		RayIntersectionHelper::get_closest_point_on_triangle(v0.position, v1.position, v2.position,
+		                                                     proximity_center_local, &temp_result);
 
 		temp_result.hit_world_space = get_parent()->transform_vertex_to_world_space(temp_result.hit_local);
-		temp_result.distance_from_origin = glm::distance(temp_result.hit_world_space, center_ws);
-		
-		if (temp_result.distance_from_origin < radius && temp_result.distance_from_origin < result->distance_from_origin)
+		temp_result.distance_from_origin = distance(temp_result.hit_world_space, center_ws);
+
+		if (temp_result.distance_from_origin < radius && temp_result.distance_from_origin < result->
+			distance_from_origin)
 		{
 			result->hit = true;
 			result->distance_from_origin = temp_result.distance_from_origin;
 			result->hit_local = temp_result.hit_local;
 			result->hit_world_space = temp_result.hit_world_space;
 			result->hit_normal_local = temp_result.hit_normal_local;
-			result->hit_normal_world_space = get_parent()->transform_vector_to_world_space(temp_result.hit_normal_local);
+			result->hit_normal_world_space = get_parent()->
+				transform_vector_to_world_space(temp_result.hit_normal_local);
 		}
 	}
 }
@@ -191,28 +194,27 @@ glm::vec3 mesh_collider::get_center_of_mass_local()
 
 void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, unsigned amount)
 {
-	std::cout<<"scatter_points_on_surface\n";
-	std::random_device rd;  // Seed the random number generator
+	std::cout << "scatter_points_on_surface\n";
+	std::random_device rd; // Seed the random number generator
 	std::mt19937 gen(rd()); // Mersenne Twister PRNG
 	std::uniform_int_distribution<int> dist_vertex_arrays(0, vertex_arrays_.size() - 1); // Range [1, 100]
 
 	int randomNumber = dist_vertex_arrays(gen);
-	std::cout<<"scatter_points_on_surface 2\n"; 
+	std::cout << "scatter_points_on_surface 2\n";
 
 	for (int i = 0; i < amount; i++)
 	{
 		auto v = vertex_arrays_.at(dist_vertex_arrays(gen));
 		std::uniform_int_distribution<int> dist_vertices(0, v->indices->size() - 1); // Range [1, 100]
 		auto random_index = dist_vertices(gen);
-		random_index-= random_index%3;
-		random_index = std::max(0,random_index);
+		random_index -= random_index % 3;
+		random_index = std::max(0, random_index);
 		auto v_1 = v->vertices->at(v->indices->at(random_index));
 		auto v_2 = v->vertices->at(v->indices->at(random_index + 1));
 		auto v_3 = v->vertices->at(v->indices->at(random_index + 2));
 
-		auto p = math_util::get_random_point_in_triangle(v_1.position,v_2.position,v_3.position);
-		
-		points->push_back({parent->transform_vertex_to_world_space(p)});
+		auto p = math_util::get_random_point_in_triangle(v_1.position, v_2.position, v_3.position);
+		auto n = normalize(v_1.normal + v_2.normal + v_3.normal);
+		points->push_back({parent->transform_vertex_to_world_space(p), parent->transform_vector_to_world_space(n)});
 	}
-	
 }
