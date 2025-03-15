@@ -32,7 +32,6 @@
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
-#include "Source/Core/Scene/SceneTools/gaussianinzer.h"
 #include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
 #include "Source/Core/Scene/Primitive3D/plane_3d.h"
 #define WINDOW_HEIGHT (1080/2)
@@ -490,9 +489,6 @@ int main()
 
 	auto a = new plane_3d(scene->get_root());
 
-	auto gaussianizer = new gaussianinzer(scene->get_root());
-	gaussianizer->name = "gaussianizer";
-	
 	//object_plane->setScale(20);
 	
 	//WIDNOWS

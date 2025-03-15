@@ -274,7 +274,7 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 	if (flag_gaussian_lighting_)
 	{
 		auto result = std::vector<gaussian>();
-		object_3d->get_scene()->get_gaussian_approx_at(object_3d->getWorldPosition(), &result);
+		//object_3d->get_scene()->get_gaussian_approx_at(object_3d->getWorldPosition(), &result);
 		for (unsigned int i = 0; i < result.size(); ++i)
 		{
 			std::string baseName = "gaussians[" + std::to_string(i) + "]";
