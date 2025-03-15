@@ -5,6 +5,7 @@
 #include "../Renderer/uniform_buffer_object.h"
 #include "../Renderer/Primitives/Cube.h"
 #include "../Renderer/Primitives/Line.h"
+#include "../Renderer/Primitives/primtitive_plane.h"
 #include "../Renderer/Shader/ShaderProgram.h"
 
 enum log_type
@@ -58,10 +59,11 @@ private:
 };
 
 //primitives used for debugging
-struct debug_primitives
+struct global_primitives
 {
 	Cube* cube;
 	Line* line;
+	primtitive_plane *plane;
 };
 
 //Global context holds information that is needed across levels, such as tags 
@@ -69,7 +71,7 @@ struct GlobalContext
 {
 	TagManager tag_manager;
 	Logger *logger = new Logger();
-	debug_primitives debug_primitives;
+	global_primitives global_primitives;
 	uniform_buffer_object *uniform_buffer_object;
 	
 	//global shaders

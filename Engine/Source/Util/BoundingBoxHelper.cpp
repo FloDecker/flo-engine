@@ -202,7 +202,7 @@ bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox
 		glm::vec3 intersection_point;
 		if (ray_plane_intersection(ray_origin_ws, ray_direction_ws, points[i], normals[i], t, intersection_point))
 		{
-			if (is_in_bounding_box(bb,intersection_point))
+			if (is_in_bounding_box(bb,intersection_point,0.001))
 			{
 				if (t < nearestT)
 				{

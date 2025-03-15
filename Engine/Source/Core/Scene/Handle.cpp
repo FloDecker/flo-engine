@@ -26,15 +26,15 @@ Handle::Handle(Scene* scene): Object3D(scene->get_root())
 	handler_blue->compileShader();
 	
 	arrow_x = new Mesh3D(this, engine_handler_arrow_model);
-	arrow_x->add_material(handler_red);
+	arrow_x->set_material(handler_red);
 	arrow_x->setRotationLocalDegrees(0, 90, 0);
 
 	arrow_y = new Mesh3D(this, engine_handler_arrow_model);
-	arrow_y->add_material(handler_green);
+	arrow_y->set_material(handler_green);
 	arrow_y->setRotationLocalDegrees(-90, 0, 0);
 
 	arrow_z = new Mesh3D(this, engine_handler_arrow_model);
-	arrow_z->add_material(handler_blue);
+	arrow_z->set_material(handler_blue);
 
 	arrow_x_collider_ = dynamic_cast<collider_modifier*>(arrow_x->get_modifiers_by_id(100)[0]);
 	arrow_y_collider_ = dynamic_cast<collider_modifier*>(arrow_y->get_modifiers_by_id(100)[0]);

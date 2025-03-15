@@ -4,9 +4,10 @@
 #include <GL/glew.h>
 #include "../../CommonDataStructures/StructVertexArray.h"
 
-class plane : public primitive
+class primtitive_plane : public primitive
 {
 public:
+	primtitive_plane();
 	static bool loaded;
 	static unsigned int VBO;
 	static unsigned int VAO;

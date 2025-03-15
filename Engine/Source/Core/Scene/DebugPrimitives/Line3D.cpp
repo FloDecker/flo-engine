@@ -26,7 +26,7 @@ int Line3D::drawSelf()
 		                                                                *this->renderContext->camera->
 		                                                                       getWorldPosition()));
 	global_context_->default_color_debug_shader->set_uniform_vec3_f("color", value_ptr(color));
-	global_context_->debug_primitives.line->draw();
+	global_context_->global_primitives.line->draw();
 	return 1;
 }
 

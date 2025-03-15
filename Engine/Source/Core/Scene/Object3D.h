@@ -50,7 +50,7 @@ class Object3D
 	Object3D* parent = nullptr;
 
 
-	glm::mat4 global_transform_inverse_;
+	glm::mat4 global_transform_inverse_ = glm::identity<glm::mat4>();
 
 
 	int draw_(struct RenderContext* parentRenderContext);

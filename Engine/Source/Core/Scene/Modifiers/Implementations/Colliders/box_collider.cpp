@@ -9,7 +9,7 @@ void box_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::ve
                                                 bool ignore_back_face, ray_cast_result* ray_cast_result_out)
 {
 	
-	BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bounding_box, ray_direction_ls, ray_direction_ls,ray_cast_result_out);
+	BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bounding_box, ray_origin_ls, ray_direction_ls,ray_cast_result_out);
 	
 }
 

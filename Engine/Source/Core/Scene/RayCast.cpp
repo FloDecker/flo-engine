@@ -3,7 +3,7 @@
 #include <chrono>
 #include <gtx/string_cast.hpp>
 
-#include "Mesh3D.h"
+#include "Primitive3D/Mesh3D.h"
 #include "../Scene/Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 

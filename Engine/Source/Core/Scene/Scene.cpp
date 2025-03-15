@@ -41,6 +41,7 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	handle_ = new Handle(this);
 	visual_debug_tools_ = new visual_debug_tools(this);
 	light_pass_render_context_ = new RenderContext();
+	light_pass_render_context_->light_pass_depth_only_shader = global_context->light_pass_depth_only_shader;
 	light_pass_render_context_->pass = render_pass_lighting;
 }
 

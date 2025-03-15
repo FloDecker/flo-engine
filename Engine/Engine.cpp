@@ -6,7 +6,7 @@
 #include "Source/Core/Renderer/Shader/ShaderProgram.h"
 #include "Source/Core/Renderer/Primitives/vertex_array.h"
 #include "Source/Core/Scene/Object3D.h"
-#include "Source/Core/Scene/Mesh3D.h"
+#include "Source/Core/Scene/Primitive3D/Mesh3D.h"
 #include "Source/Core/Renderer/RenderContext.h"
 #include "gtx/string_cast.hpp"
 #include "Source/Core/Editor/GlobalContext.h"
@@ -34,6 +34,7 @@
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #include "Source/Core/Scene/SceneTools/gaussianinzer.h"
 #include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
+#include "Source/Core/Scene/Primitive3D/plane_3d.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -151,9 +152,10 @@ int main()
 	light_pass_shader->compileShader();
 	global_context.light_pass_depth_only_shader = light_pass_shader;
 	
-	global_context.debug_primitives = {
+	global_context.global_primitives = {
 		.cube = new Cube,
 		.line = new Line,
+		.plane = new primtitive_plane,
 	};
 
 	global_context.uniform_buffer_object = new uniform_buffer_object();
@@ -265,7 +267,7 @@ int main()
 	/////ADD SCENE GEOMETRY:
 
 	auto mSphere1 = new Mesh3D(scene->get_root(), sphere);
-	mSphere1->add_material(worldPosMat);
+	mSphere1->set_material(worldPosMat);
 	mSphere1->setPositionLocal(20, 0, 0);
 	mSphere1->setRotationLocalDegrees(0, 0, 0);
 	mSphere1->name = "sphere 1";
@@ -287,7 +289,7 @@ int main()
 	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_1->name = "collision_test_cube_1";
 	collision_test_cube_1->set_position_global(0,-3,0);
-	collision_test_cube_1->add_material(lightTestMaterial);
+	collision_test_cube_1->set_material(lightTestMaterial);
 	collision_test_cube_1->add_modifier(new box_collider(collision_test_cube_1));
 
 	auto rigid_body_test_cube_1 = new rigid_body(collision_test_cube_1);
@@ -297,7 +299,7 @@ int main()
 
 	auto collision_test_cube_2 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_2->name = "collision_test_cube_2";
-	collision_test_cube_2->add_material(lightTestMaterial);
+	collision_test_cube_2->set_material(lightTestMaterial);
 	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2));
 	collision_test_cube_2->add_modifier(new rigid_body(collision_test_cube_2));
 	
@@ -305,7 +307,7 @@ int main()
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
 	mInertiaTest->set_position_global(20,20,20);
-	mInertiaTest->add_material(lightTestMaterial);
+	mInertiaTest->set_material(lightTestMaterial);
 
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
 	//auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
@@ -315,7 +317,7 @@ int main()
 	mInertiaTest->add_modifier(rigid_body_mod);
 
 	auto mSphere_phyics_1 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_1->add_material(worldPosMat);
+	mSphere_phyics_1->set_material(worldPosMat);
 	mSphere_phyics_1->setPositionLocal(10, 0, 0);
 	mSphere_phyics_1->name = "mSphere_phyics_1";
 	auto spring1 = new mass_spring_point(mSphere_phyics_1);
@@ -323,7 +325,7 @@ int main()
 	mSphere_phyics_1->add_modifier(spring1);
 
 	auto mSphere_phyics_2 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_2->add_material(worldPosMat);
+	mSphere_phyics_2->set_material(worldPosMat);
 	mSphere_phyics_2->setPositionLocal(5, 0, 0);
 	mSphere_phyics_2->name = "mSphere_phyics_2";
 	auto spring2 = new mass_spring_point(mSphere_phyics_2);
@@ -332,7 +334,7 @@ int main()
 
 
 	auto mSphere_phyics_3 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_3->add_material(worldPosMat);
+	mSphere_phyics_3->set_material(worldPosMat);
 	mSphere_phyics_3->setPositionLocal(5, 2, 0);
 	mSphere_phyics_3->name = "mSphere_phyics_3";
 	auto spring3 = new mass_spring_point(mSphere_phyics_3);
@@ -340,7 +342,7 @@ int main()
 	mSphere_phyics_3->add_modifier(spring3);
 
 	auto mSphere_phyics_4 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_4->add_material(worldPosMat);
+	mSphere_phyics_4->set_material(worldPosMat);
 	mSphere_phyics_4->setPositionLocal(10, 2, 0);
 	mSphere_phyics_4->name = "mSphere_phyics_4";
 	auto spring4 = new mass_spring_point(mSphere_phyics_4);
@@ -462,7 +464,7 @@ int main()
 	auto handlertest = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
 	handlertest->setPositionLocal(20, 0, 0);
 	handlertest->name = "handlertest";
-	handlertest->add_material(normal_debug_shader);
+	handlertest->set_material(normal_debug_shader);
 
 
 	//TODO: this call should be automatically called when changing the scene
@@ -481,10 +483,12 @@ int main()
 	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
-	object_plane->add_material(gaussian_gi_shader);
+	object_plane->set_material(gaussian_gi_shader);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50,50,1);
+
+	auto a = new plane_3d(scene->get_root());
 
 	auto gaussianizer = new gaussianinzer(scene->get_root());
 	gaussianizer->name = "gaussianizer";

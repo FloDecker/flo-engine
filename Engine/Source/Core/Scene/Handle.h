@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Mesh3D.h"
+#include "Primitive3D/Mesh3D.h"
 #include "../../Util/AssetLoader.h"
 
 class collider_modifier;

@@ -1,51 +1,59 @@
-﻿#include "plane.h"
+﻿#include "primtitive_plane.h"
 
 
-bool plane::loaded = false;
-unsigned int plane::VBO = 0;
-unsigned int plane::VAO = 0;
+bool primtitive_plane::loaded = false;
+unsigned int primtitive_plane::VBO = 0;
+unsigned int primtitive_plane::VAO = 0;
 
 // A --- B
 // |     |
 // D --- C
 
-vertex plane::points_[4] = {
+vertex primtitive_plane::points_[4] = {
 
 	{
-		.position= glm::vec3(-0.5, 0.5, 0),
-		.normal= glm::vec3(0, 0, 1),
-		.tex_coords= glm::vec2(1, 0),
+		.position = glm::vec3(-0.5, 0.5, 0),
+		.normal = glm::vec3(0, 0, 1),
+		.tex_coords = glm::vec2(1, 0),
 	},
+
+{
+	.position = glm::vec3(-0.5, -0.5, 0),
+	.normal = glm::vec3(0, 0, 1),
+	.tex_coords = glm::vec2(0, 0),
+},
 	{
-		.position= glm::vec3(0.5, 0.5, 0),
-		.normal= glm::vec3(0, 0, 1),
-		.tex_coords= glm::vec2(1, 1),
+		.position = glm::vec3(0.5, 0.5, 0),
+		.normal = glm::vec3(0, 0, 1),
+		.tex_coords = glm::vec2(1, 1),
 	},
 
 	{
-		.position= glm::vec3(0.5, -0.5, 0),
-		.normal= glm::vec3(0, 0, 1),
-		.tex_coords= glm::vec2(0, 1),
+		.position = glm::vec3(0.5, -0.5, 0),
+		.normal = glm::vec3(0, 0, 1),
+		.tex_coords = glm::vec2(0, 1),
 	},
-	{
-		.position= glm::vec3(-0.5, -0.5, 0.5),
-		.normal= glm::vec3(0, 0, 1),
-		.tex_coords= glm::vec2(0, 0),
-	},
+
+
 };
 
 
-int plane::load()
+primtitive_plane::primtitive_plane()
+{
+	load_static();
+}
+
+int primtitive_plane::load()
 {
 	return load_static();
 }
 
-int plane::draw()
+int primtitive_plane::draw()
 {
 	return draw_static();
 }
 
-int plane::draw_static()
+int primtitive_plane::draw_static()
 {
 	if (!loaded)
 	{
@@ -54,12 +62,12 @@ int plane::draw_static()
 
 
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 	return 1;
 }
 
-int plane::load_static()
+int primtitive_plane::load_static()
 {
 	if (loaded)
 	{
@@ -86,7 +94,7 @@ int plane::load_static()
 	return 1;
 }
 
-primitive_type plane::get_primitive_type()
+primitive_type primtitive_plane::get_primitive_type()
 {
 	return primitive_type::plane;
 }
