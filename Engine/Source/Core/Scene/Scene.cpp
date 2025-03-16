@@ -110,6 +110,8 @@ std::vector<collider_intersection> Scene::generate_overlaps_in_channel(collision
 ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
                                                      collision_channel collision_channel)
 {
+	auto start = std::chrono::system_clock::now();
+
 	ray_cast_result result;
 	auto temp_result = ray_cast_result();
 	double min_distance = std::numeric_limits<double>::max();
@@ -128,7 +130,22 @@ ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3
 			}
 		}
 	}
+	auto end = std::chrono::system_clock::now();
 
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
+	get_global_context()->logger->print_info(time_string);
+	return result;
+}
+
+ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
+	collision_channel collision_channel)
+{
+	
+	ray_cast_result result;
+	result.distance_from_origin = std::numeric_limits<double>::max();
+	auto bb_tree = scene_bb[collision_channel];
+	bb_tree->scene_geometry_raycast(origin, direction, &result, max_distance);
 	return result;
 }
 

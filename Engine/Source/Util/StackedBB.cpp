@@ -250,6 +250,31 @@ void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center
 	std::cerr << "no entry object in stacked BB\n";
 }
 
+void StackedBB::scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction,
+	ray_cast_result* result, float ray_length)
+{
+	auto start = std::chrono::system_clock::now();
+
+	result->hit = false;
+	result->distance_from_origin = std::numeric_limits<float>::max();
+
+	
+	//if scene provides bb tree search it
+	if (get_scene_bb_entry_element() != nullptr)
+	{
+		auto bb_root_node = get_scene_bb_entry_element();
+		recursive_scene_geometry_raycast(bb_root_node, ray_start, ray_direction, result, ray_length);
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		//auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
+		//scene_->get_global_context()->logger->print_info(time_string);
+
+		return;
+	}
+	
+	std::cerr << "no entry object in stacked BB\n";
+}
+
 void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
                                                 const glm::vec3& proximity_center,
                                                 float radius, ray_cast_result* result)
@@ -290,4 +315,58 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
 		if (result->hit) return;
 	}
+}
+
+void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_check, const glm::vec3& ray_start,
+	const glm::vec3& ray_direction, ray_cast_result* result, float ray_length)
+{
+	if (!BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bb_to_check->bb, ray_start, ray_direction, result))
+	{
+		result->hit = false;
+		return;
+	}
+	
+	//is leaf node
+	if (is_bb_element_leaf_node(bb_to_check))
+	{
+		auto coll = get_scene_bb_element_leaf(bb_to_check);
+		coll->ray_intersection_world_space(ray_start, ray_direction,ray_length , true, result);
+		return;
+	}
+
+	auto r_0 = ray_cast_result();
+	auto r_1 = ray_cast_result();
+	
+	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
+	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
+
+	recursive_scene_geometry_raycast(child_0, ray_start, ray_direction, &r_0, ray_length);
+	recursive_scene_geometry_raycast(child_1, ray_start, ray_direction, &r_1, ray_length);
+
+	if (r_0.hit && r_1.hit)
+	{
+		//hit in both boxes
+		if (r_0.distance_from_origin < r_1.distance_from_origin)
+		{
+			//r0 is closer
+			copy_ray_cast_result(&r_0,result);
+			return;
+		} else
+		{
+			copy_ray_cast_result(&r_1,result);
+			return;
+		}
+	}
+	if (r_0.hit)
+	{
+		copy_ray_cast_result(&r_0,result);
+		return;
+	}
+
+	if (r_1.hit)
+	{
+		copy_ray_cast_result(&r_1,result);
+		return;
+	}
+	result->hit = false;
 }

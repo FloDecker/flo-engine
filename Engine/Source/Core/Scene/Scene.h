@@ -92,6 +92,8 @@ public:
 	//ray trace in scene (theses always work independent of the bb tree 
 	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                              collision_channel collision_channel);
+	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
+											  collision_channel collision_channel);
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
