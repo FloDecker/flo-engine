@@ -9,5 +9,4 @@ public:
 	static glm::vec3 normalize_angles_vec3(glm::vec3 angles);
 	static glm::quat vector_rotation_to_quat(glm::vec3 rotation, float angle_rad);
 	static glm::vec3 to_euler(glm::quat q);
-
 };

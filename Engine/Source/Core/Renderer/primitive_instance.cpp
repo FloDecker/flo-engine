@@ -16,18 +16,20 @@ primitive_instance::primitive_instance(Object3D* parent, ::primitive* primitive)
 	this->shaderProgram_ = nullptr;
 }
 
-primitive_instance::primitive_instance(Object3D* parent, ::primitive* primitive, ShaderProgram* shaderProgram):primitive_instance(parent, primitive)
+primitive_instance::primitive_instance(Object3D* parent, ::primitive* primitive,
+                                       ShaderProgram* shaderProgram): primitive_instance(parent, primitive)
 {
 	set_shader(shaderProgram);
 }
 
 void primitive_instance::draw(RenderContext* render_context) const
 {
-	ShaderProgram *p;
+	ShaderProgram* p;
 	if (shaderProgram_ == nullptr || !shaderProgram_->is_compiled())
 	{
 		p = render_context->default_shader;
-	} else
+	}
+	else
 	{
 		p = shaderProgram_;
 	}
@@ -42,9 +44,12 @@ void primitive_instance::draw(RenderContext* render_context) const
 void primitive_instance::draw_shadow_pass(RenderContext* render_context) const
 {
 	render_context->light_pass_depth_only_shader->use();
-	render_context->light_pass_depth_only_shader->setUniformMatrix4("mMatrix", glm::value_ptr(parent_->getGlobalTransform()));
+	render_context->light_pass_depth_only_shader->
+	                setUniformMatrix4("mMatrix", value_ptr(parent_->getGlobalTransform()));
 	render_context->light_pass_depth_only_shader->setUniformMatrix4("lightSpaceMatrix",
-							  glm::value_ptr(render_context->light->get_light_space_matrix()));
+	                                                                value_ptr(
+		                                                                render_context->light->
+		                                                                get_light_space_matrix()));
 	primitive->draw();
 }
 
@@ -71,8 +76,10 @@ void primitive_instance::set_shader(ShaderProgram* shader_program)
 	shaderProgram_ = shader_program;
 
 	//TODO: not correct if there are multiple light maps 
-	if (shaderProgram_->receives_dynamic_directional_light() && parent_->get_scene()->get_scene_direct_light() != nullptr)
+	if (shaderProgram_->receives_dynamic_directional_light() && parent_->get_scene()->get_scene_direct_light() !=
+		nullptr)
 	{
-		shaderProgram_->addTexture(parent_->get_scene()->get_scene_direct_light()->light_map(),"direct_light_map_texture");
+		shaderProgram_->addTexture(parent_->get_scene()->get_scene_direct_light()->light_map(),
+		                           "direct_light_map_texture");
 	}
 }

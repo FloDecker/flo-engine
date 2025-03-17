@@ -30,8 +30,6 @@ class rigid_body final : public physics_object_modifier
 	void update_inverse_inertia_tensor_world_space();
 	void update_angular_velocity();
 
-
-
 public:
 	rigid_body(Object3D* parent_game_object_3d);
 	int get_id() override;
@@ -60,14 +58,12 @@ public:
 	glm::mat3 get_inverse_inertia_tensor_world_space() const;
 	glm::vec3 get_velocity() const;
 
-	
-	collider_modifier *collider; 
+
+	collider_modifier* collider;
 	//colliders associated with this rigid body
 	//TODO : one rigid body should be able to have more colliders
 	//std::unordered_set<collider_modifier*> colliders;
 
 	//physical characteristics
 	float bounciness = 0.2f;
-
-
 };

@@ -32,9 +32,9 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 			                             20);
 
 
-			glm::vec3 v_rel_a = rigid_body_a->get_velocity() + glm::cross(
+			glm::vec3 v_rel_a = rigid_body_a->get_velocity() + cross(
 				rigid_body_a->get_angular_velocity(), a_center_collision_ws);
-			glm::vec3 v_rel_b = rigid_body_b->get_velocity() + glm::cross(
+			glm::vec3 v_rel_b = rigid_body_b->get_velocity() + cross(
 				rigid_body_b->get_angular_velocity(), b_center_collision_ws);
 
 			glm::vec3 v_rel = v_rel_a - v_rel_b;
@@ -42,23 +42,23 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 			float avg_bounciness = (c.collider_a->associated_rigid_body->bounciness + c.collider_b->
 				associated_rigid_body->bounciness) * 0.5;
 
-			if (glm::dot(v_rel, c.collision.collision_normal) < 0)
+			if (dot(v_rel, c.collision.collision_normal) < 0)
 			{
 				//collision
-				float J = (-(1 + avg_bounciness) * glm::dot(v_rel, c.collision.collision_normal)) /
-					(1 / rigid_body_a->mass) + (1 / rigid_body_b->mass) + glm::dot(
-						glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
-							           a_center_collision_ws, c.collision.collision_normal), a_center_collision_ws) +
-						glm::cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * glm::cross(
-							           b_center_collision_ws, c.collision.collision_normal), b_center_collision_ws)
+				float J = (-(1 + avg_bounciness) * dot(v_rel, c.collision.collision_normal)) /
+					(1 / rigid_body_a->mass) + (1 / rigid_body_b->mass) + dot(
+						cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * cross(
+							      a_center_collision_ws, c.collision.collision_normal), a_center_collision_ws) +
+						cross(rigid_body_a->get_inverse_inertia_tensor_world_space() * cross(
+							      b_center_collision_ws, c.collision.collision_normal), b_center_collision_ws)
 						, c.collision.collision_normal);
 
 				rigid_body_a->current_linear_impulse += J * (c.collision.collision_normal / rigid_body_a->mass);
 				rigid_body_b->current_linear_impulse -= J * (c.collision.collision_normal / rigid_body_b->mass);
 
-				rigid_body_a->current_angular_impulse += glm::cross(
+				rigid_body_a->current_angular_impulse += cross(
 					a_center_collision_ws, J * c.collision.collision_normal);
-				rigid_body_b->current_angular_impulse -= glm::cross(
+				rigid_body_b->current_angular_impulse -= cross(
 					b_center_collision_ws, J * c.collision.collision_normal);
 
 
@@ -75,7 +75,7 @@ void PhysicsEngine::evaluate_physics_step(double delta_t)
 	{
 		auto pos_1 = spring->point_1->get_parent()->getWorldPosition();
 		auto pos_2 = spring->point_2->get_parent()->getWorldPosition();
-		auto l = glm::distance(pos_1, pos_2);
+		auto l = distance(pos_1, pos_2);
 		auto force_direction = (pos_1 - pos_2) / l;
 		auto f = -spring->stiffness * (l - spring->initial_length);
 		spring->point_1->add_force(force_direction * f);

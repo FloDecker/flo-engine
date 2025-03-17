@@ -8,23 +8,24 @@
 class Line : public primitive
 {
 public:
-    explicit Line();
-    int load() override;
-    int draw() override;
-    static bool loaded;
-    static unsigned int VBO;
-    static unsigned int VAO;
+	explicit Line();
+	int load() override;
+	int draw() override;
+	static bool loaded;
+	static unsigned int VBO;
+	static unsigned int VAO;
+
 private:
-    vertex points_[2] = {
-        {
-            glm::vec3(0, 0, 0),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0, 0, 1),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        }
-    };
+	vertex points_[2] = {
+		{
+			glm::vec3(0, 0, 0),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0, 0, 1),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		}
+	};
 };

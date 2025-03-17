@@ -3,14 +3,15 @@
 #include "../../Core/Scene/Modifiers/Implementations/Colliders/mesh_collider.h"
 #include "../Core/Scene/Scene.h"
 
-StackedBB::StackedBB(Scene *scene, std::vector<collider_modifier*> leafs)
+
+StackedBB::StackedBB(Scene* scene, std::vector<collider_modifier*> leafs)
 {
 	leaf_nodes = leafs;
 	scene_ = scene;
 	calculateSceneTree();
 }
 
-StackedBB::StackedBB(Scene *scene)
+StackedBB::StackedBB(Scene* scene)
 
 {
 	scene_ = scene;
@@ -28,7 +29,7 @@ void StackedBB::insert_leaf_node(collider_modifier* leaf)
 
 bool StackedBB::contains_leaf_node(const collider_modifier* leaf) const
 {
-	for (const auto l: leaf_nodes)
+	for (const auto l : leaf_nodes)
 	{
 		if (l == leaf)
 		{
@@ -40,7 +41,7 @@ bool StackedBB::contains_leaf_node(const collider_modifier* leaf) const
 
 void StackedBB::recalculate()
 {
-	if(axis_aligned_bb_tree_)
+	if (axis_aligned_bb_tree_)
 	{
 		free(axis_aligned_bb_tree_);
 	}
@@ -121,7 +122,6 @@ void StackedBB::calculateSceneTree()
 		};
 
 
-		
 		//TODO REMOVE THIS TEST
 		//auto c = new Cube3D(global_context_);
 		//scene_root_->addChild(c);
@@ -130,8 +130,9 @@ void StackedBB::calculateSceneTree()
 		//c->set_position_global(BoundingBoxHelper::get_center_of_bb(&temp_bb));
 		////////////////////TEST END //////////////////////////
 		///
-		glm::vec3 color = {1, static_cast<float>(i)/static_cast<float>(leaf_nodes.size()), 1};
-		scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb),2,glm::quat(),BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
+		glm::vec3 color = {1, static_cast<float>(i) / static_cast<float>(leaf_nodes.size()), 1};
+		scene_->get_debug_tools()->draw_debug_cube(BoundingBoxHelper::get_center_of_bb(&temp_bb), 2, glm::quat(),
+		                                           BoundingBoxHelper::get_scale_of_bb(&temp_bb), color);
 
 		//add new bounding box containing both objects into the array
 		axis_aligned_bb_tree_[leaf_nodes.size() + i] = temp;
@@ -236,7 +237,7 @@ bool StackedBB::is_bb_element_leaf_node(const kdTreeElement* leaf_node)
 }
 
 void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center,
-                                                             float radius, ray_cast_result *result)
+                                               float radius, ray_cast_result* result)
 {
 	result->hit = false;
 	result->distance_from_origin = std::numeric_limits<float>::max();
@@ -250,9 +251,34 @@ void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center
 	std::cerr << "no entry object in stacked BB\n";
 }
 
+void StackedBB::scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction,
+	ray_cast_result* result, float ray_length, Object3D* ignore)
+{
+	auto start = std::chrono::system_clock::now();
+
+	result->hit = false;
+	result->distance_from_origin = std::numeric_limits<float>::max();
+
+	
+	//if scene provides bb tree search it
+	if (get_scene_bb_entry_element() != nullptr)
+	{
+		auto bb_root_node = get_scene_bb_entry_element();
+		recursive_scene_geometry_raycast(bb_root_node, ray_start, ray_direction, result, ray_length, ignore);
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		//auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
+		//scene_->get_global_context()->logger->print_info(time_string);
+
+		return;
+	}
+	
+	std::cerr << "no entry object in stacked BB\n";
+}
+
 void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check,
-                                                            const glm::vec3& proximity_center,
-                                                            float radius, ray_cast_result *result)
+                                                const glm::vec3& proximity_center,
+                                                float radius, ray_cast_result* result)
 {
 	if (!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, proximity_center, radius))
 	{
@@ -272,13 +298,13 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 	//not a leaf node -> continue in the closest child
 	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
 	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
-	if (glm::distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb), proximity_center) <
-		glm::distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb), proximity_center))
+	if (distance(BoundingBoxHelper::get_center_of_bb(&child_0->bb), proximity_center) <
+		distance(BoundingBoxHelper::get_center_of_bb(&child_1->bb), proximity_center))
 	{
 		//child 1 closer
 		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
 		if (result->hit) return;
-		
+
 		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
 		if (result->hit) return;
 	}
@@ -286,8 +312,73 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 	{
 		recurse_proximity_check_bb_tree(child_1, proximity_center, radius, result);
 		if (result->hit) return;
-		
+
 		recurse_proximity_check_bb_tree(child_0, proximity_center, radius, result);
 		if (result->hit) return;
 	}
+}
+
+void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_check, const glm::vec3& ray_start,
+	const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore)
+{
+	if (!BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bb_to_check->bb, ray_start, ray_direction, result) &&
+		!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, ray_start))
+	{
+		result->hit = false;
+		return;
+	}
+	
+	//is leaf node
+	if (is_bb_element_leaf_node(bb_to_check))
+	{
+		auto coll = get_scene_bb_element_leaf(bb_to_check);
+		if (coll->get_parent() == ignore)
+		{
+			result->hit = false;
+			return;
+		}
+		
+		coll->ray_intersection_world_space(ray_start, ray_direction,ray_length , true, result);
+		if (result->hit)
+		{
+			result->object_3d = coll->get_parent();
+		}
+		return;
+	}
+
+	auto r_0 = ray_cast_result();
+	auto r_1 = ray_cast_result();
+	
+	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
+	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
+
+	recursive_scene_geometry_raycast(child_0, ray_start, ray_direction, &r_0, ray_length, ignore);
+	recursive_scene_geometry_raycast(child_1, ray_start, ray_direction, &r_1, ray_length, ignore);
+
+	if (r_0.hit && r_1.hit)
+	{
+		//hit in both boxes
+		if (r_0.distance_from_origin < r_1.distance_from_origin)
+		{
+			//r0 is closer
+			copy_ray_cast_result(&r_0,result);
+			return;
+		} else
+		{
+			copy_ray_cast_result(&r_1,result);
+			return;
+		}
+	}
+	if (r_0.hit)
+	{
+		copy_ray_cast_result(&r_0,result);
+		return;
+	}
+
+	if (r_1.hit)
+	{
+		copy_ray_cast_result(&r_1,result);
+		return;
+	}
+	result->hit = false;
 }

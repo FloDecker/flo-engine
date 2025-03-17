@@ -10,26 +10,26 @@ void main() {
 
     pos_ws = (mMatrix * vec4(aPos, 1.0)).xyz;
     vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
-    gl_Position = pMatrix * vertexCamSpace; 
+    gl_Position = pMatrix * vertexCamSpace;
 }
 
 [fragment]
 in vec3 cam_pos_ws;
 in vec3 vertexPosWs;
 
-const float R0 = 6360e3; // Earth surface radius
-const float Ra = 6380e3; // Earth atmosphere top raduis
-const vec3 bR = vec3(58e-7, 135e-7, 331e-7); // Rayleigh scattering coefficient
-const vec3 bMs = vec3(2e-5); // Mie scattering coefficients
+const float R0 = 6360e3;// Earth surface radius
+const float Ra = 6380e3;// Earth atmosphere top raduis
+const vec3 bR = vec3(58e-7, 135e-7, 331e-7);// Rayleigh scattering coefficient
+const vec3 bMs = vec3(2e-5);// Mie scattering coefficients
 const vec3 bMe = bMs * 1.1;
-const float I = direct_light_intensity; // Sun intensity
-const vec3 C = vec3(0., -R0, 0.); // Earth center point
+const float I = direct_light_intensity;// Sun intensity
+const vec3 C = vec3(0., -R0, 0.);// Earth center point
 
 // Calculate densities $\rho$.
 // Returns vec2(rho_rayleigh, rho_mie)
 // Note that intro version is more complicated and adds clouds by abusing Mie scattering density. That's why it's a separate function
 vec2 densitiesRM(vec3 p) {
-    float h = max(0., length(p - C) - R0); // calculate height from Earth surface
+    float h = max(0., length(p - C) - R0);// calculate height from Earth surface
     return vec2(exp(-h/8e3), exp(-h/12e2));
 }
 

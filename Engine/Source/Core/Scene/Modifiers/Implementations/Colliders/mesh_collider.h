@@ -4,10 +4,10 @@
 
 class Mesh;
 
-class mesh_collider final: public  collider_modifier
+class mesh_collider final : public collider_modifier
 {
 public:
-	mesh_collider(Object3D* parent_game_object_3d,std::vector<struct_vertex_array*> vertex_arrays)
+	mesh_collider(Object3D* parent_game_object_3d, std::vector<struct_vertex_array*> vertex_arrays)
 		: collider_modifier(parent_game_object_3d), vertex_arrays_(vertex_arrays)
 	{
 	}
@@ -19,7 +19,7 @@ public:
 	mesh_collider(Object3D* parent_game_object_3d, Mesh* mesh);
 
 	void ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::vec3 ray_direction_ls, float ray_length,
-		bool ignore_back_face, ray_cast_result* ray_cast_result_out) override;
+	                                  bool ignore_back_face, ray_cast_result* ray_cast_result_out) override;
 
 	struct_intersection check_intersection(collider_modifier* other) override;
 	struct_intersection check_intersection_with(box_collider* box) override;
@@ -29,7 +29,7 @@ public:
 	void scatter_points_on_surface(std::vector<vertex>* points, unsigned amount) override;
 
 private:
-	void is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id, ray_cast_result* result) const;
+	void is_in_proximity_vertex_array(glm::vec3 center_ws, float radius, unsigned int vertex_array_id,
+	                                  ray_cast_result* result) const;
 	std::vector<struct_vertex_array*> vertex_arrays_;
-
 };

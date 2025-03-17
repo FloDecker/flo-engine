@@ -5,10 +5,12 @@
 #include <ext/quaternion_trigonometric.hpp>
 
 
-float angle_utils::normalizeAngle(float angle) {
+float angle_utils::normalizeAngle(float angle)
+{
 	constexpr float twoPi = 2.0 * glm::pi<float>();
 	angle = fmod(angle, twoPi); // Use modulo to bring angle within [-2π, 2π)
-	if (angle < 0) {
+	if (angle < 0)
+	{
 		angle += twoPi; // Adjust to [0, 2π)
 	}
 	return angle;
@@ -16,26 +18,30 @@ float angle_utils::normalizeAngle(float angle) {
 
 glm::vec3 angle_utils::normalize_angles_vec3(const glm::vec3 angles)
 {
-	return {glm::clamp(normalizeAngle(angles.x), -glm::pi<float>()*0.5f, glm::pi<float>()*0.5f),normalizeAngle(angles.y),normalizeAngle(angles.z)};
+	return {
+		glm::clamp(normalizeAngle(angles.x), -glm::pi<float>() * 0.5f, glm::pi<float>() * 0.5f),
+		normalizeAngle(angles.y), normalizeAngle(angles.z)
+	};
 }
 
 glm::quat angle_utils::vector_rotation_to_quat(const glm::vec3 rotation, const float angle_rad)
 {
-	return glm::angleAxis(angle_rad, rotation);
+	return angleAxis(angle_rad, rotation);
 	const auto normalized_axis = normalize(rotation);
 	const float half_ange = angle_rad / 2.0f;
 	const float sin_half_angle = std::sin(half_ange);
-	
+
 	auto q = glm::quat();
 	q.w = cos(half_ange);
 	q.x = sin_half_angle * normalized_axis.x;
 	q.y = sin_half_angle * normalized_axis.y;
 	q.z = sin_half_angle * normalized_axis.z;
-	
+
 	return q;
 }
 
-glm::vec3 angle_utils::to_euler(glm::quat q) {
+glm::vec3 angle_utils::to_euler(glm::quat q)
+{
 	glm::vec3 angles;
 
 	// roll (x-axis rotation)

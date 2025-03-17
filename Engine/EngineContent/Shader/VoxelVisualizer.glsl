@@ -24,7 +24,7 @@ uniform int voxel_field_depth;
 uniform int voxel_field_height;
 uniform int voxel_field_width;
 #define max_iteration 1000
-#define shadow_color vec3(0.1,0.1,0.2)
+#define shadow_color vec3(0.1, 0.1, 0.2)
 //returns the multiplactor for v so that it gets scaled so that the resulting vector is step_size longer in x
 float step_length_for_x(vec3 v, float step_size){
     return step_size/v.x;
@@ -52,7 +52,7 @@ vec3 hit_on_plane(vec3 plane_normal, vec3 point_on_plane, vec3 ray_origin, vec3 
 vec4 world_space_coord_voxel_field_lookup(vec3 pos, vec3 voxel_field_size){
     vec3 t = pos - voxel_field_lower_left;
     t = t / voxel_field_size;
-    return texture(voxelData,t);
+    return texture(voxelData, t);
 }
 
 
@@ -67,15 +67,15 @@ vec3 visualization_xray() {
     vec3 col_out = vec3(0.0);
 
     for (int i = 0; i < 100; i++){
-        if(!is_in_volume(voxel_traversal_pos)){
+        if (!is_in_volume(voxel_traversal_pos)){
             voxel_traversal_pos+= cam_direction*0.1;
-            
+
         } else {
-        float a = world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a ;
-        if(a < 0.01){
-            col_out+=vec3(1.0)*0.01;
-        }
-        voxel_traversal_pos+= cam_direction*0.1;
+            float a = world_space_coord_voxel_field_lookup(voxel_traversal_pos, box_distances).a;
+            if (a < 0.01){
+                col_out+=vec3(1.0)*0.01;
+            }
+            voxel_traversal_pos+= cam_direction*0.1;
         }
 
     }
@@ -95,12 +95,12 @@ vec3 visualization_solid() {
 
 
     for (int i = 0; i < 100; i++){
-        if(world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a > 0.0){
-            if(!is_in_volume(voxel_traversal_pos)){break;}
+        if (world_space_coord_voxel_field_lookup(voxel_traversal_pos, box_distances).a > 0.0){
+            if (!is_in_volume(voxel_traversal_pos)){ break; }
             col_out.r+=0.05;
         }
         voxel_traversal_pos+= cam_direction*0.1;
-            
+
     }
     return vec3(float(col_out.r > 0.01));
 }
@@ -117,17 +117,17 @@ vec3 visualization_solid_df(float range_lower, float range_heigher) {
 
 
     for (int i = 0; i < 100; i++){
-        if(!is_in_volume(voxel_traversal_pos)){
+        if (!is_in_volume(voxel_traversal_pos)){
             voxel_traversal_pos+= cam_direction*0.5;
-            
+
         } else {
-            float a = world_space_coord_voxel_field_lookup(voxel_traversal_pos,box_distances).a;
-        if(a > range_lower &&
+            float a = world_space_coord_voxel_field_lookup(voxel_traversal_pos, box_distances).a;
+            if (a > range_lower &&
             a < range_heigher){
-            return vec3(0.0,0.0,i/100.0);
-        }
-        
-        voxel_traversal_pos+= cam_direction*0.1;
+                return vec3(0.0, 0.0, i/100.0);
+            }
+
+            voxel_traversal_pos+= cam_direction*0.1;
         }
 
     }
@@ -138,10 +138,10 @@ vec3 visualization_solid_df(float range_lower, float range_heigher) {
 float intersection_df(vec3 trace_start, vec3 trace_direction) {
     float max_travel_distance = 8.0*(2.0/14.0);
     trace_direction = normalize(trace_direction);
-    
+
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 box_distances = abs(v_lower_right_upper_left);
-    
+
     vec3 in_field_pos = trace_start;
     for (int i=0; i < max_iteration; i++) {
         if (is_in_volume(in_field_pos)) {
@@ -151,7 +151,7 @@ float intersection_df(vec3 trace_start, vec3 trace_direction) {
     }
 
     for (int i=0; i < 400; i++) {
-        float a = world_space_coord_voxel_field_lookup(in_field_pos,box_distances).a;
+        float a = world_space_coord_voxel_field_lookup(in_field_pos, box_distances).a;
         float d = a * max_travel_distance;
         if (a < 0.07) {
             return 0.01*i;
@@ -162,7 +162,7 @@ float intersection_df(vec3 trace_start, vec3 trace_direction) {
         }
         in_field_pos+=trace_direction*d;
     }
-    
+
     return -1.0;
 }
 
@@ -173,7 +173,7 @@ float intersectRayPlane(vec3 rayOrigin, vec3 rayDir, vec3 planePoint, vec3 plane
 
     // If denom is close to 0, the ray is parallel to the plane, hence no intersection
     if (abs(denom) < 1e-6) {
-        return -1.0; // No intersection
+        return -1.0;// No intersection
     }
 
     // Calculate the vector from the ray origin to the plane point
@@ -184,7 +184,7 @@ float intersectRayPlane(vec3 rayOrigin, vec3 rayDir, vec3 planePoint, vec3 plane
 
     // If t is negative, the intersection is behind the ray origin
     if (t < 0.0) {
-        return -1.0; // No intersection
+        return -1.0;// No intersection
     }
 
     return t;
@@ -199,10 +199,10 @@ vec3 visualization_slide(vec3 slidePos, vec3 slideNormal) {
     vec3 v_lower_right_upper_left = voxel_field_upper_right - voxel_field_lower_left;
     vec3 box_distances = abs(v_lower_right_upper_left);
     vec3 col_out = vec3(0.0);
-    
-    vec3 v = cam_pos_ws+cam_direction*intersectRayPlane(cam_pos_ws,cam_direction,slidePos,slideNormal);
-    return vec3(world_space_coord_voxel_field_lookup(v,abs(v_lower_right_upper_left)).a);
-//return v;
+
+    vec3 v = cam_pos_ws+cam_direction*intersectRayPlane(cam_pos_ws, cam_direction, slidePos, slideNormal);
+    return vec3(world_space_coord_voxel_field_lookup(v, abs(v_lower_right_upper_left)).a);
+    //return v;
 }
 
 
@@ -226,9 +226,9 @@ vec3 calculateNormalFromDistanceFunction(vec3 p, vec3 voxel_field_size) {
     return normal;
 }
 
-float inside_edge_detection(vec3 box_distances,vec3 pos){
-    float center = world_space_coord_voxel_field_lookup(pos,box_distances).a;
-    float front = world_space_coord_voxel_field_lookup(pos+normal_ws*0.5,box_distances).a;
+float inside_edge_detection(vec3 box_distances, vec3 pos){
+    float center = world_space_coord_voxel_field_lookup(pos, box_distances).a;
+    float front = world_space_coord_voxel_field_lookup(pos+normal_ws*0.5, box_distances).a;
     return front;//float(front < 0.1);
 }
 
@@ -237,26 +237,26 @@ vec3 outisde_edge(vec3 box_distances, vec3 start_pos) {
     const float THREASHHODL = 0.3;
     vec3 current_pos = start_pos;
     for (int i = 0; i < MAX_IT;i++) {
-        if (inside_edge_detection(box_distances,current_pos) > THREASHHODL){
+        if (inside_edge_detection(box_distances, current_pos) > THREASHHODL){
             //return current_pos-start_pos;
             return vec3(i/10.0);
         }
-        current_pos+=calculateNormalFromDistanceFunction(current_pos,box_distances)*0.9;
+        current_pos+=calculateNormalFromDistanceFunction(current_pos, box_distances)*0.9;
     }
-    return vec3(1.0);   
+    return vec3(1.0);
 }
 
 vec3 distance_to_voxel(vec3 box_distances, vec3 start_pos){
-    vec3 distances = vec3(voxel_field_depth,voxel_field_height,voxel_field_width);
+    vec3 distances = vec3(voxel_field_depth, voxel_field_height, voxel_field_width);
     vec3 a = box_distances/distances;
-    
+
     vec3 pos_relative = start_pos - voxel_field_lower_left;
-    
-    return mod(pos_relative,a);
-} 
+
+    return mod(pos_relative, a);
+}
 
 vec3 get_first_outside_voxel_pos(){
-    
+
     return vec3(0.0);
 }
 
@@ -266,9 +266,9 @@ void main() {
     vec3 cam_direction = normalize(pos_ws - cam_pos_ws);
 
     vec3 box_distances = abs(v_lower_right_upper_left);
-    float d = world_space_coord_voxel_field_lookup(pos_ws,box_distances).a;
+    float d = world_space_coord_voxel_field_lookup(pos_ws, box_distances).a;
 
-    FragColor = vec4(vec3(distance_to_voxel(box_distances,pos_ws)),1.0);    
+    FragColor = vec4(vec3(distance_to_voxel(box_distances, pos_ws)), 1.0);
     //FragColor = vec4(vec3(float(inside_edge_detection(box_distances,pos_ws)>0.1)),1.0);    
 
 }

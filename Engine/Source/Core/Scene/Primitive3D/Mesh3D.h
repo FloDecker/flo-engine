@@ -12,19 +12,16 @@
 
 class Mesh3D : public Object3D, public i_set_material
 {
-   
-
-private:
-    Mesh* mesh_;
-    std::vector<primitive_instance *> primitives_;
+	Mesh* mesh_;
+	std::vector<primitive_instance*> primitives_;
 
 protected:
-    int drawSelf() override;
-    int draw_self_shadow_pass() override;
-    int draw_self_custom_pass(ShaderProgram* shader_program) override;
+	int drawSelf() override;
+	int draw_self_shadow_pass() override;
+	int draw_self_custom_pass(ShaderProgram* shader_program) override;
 
 public:
-    explicit Mesh3D(Object3D* parent, Mesh* mesh);
-    bool set_material(ShaderProgram* shader_program) override;
-    bool set_material_at(ShaderProgram *material, unsigned int pos) const;
+	explicit Mesh3D(Object3D* parent, Mesh* mesh);
+	bool set_material(ShaderProgram* shader_program) override;
+	bool set_material_at(ShaderProgram* material, unsigned int pos) const;
 };

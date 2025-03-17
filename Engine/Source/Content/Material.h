@@ -5,9 +5,9 @@
 #ifndef ENGINE_MATERIAL_H
 #define ENGINE_MATERIAL_H
 
-struct Material {
-    ShaderProgram *shaderProgram;
-    
+struct Material
+{
+	ShaderProgram* shaderProgram;
 };
 
 

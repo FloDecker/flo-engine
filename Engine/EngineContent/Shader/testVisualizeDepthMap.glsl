@@ -6,9 +6,9 @@ out vec2 texCoord;
 void main() {
     texCoord = aUV;
     normal = aNormal;
-    posWS =( mMatrix * vec4(aPos, 1.0)).xyz;
+    posWS =(mMatrix * vec4(aPos, 1.0)).xyz;
     vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
-    gl_Position = pMatrix * vertexCamSpace; 
+    gl_Position = pMatrix * vertexCamSpace;
 }
 
 [fragment]

@@ -104,6 +104,10 @@ float intersection_area_two_circles(vec3 center_1, float radius_1, vec3 center_2
 }
 
 
+float distance_to_gaussian(vec3 gaussian_pos, float gaussian_radius, vec3 pos){
+    return clamp(1 - distance(gaussian_pos, pos) / gaussian_radius, 0, 1);
+}
+
 float ray_circle_distance(float circle_radius, vec3 pos_circle, vec3 circle_normal, vec3 ray_origin, vec3 ray_direction){
     if (dot(circle_normal, ray_direction) > 0){
         return 0;

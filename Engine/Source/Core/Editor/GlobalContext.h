@@ -37,13 +37,12 @@ class Logger
 public:
 	unsigned int max_logs = 1000;
 	unsigned int get_current_log_amount() const;
-	std::vector<log_entry> *get_log_entries();
+	std::vector<log_entry>* get_log_entries();
 	void print_info(std::string log);
 
 private:
 	std::vector<log_entry> log_array_;
 	void print_to_log(log_type type, std::string log);
-
 };
 
 class TagManager
@@ -63,17 +62,17 @@ struct global_primitives
 {
 	Cube* cube;
 	Line* line;
-	primtitive_plane *plane;
+	primtitive_plane* plane;
 };
 
 //Global context holds information that is needed across levels, such as tags 
 struct GlobalContext
 {
 	TagManager tag_manager;
-	Logger *logger = new Logger();
+	Logger* logger = new Logger();
 	global_primitives global_primitives;
-	uniform_buffer_object *uniform_buffer_object;
-	
+	uniform_buffer_object* uniform_buffer_object;
+
 	//global shaders
 	ShaderProgram* default_shader;
 	ShaderProgram* default_color_debug_shader;

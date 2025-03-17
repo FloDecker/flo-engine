@@ -15,12 +15,12 @@ void sky_box_simple_sky_sphere::recalculate_colors()
 void sky_box_simple_sky_sphere::draw_object_specific_ui()
 {
 	bool changed = false;
-	changed = changed || ImGui::ColorPicker3("Bottom color",&color_ground[0]);
-	changed = changed || ImGui::SliderFloat("Bottom color",&color_ground_range,0,1);
-	changed = changed || ImGui::ColorPicker3("Horizon color",&color_horizon[0]);
-	changed = changed || ImGui::SliderFloat("Horizon color",&color_horizon_range,0,1);
-	changed = changed || ImGui::ColorPicker3("Zenith color",&color_zenith[0]);
-	changed = changed || ImGui::SliderFloat("Zenith color",&color_zenith_range,0,1);
+	changed = changed || ImGui::ColorPicker3("Bottom color", &color_ground[0]);
+	changed = changed || ImGui::SliderFloat("Bottom color", &color_ground_range, 0, 1);
+	changed = changed || ImGui::ColorPicker3("Horizon color", &color_horizon[0]);
+	changed = changed || ImGui::SliderFloat("Horizon color", &color_horizon_range, 0, 1);
+	changed = changed || ImGui::ColorPicker3("Zenith color", &color_zenith[0]);
+	changed = changed || ImGui::SliderFloat("Zenith color", &color_zenith_range, 0, 1);
 
 	if (changed) recalculate_colors();
 }

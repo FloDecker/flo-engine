@@ -7,159 +7,158 @@
 
 class Cube : public primitive
 {
-
 public:
-    explicit Cube();
-    static bool loaded;
-    static unsigned int VBO;
-    static unsigned int VAO;
+	explicit Cube();
+	static bool loaded;
+	static unsigned int VBO;
+	static unsigned int VAO;
 
-    int load() override;
-    int draw() override;
+	int load() override;
+	int draw() override;
 
 private:
-    vertex points_[24] = {
-        //bottom
-        {
-            glm::vec3(-0.5, 0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(-0.5, 0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+	vertex points_[24] = {
+		//bottom
+		{
+			glm::vec3(-0.5, 0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(-0.5, 0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
 
-        {
-            glm::vec3(-0.5, 0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0.5, 0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(-0.5, 0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0.5, 0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
 
-        {
-            glm::vec3(0.5, 0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0.5, 0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(0.5, 0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0.5, 0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
 
-        {
-            glm::vec3(0.5, 0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(-0.5, 0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        }
-        //middle
-        ,
-        {
-            glm::vec3(0.5, 0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0.5, -0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(0.5, 0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(-0.5, 0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		}
+		//middle
+		,
+		{
+			glm::vec3(0.5, 0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0.5, -0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
-        {
-            glm::vec3(-0.5, 0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(-0.5, -0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(-0.5, 0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(-0.5, -0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
-        {
-            glm::vec3(0.5, 0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0.5, -0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-
-
-        {
-            glm::vec3(-0.5, 0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(-0.5, -0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-
-        //top
-        {
-            glm::vec3(-0.5, -0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(-0.5, -0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(0.5, 0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0.5, -0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
 
-        {
-            glm::vec3(-0.5, -0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0.5, -0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(-0.5, 0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(-0.5, -0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+
+		//top
+		{
+			glm::vec3(-0.5, -0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(-0.5, -0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
 
-        {
-            glm::vec3(0.5, -0.5, 0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(0.5, -0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
+		{
+			glm::vec3(-0.5, -0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0.5, -0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
 
-        {
-            glm::vec3(0.5, -0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        },
-        {
-            glm::vec3(-0.5, -0.5, -0.5),
-            glm::vec3(0, 0, 0),
-            glm::vec2(0, 0),
-        }
+		{
+			glm::vec3(0.5, -0.5, 0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(0.5, -0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
 
-    };
+
+		{
+			glm::vec3(0.5, -0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		},
+		{
+			glm::vec3(-0.5, -0.5, -0.5),
+			glm::vec3(0, 0, 0),
+			glm::vec2(0, 0),
+		}
+
+	};
 };

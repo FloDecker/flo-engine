@@ -26,7 +26,8 @@ int Object3D::draw_(struct RenderContext* parentRenderContext)
 	if (parentRenderContext->pass == render_pass_lighting)
 	{
 		this->draw_self_shadow_pass();
-	} else if (parentRenderContext->pass == render_pass_custom)
+	}
+	else if (parentRenderContext->pass == render_pass_custom)
 	{
 		this->draw_self_custom_pass(parentRenderContext->custom_shader);
 	}
@@ -39,7 +40,7 @@ int Object3D::draw_(struct RenderContext* parentRenderContext)
 	{
 		m->on_parent_draw();
 	}
-	
+
 	for (auto& child : children)
 	{
 		child->draw_(parentRenderContext);
@@ -237,7 +238,7 @@ void Object3D::setRotationLocalDegrees(float x, float y, float z)
 
 void Object3D::look_at_local(glm::vec3 pos_local_space)
 {
-	this->setRotationLocal(glm::quatLookAt(glm::normalize(position_ - pos_local_space),vec_y));
+	this->setRotationLocal(quatLookAt(normalize(position_ - pos_local_space), vec_y));
 }
 
 void Object3D::setRotationLocal(glm::vec3 rotation)
@@ -251,7 +252,7 @@ void Object3D::setRotationLocal(glm::vec3 rotation)
 	auto q_z = angle_utils::vector_rotation_to_quat(vec_z, rotation.z);
 
 	this->rotation_ = rotation;
-	this->rotation_quat_ =q_y * q_x * q_z;
+	this->rotation_quat_ = q_y * q_x * q_z;
 	//printf("[%f %f %f] -> [%f %f %f]\n", rotation.x, rotation.y, rotation.z, a.x, a.y, a.z);
 
 	recalculate_local_transform();
@@ -346,7 +347,6 @@ glm::vec3 Object3D::transform_vector_to_local_space(const glm::vec3& vector_in_w
 	glm::vec4 ray_cast_origin_vec4_local = getGlobalTransformInverse() * glm::vec4(vector_in_world_space, 0);
 	return glm::vec3(ray_cast_origin_vec4_local);
 }
-
 
 
 void Object3D::recalculate_local_transform()

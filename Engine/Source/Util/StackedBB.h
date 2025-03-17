@@ -22,8 +22,8 @@ struct kdTreeElement
 class StackedBB
 {
 public:
-	explicit StackedBB(Scene *scene, std::vector<collider_modifier*> leafs);
-	StackedBB(Scene *scene);
+	explicit StackedBB(Scene* scene, std::vector<collider_modifier*> leafs);
+	StackedBB(Scene* scene);
 
 	void insert_leaf_node(collider_modifier* leaf);
 	bool contains_leaf_node(const collider_modifier* leaf) const;
@@ -38,25 +38,26 @@ public:
 
 	void scene_geometry_proximity_check(
 		const glm::vec3& proximity_center,
-		float radius , ray_cast_result *result
+		float radius, ray_cast_result* result
 	);
 
+	void scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore = nullptr);
 
 private:
-
-	
 	void calculateSceneTree();
 
-	Scene *scene_;
-	
+	Scene* scene_;
+
 	void recurse_proximity_check_bb_tree(
-		const kdTreeElement* bb_to_check,const glm::vec3& proximity_center,
-		float radius, ray_cast_result *result
+		const kdTreeElement* bb_to_check, const glm::vec3& proximity_center,
+		float radius, ray_cast_result* result
 	);
 
-	
+	void recursive_scene_geometry_raycast(const ::kdTreeElement* bb_to_check, const glm::vec3& ray_start,
+	                                      const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore);
+
+
 	kdTreeElement* axis_aligned_bb_tree_ = nullptr;
 	int scene_bb_entry_id_ = -1;
 	std::vector<collider_modifier*> leaf_nodes;
-	
 };

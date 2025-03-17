@@ -11,5 +11,4 @@ void GUIManager::tickGUI() const
 	{
 		gui->gui_tick();
 	}
-	
 }

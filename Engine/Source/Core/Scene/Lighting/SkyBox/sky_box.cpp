@@ -8,4 +8,3 @@ StructColorRange* sky_box::get_sky_box_ao_color_range()
 void sky_box::recalculate_colors()
 {
 }
-

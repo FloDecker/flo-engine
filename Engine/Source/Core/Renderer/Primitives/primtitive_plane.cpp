@@ -17,11 +17,11 @@ vertex primtitive_plane::points_[4] = {
 		.tex_coords = glm::vec2(1, 0),
 	},
 
-{
-	.position = glm::vec3(-0.5, -0.5, 0),
-	.normal = glm::vec3(0, 0, 1),
-	.tex_coords = glm::vec2(0, 0),
-},
+	{
+		.position = glm::vec3(-0.5, -0.5, 0),
+		.normal = glm::vec3(0, 0, 1),
+		.tex_coords = glm::vec2(0, 0),
+	},
 	{
 		.position = glm::vec3(0.5, 0.5, 0),
 		.normal = glm::vec3(0, 0, 1),
@@ -96,5 +96,5 @@ int primtitive_plane::load_static()
 
 primitive_type primtitive_plane::get_primitive_type()
 {
-	return primitive_type::plane;
+	return plane;
 }

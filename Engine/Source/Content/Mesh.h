@@ -11,21 +11,20 @@
 
 class Mesh
 {
-    glm::vec3 center_of_mass_ = {0, 0, 0};
-    glm::mat3 inertia_tensor_ = glm::mat3(0);
-    bool mesh_calculation_ran_ = false;
+	glm::vec3 center_of_mass_ = {0, 0, 0};
+	glm::mat3 inertia_tensor_ = glm::mat3(0);
+	bool mesh_calculation_ran_ = false;
 
 public:
-    Mesh()
-    {
-        vertexArrays = {};
-        materials = {};
-    }
+	Mesh()
+	{
+		vertexArrays = {};
+		materials = {};
+	}
 
-    std::vector<vertex_array*> vertexArrays;
-    std::vector<ShaderProgram*> materials;
-    void initializeVertexArrays() const;
-    
+	std::vector<vertex_array*> vertexArrays;
+	std::vector<ShaderProgram*> materials;
+	void initializeVertexArrays() const;
 };
 
 #endif //ENGINE_MESH_H

@@ -11,12 +11,11 @@ uniform_buffer_object::uniform_buffer_object()
 void uniform_buffer_object::init()
 {
 	if (initialized_) return;
-	
+
 	//initialize UBO for direct light
-	
+
 	direct_light_ubo_location = allocate_ubo(sizeof(struct ubo_direct_light), GL_DYNAMIC_DRAW, 1);
 	initialized_ = true;
-	
 }
 
 void uniform_buffer_object::update_direct_light()
@@ -35,10 +34,10 @@ unsigned int uniform_buffer_object::allocate_ubo(const unsigned int size_byte, c
 	return ubo_temp;
 }
 
-void uniform_buffer_object::update_uniform_buffer(const unsigned int ubo, const unsigned int size_byte, const void* data)
+void uniform_buffer_object::update_uniform_buffer(const unsigned int ubo, const unsigned int size_byte,
+                                                  const void* data)
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, size_byte, data);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);  
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
-

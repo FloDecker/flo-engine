@@ -11,10 +11,11 @@
 class RayIntersectionHelper
 {
 public:
-	static struct_intersection* ray_plane_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction, glm::vec3 point_on_plane,
-	                                          glm::vec3 plane_normal);
+	static struct_intersection* ray_plane_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction,
+	                                                   glm::vec3 point_on_plane,
+	                                                   glm::vec3 plane_normal);
 	static void ray_plane_intersection(struct_intersection* intersection, glm::vec3 ray_origin, glm::vec3 ray_direction,
-	                                 glm::vec3 point_on_plane, glm::vec3 plane_normal);
+	                                   glm::vec3 point_on_plane, glm::vec3 plane_normal);
 
 	static bool ray_bounding_box_intersection(glm::vec3 ray_origin, glm::vec3 ray_direction,
 	                                          StructBoundingBox* bounding_box);
@@ -25,5 +26,5 @@ public:
 	                                         float circle_radius);
 
 	static void get_closest_point_on_triangle(glm::vec3 v_0, glm::vec3 v_1, glm::vec3 v_2,
-	                                           glm::vec3 circle_pos,ray_cast_result *result);
+	                                          glm::vec3 circle_pos, ray_cast_result* result);
 };

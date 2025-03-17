@@ -61,6 +61,8 @@ void mesh_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::v
 				-((dot(face_normal, ray_origin_ls) + d) /
 					dot(face_normal, ray_direction_ls));
 
+			if (t <= 0) continue;
+			
 			glm::vec3 hit_point = ray_origin_ls + t * ray_direction_ls;
 			auto c = glm::vec3();
 

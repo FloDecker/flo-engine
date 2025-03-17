@@ -22,6 +22,4 @@ public:
 private:
 	ShaderProgram* shaderProgram_;
 	Object3D* parent_;
-
-
 };

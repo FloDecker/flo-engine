@@ -110,6 +110,8 @@ std::vector<collider_intersection> Scene::generate_overlaps_in_channel(collision
 ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
                                                      collision_channel collision_channel)
 {
+	auto start = std::chrono::system_clock::now();
+
 	ray_cast_result result;
 	auto temp_result = ray_cast_result();
 	double min_distance = std::numeric_limits<double>::max();
@@ -128,8 +130,109 @@ ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3
 			}
 		}
 	}
+	auto end = std::chrono::system_clock::now();
 
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
+	get_global_context()->logger->print_info(time_string);
 	return result;
+}
+
+ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
+                                         collision_channel collision_channel, Object3D* ignore)
+{
+	ray_cast_result result;
+	result.distance_from_origin = std::numeric_limits<double>::max();
+	auto bb_tree = scene_bb[collision_channel];
+	bb_tree->scene_geometry_raycast(origin, direction, &result, max_distance, ignore);
+	return result;
+}
+
+irradiance_information Scene::get_irradiance_information(Object3D* object_3d, glm::vec3 pos_ws, glm::vec3 normal_ws)
+{
+	//for (unsigned int i = 0; i < irradiance_samples; ++i)
+	//{
+	//	auto v = uniformHemisphereSample(normal_ws);
+	//	auto r = ray_cast_in_scene(pos_ws, v, 4000, VISIBILITY);
+	//	
+	//}
+	irradiance_information irradiance = irradiance_information();
+	irradiance.pos = pos_ws;
+
+
+	if (direct_light_ != nullptr)
+	{
+		auto sun_direction = direct_light_->get_light_direction();
+		if (glm::dot(sun_direction, normal_ws) <= 0)
+		{
+			irradiance.color = glm::vec3(0.0, 0.0, 0.0);
+			return irradiance;
+		}
+		auto start_pos = pos_ws + normal_ws * 0.1f;
+		auto r = ray_cast_in_scene_unoptimized(start_pos, sun_direction, 4000,
+		                           VISIBILITY);
+		if (r.hit)
+		{
+
+			irradiance.color = glm::vec3(0.0, 0, 0);
+			return irradiance;
+		}
+		auto sun_angle = glm::dot(sun_direction, normal_ws);
+		irradiance.color = glm::vec3(sun_angle, sun_angle, sun_angle);
+		return irradiance;
+	}
+
+
+	irradiance.color = glm::vec3(1.0, 1.0, 1.0);
+	return irradiance;
+}
+
+glm::vec3 Scene::uniformHemisphereSample(glm::vec3 normal)
+{
+	float u1 = static_cast<float>(rand()) / RAND_MAX; // Random value in [0,1]
+	float u2 = static_cast<float>(rand()) / RAND_MAX;
+
+	float theta = acos(1 - u1);
+	float phi = 2.0f * glm::pi<float>() * u2;
+
+	glm::vec3 vector_local = {
+		sin(theta) * cos(phi),
+		sin(theta) * sin(phi),
+		cos(theta)
+	};
+
+	float Tx, Ty, Tz;
+	if (fabs(normal.x) > fabs(normal.z))
+	{
+		// Choose a tangent that is not parallel to N
+		Tx = -normal.y;
+		Ty = normal.x;
+		Tz = 0;
+	}
+	else
+	{
+		Tx = 0;
+		Ty = -normal.z;
+		Tz = normal.y;
+	}
+
+	// Normalize tangent
+	float lenT = sqrt(Tx * Tx + Ty * Ty + Tz * Tz);
+	Tx /= lenT;
+	Ty /= lenT;
+	Tz /= lenT;
+
+	// Compute bitangent B = N x T
+	float Bx = normal.y * Tz - normal.z * Ty;
+	float By = normal.z * Tx - normal.x * Tz;
+	float Bz = normal.x * Ty - normal.y * Tx;
+
+	// Transform sampled vector to world space
+	return {
+		vector_local.x * Tx + vector_local.y * Bx + vector_local.z * normal.x,
+		vector_local.x * Ty + vector_local.y * By + vector_local.z * normal.y,
+		vector_local.x * Tz + vector_local.y * Bz + vector_local.z * normal.z
+	};
 }
 
 
@@ -235,7 +338,6 @@ void Scene::register_gaussianizer(gaussianizer* gaussianizer)
 {
 	gaussianinzers_.push_back(gaussianizer);
 }
-
 
 Object3D* Scene::get_root() const
 {

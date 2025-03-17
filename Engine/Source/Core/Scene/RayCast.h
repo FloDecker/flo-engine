@@ -33,8 +33,8 @@ private:
 	);
 
 	static void recurse_proximity_check(
-		::ray_cast_result* result,
-		::Object3D* object,
+		ray_cast_result* result,
+		Object3D* object,
 		glm::vec3 proximity_center, float radius
 	);
 };
