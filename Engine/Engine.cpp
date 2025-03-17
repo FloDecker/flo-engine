@@ -10,8 +10,8 @@
 #include "Source/Core/Renderer/RenderContext.h"
 #include "gtx/string_cast.hpp"
 #include "Source/Core/Editor/GlobalContext.h"
-#include "Source/Core/Renderer/Texture/Texture3D.h"
-#include "Source/Core/Renderer/Texture/Texture2D.h"
+#include "Source/Core/Renderer/Texture/texture_3d.h"
+#include "Source/Core/Renderer/Texture/texture_2d.h"
 #include "Source/Core/Scene/Camera3D.h"
 #include "Source/Core/Scene/Handle.h"
 #include "Source/Core/Scene/RayCast.h"
@@ -191,11 +191,11 @@ int main()
 
 
 	//load textures 
-	auto textureBase = new Texture2D;
+	auto textureBase = new texture_2d;
 	std::string pathTexture = "EngineContent/grass_base.png";
 	textureBase->loadFromDisk(&pathTexture);
 
-	auto textureNormal = new Texture2D;
+	auto textureNormal = new texture_2d;
 	std::string pathTextureNormal = "EngineContent/grass_normal.png";
 	textureNormal->loadFromDisk(&pathTextureNormal);
 
@@ -501,10 +501,10 @@ int main()
 
 
 	//INIT TEXTURES FOR RENDER
-	auto framebuffer_texture_color = new Texture2D();
+	auto framebuffer_texture_color = new texture_2d();
 	framebuffer_texture_color->initialize_as_frame_buffer(windowSize.x, windowSize.y);
 
-	auto framebuffer_texture_depth = new Texture2D();
+	auto framebuffer_texture_depth = new texture_2d();
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
 
 	auto color_render_target = framebuffer_object();

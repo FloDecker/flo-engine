@@ -1,8 +1,8 @@
-﻿#include "Texture2D.h"
+﻿#include "texture_2d.h"
 #include <GL/glew.h>
 #include <stb_image.h>
 
-void Texture2D::initialize_from_data(unsigned char* data)
+void texture_2d::initialize_from_data(unsigned char* data)
 {
 	if (initialized_)
 	{
@@ -12,8 +12,8 @@ void Texture2D::initialize_from_data(unsigned char* data)
 	{
 		std::cerr << "Texture2D width or height cannot be zero\n";
 	}
-	glGenTextures(1, &_texture);
-	glBindTexture(GL_TEXTURE_2D, _texture);
+	glGenTextures(1, &texture_);
+	glBindTexture(GL_TEXTURE_2D, texture_);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -26,7 +26,7 @@ void Texture2D::initialize_from_data(unsigned char* data)
 	initialized_ = true;
 }
 
-void Texture2D::initialize_as_depth_map_render_target(const unsigned int width, const unsigned int height)
+void texture_2d::initialize_as_depth_map_render_target(const unsigned int width, const unsigned int height)
 {
 	if (initialized_)
 	{
@@ -35,8 +35,8 @@ void Texture2D::initialize_as_depth_map_render_target(const unsigned int width, 
 	width_ = width;
 	height_ = height;
 
-	glGenTextures(1, &_texture);
-	glBindTexture(GL_TEXTURE_2D, _texture);
+	glGenTextures(1, &texture_);
+	glBindTexture(GL_TEXTURE_2D, texture_);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 	             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -47,7 +47,7 @@ void Texture2D::initialize_as_depth_map_render_target(const unsigned int width, 
 	initialized_ = true;
 }
 
-void Texture2D::initialize_as_frame_buffer(unsigned int width, unsigned int height)
+void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int height)
 {
 	if (initialized_)
 	{
@@ -56,8 +56,8 @@ void Texture2D::initialize_as_frame_buffer(unsigned int width, unsigned int heig
 	width_ = width;
 	height_ = height;
 
-	glGenTextures(1, &_texture);
-	glBindTexture(GL_TEXTURE_2D, _texture);
+	glGenTextures(1, &texture_);
+	glBindTexture(GL_TEXTURE_2D, texture_);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 
@@ -68,19 +68,13 @@ void Texture2D::initialize_as_frame_buffer(unsigned int width, unsigned int heig
 	initialized_ = true;
 }
 
-void Texture2D::use(unsigned int textureUnit)
+
+unsigned texture_2d::get_texture() const
 {
-	glActiveTexture(GL_TEXTURE0 + textureUnit);
-	glBindTexture(GL_TEXTURE_2D, _texture);
-	glBindSampler(GL_TEXTURE0 + textureUnit, textureUnit);
+	return texture_;
 }
 
-unsigned Texture2D::get_texture() const
-{
-	return _texture;
-}
-
-void Texture2D::loadFromDisk(std::string* path)
+void texture_2d::loadFromDisk(std::string* path)
 {
 	this->_path = path;
 	unsigned char* data = stbi_load(_path->c_str(), &width_, &height_, &_channleAmount, 0);
@@ -92,21 +86,21 @@ void Texture2D::loadFromDisk(std::string* path)
 	stbi_image_free(data);
 }
 
-void Texture2D::resize(unsigned int width, unsigned int height)
+void texture_2d::resize(unsigned int width, unsigned int height)
 {
 	switch (type_)
 	{
 	case FRAME_BUFFER_DEPTH:
 		width_ = width;
 		height_ = height;
-		glBindTexture(GL_TEXTURE_2D, _texture);
+		glBindTexture(GL_TEXTURE_2D, texture_);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 		             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		break;
 	case FRAME_BUFFER_COLOR:
 		width_ = width;
 		height_ = height;
-		glBindTexture(GL_TEXTURE_2D, _texture);
+		glBindTexture(GL_TEXTURE_2D, texture_);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		break;
 	case IMAGE_TEXTURE:
@@ -114,8 +108,8 @@ void Texture2D::resize(unsigned int width, unsigned int height)
 	}
 }
 
-void Texture2D::generate_mip_map() const
+void texture_2d::generate_mip_map() const
 {
-	glBindTexture(GL_TEXTURE_2D, _texture);
+	glBindTexture(GL_TEXTURE_2D, texture_);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }

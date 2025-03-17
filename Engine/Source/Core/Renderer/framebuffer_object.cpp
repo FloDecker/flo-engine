@@ -25,7 +25,7 @@ void framebuffer_object::render_to_framebuffer() const
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 }
 
-void framebuffer_object::attach_texture_as_depth_buffer(Texture2D* depth_texture)
+void framebuffer_object::attach_texture_as_depth_buffer(texture_2d* depth_texture)
 {
 	depth_texture_ = depth_texture;
 	has_depth_attachment_ = true;
@@ -37,7 +37,7 @@ void framebuffer_object::attach_texture_as_depth_buffer(Texture2D* depth_texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void framebuffer_object::attach_texture_as_color_buffer(Texture2D* color_texture)
+void framebuffer_object::attach_texture_as_color_buffer(texture_2d* color_texture)
 {
 	color_texture_ = color_texture;
 	has_color_attachment_ = true;

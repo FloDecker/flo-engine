@@ -1,12 +1,12 @@
-﻿#include "Texture3D.h"
+﻿#include "texture_3d.h"
 
 #include <iostream>
 #include <GL/glew.h>
 
-void Texture3D::initialize()
+void texture_3d::initialize()
 {
-	glGenTextures(1, &_texture);
-	glBindTexture(GL_TEXTURE_3D, _texture);
+	glGenTextures(1, &texture_);
+	glBindTexture(GL_TEXTURE_3D, texture_);
 
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -19,21 +19,15 @@ void Texture3D::initialize()
 	glGenerateMipmap(GL_TEXTURE_3D);
 }
 
-void Texture3D::use(unsigned int textureUnit)
+
+unsigned texture_3d::getTexture()
 {
-	glActiveTexture(GL_TEXTURE0 + textureUnit);
-	glBindTexture(GL_TEXTURE_3D, _texture);
-	glBindSampler(GL_TEXTURE0 + textureUnit, textureUnit);
+	return texture_;
 }
 
-unsigned Texture3D::getTexture()
-{
-	return _texture;
-}
-
-void Texture3D::initalize_as_voxel_data(glm::vec3 voxel_field_lower_left,
-                                        glm::vec3 voxel_field_upper_right,
-                                        int steps_per_world_space_unit)
+void texture_3d::initalize_as_voxel_data(glm::vec3 voxel_field_lower_left,
+                                         glm::vec3 voxel_field_upper_right,
+                                         int steps_per_world_space_unit)
 {
 	//allocate memory for 3d texture
 
@@ -59,13 +53,13 @@ void Texture3D::initalize_as_voxel_data(glm::vec3 voxel_field_lower_left,
 
 	voxel_field_lower_left_ = voxel_field_lower_left;
 	voxel_field_upper_right_ = voxel_field_upper_right;
-	_initalized = true;
+	initialized_ = true;
 }
 
-void Texture3D::write_to_voxel_field(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
-                                     unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth)
+void texture_3d::write_to_voxel_field(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
+                                      unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth)
 {
-	if (!_initalized)
+	if (!initialized_)
 	{
 		std::cerr << "cant write to uninitialized voxel field\n";
 		return;
@@ -87,8 +81,8 @@ void Texture3D::write_to_voxel_field(unsigned short r, unsigned short g, unsigne
 	_data[(width_ * height_ * pos_depth + width_ * pos_height + pos_width)] = color_data;
 }
 
-void Texture3D::write_to_voxel_field_float(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
-                                           float pos_width, float pos_height, float pos_depth)
+void texture_3d::write_to_voxel_field_float(unsigned short r, unsigned short g, unsigned short b, unsigned short a,
+                                            float pos_width, float pos_height, float pos_depth)
 {
 	if (pos_width > 1 || pos_depth > 1 || pos_height > 1 || pos_width < 0 || pos_depth < 0 || pos_height < 0)
 	{
@@ -106,7 +100,7 @@ void Texture3D::write_to_voxel_field_float(unsigned short r, unsigned short g, u
 	);
 }
 
-unsigned short Texture3D::get_distance_at(unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth)
+unsigned short texture_3d::get_distance_at(unsigned int pos_width, unsigned int pos_height, unsigned int pos_depth)
 {
 	return _data[(width_ * height_ * pos_depth + width_ * pos_height + pos_width)];
 }

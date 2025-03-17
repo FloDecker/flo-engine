@@ -3,11 +3,8 @@
 
 #include "Texture.h"
 
-class Texture3D : public Texture
+class texture_3d : public texture
 {
-	unsigned int _texture;
-	bool _initalized = false;
-
 	//pointer to the voxel data
 	//Memory Alignment : [(4)R , (4)G , (4) B, (4) A]
 	unsigned short int* _data;
@@ -26,7 +23,6 @@ class Texture3D : public Texture
 
 public:
 	void initialize();
-	void use(unsigned int textureUnit) override;
 	unsigned int getTexture();
 	void initalize_as_voxel_data(glm::vec3 voxel_field_lower_left,
 	                             glm::vec3 voxel_field_upper_right,

@@ -320,8 +320,10 @@
         </ClCompile>
         <ClCompile Include="Source\Core\Renderer\RenderContext.cpp"/>
         <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp"/>
-        <ClCompile Include="Source\Core\Renderer\Texture\Texture2D.cpp"/>
-        <ClCompile Include="Source\Core\Renderer\Texture\Texture3D.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\Texture\texture.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\Texture\texture_2d.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\Texture\texture_3d.cpp"/>
+        <ClCompile Include="Source\Core\Renderer\Texture\texture_buffer_object.cpp"/>
         <ClCompile Include="Source\Core\Renderer\uniform_buffer_object.cpp"/>
         <ClCompile Include="Source\Core\Scene\Camera3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\Collider.cpp"/>
@@ -422,6 +424,7 @@
         <ClCompile Include="Source\Core\Scene\Object3D.cpp"/>
         <ClCompile Include="Source\Core\Scene\RayCast.cpp"/>
         <ClCompile Include="Source\Core\Scene\Scene.cpp"/>
+        <ClCompile Include="Source\Core\Scene\SceneTools\gaussian.cpp"/>
         <ClCompile Include="Source\Core\Scene\SceneTools\gaussianizer.cpp"/>
         <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.cpp"/>
         <ClCompile Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.cpp"/>
@@ -445,7 +448,7 @@
         <ClInclude Include="Source\Content\Mesh.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\collider_intersection.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\collision_channel.h"/>
-        <ClInclude Include="Source\Core\CommonDataStructures\irradiance_information.h" />
+        <ClInclude Include="Source\Core\CommonDataStructures\irradiance_information.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\ray_cast_result.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\struct_intersection.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructColorRange.h"/>
@@ -475,10 +478,20 @@
         <ClInclude Include="Source\Core\Renderer\RenderContext.h"/>
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h"/>
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h"/>
-        <ClInclude Include="Source\Core\Renderer\Texture\Texture.h"/>
-        <ClInclude Include="Source\Core\Renderer\Texture\Texture2D.h"/>
-        <ClInclude Include="Source\Core\Renderer\Texture\Texture3D.h"/>
+        <ClInclude Include="Source\Core\Renderer\Texture\texture.h"/>
+        <ClInclude Include="Source\Core\Renderer\Texture\texture_2d.h"/>
+        <ClInclude Include="Source\Core\Renderer\Texture\texture_3d.h"/>
+        <ClInclude Include="Source\Core\Renderer\Texture\texture_buffer_object.h"/>
+        <ClInclude Include="Source\Core\Renderer\uniform_buffer_object.h"/>
+        <ClInclude Include="Source\Core\Scene\Camera3D.h"/>
+        <ClInclude Include="Source\Core\Scene\Collider.h"/>
+        <ClInclude Include="Source\Core\Scene\DebugPrimitives\Cube3D.h"/>
+        <ClInclude Include="Source\Core\Scene\DebugPrimitives\Line3D.h"/>
+        <ClInclude Include="Source\Core\Scene\DebugPrimitives\visual_debug_tools.h"/>
         <ClInclude Include="Source\Core\Scene\Handle.h"/>
+        <ClInclude Include="Source\Core\Scene\Lighting\direct_light.h"/>
+        <ClInclude Include="Source\Core\Scene\Lighting\light.h"/>
+        <ClInclude Include="Source\Core\Scene\Lighting\PointLight.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_atmospheric_scattering.h"/>
         <ClInclude Include="Source\Core\Scene\Lighting\SkyBox\sky_box_simple_sky_sphere.h"/>
@@ -496,6 +509,7 @@
         <ClInclude Include="Source\Core\Scene\Primitive3D\plane_3d.h"/>
         <ClInclude Include="Source\Core\Scene\RayCast.h"/>
         <ClInclude Include="Source\Core\Scene\Scene.h"/>
+        <ClInclude Include="Source\Core\Scene\SceneTools\gaussian.h"/>
         <ClInclude Include="Source\Core\Scene\SceneTools\gaussianizer.h"/>
         <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.h"/>
         <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.h"/>

@@ -9,7 +9,7 @@ public:
 
 	int voxel_precision; //how many segments are put into a 1x1 units square
 	virtual void recalculate() { std::wcout << "recalculate not implemented\n"; } //recalculate the voxel field
-	virtual void load_into_voxel_texture(Texture3D* texture_3d)
+	virtual void load_into_voxel_texture(texture_3d* texture_3d)
 	{
 		std::wcout << "load_into_voxel_texture not implemented\n";
 	} //load voxel data into 3d texture

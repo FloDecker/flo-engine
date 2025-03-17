@@ -84,7 +84,7 @@ void Voxelizer::recalculate()
 
 //load the zero level voxels into 3d texture where every surface point is 1 and the empty space is 0
 //(just use the distance function it's way faster to traverse)
-void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
+void Voxelizer::load_into_voxel_texture(texture_3d* texture_3d)
 {
 	auto transform_global_inverse = inverse(getGlobalTransform());
 
@@ -99,7 +99,7 @@ void Voxelizer::load_into_voxel_texture(Texture3D* texture_3d)
 }
 
 //load the zero level voxels into a 3d texture where every surface point is 0 and the empty space is the distance to the zero level set
-void Voxelizer::load_into_voxel_texture_df(Texture3D* texture_3d)
+void Voxelizer::load_into_voxel_texture_df(texture_3d* texture_3d)
 {
 	int current_level = 0;
 	std::vector<glm::i16vec3> current_set = zero_level_set;

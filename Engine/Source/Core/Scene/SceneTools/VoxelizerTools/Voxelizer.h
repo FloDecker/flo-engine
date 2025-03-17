@@ -16,8 +16,8 @@ public:
 
 	explicit Voxelizer(Object3D* parent);
 	void recalculate() override;
-	void load_into_voxel_texture(Texture3D* texture_3d) override;
-	void load_into_voxel_texture_df(Texture3D* texture_3d);
+	void load_into_voxel_texture(texture_3d* texture_3d) override;
+	void load_into_voxel_texture_df(texture_3d* texture_3d);
 	bool create_level_set_matrix();
 	bool reset_level_set_matrix();
 	int get_length_of_level_set_matrix() const;

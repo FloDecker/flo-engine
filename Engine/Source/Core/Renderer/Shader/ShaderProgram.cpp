@@ -14,7 +14,7 @@
 #include "../../Scene/SceneTools/gaussianizer.h"
 
 
-class Texture;
+class texture;
 auto vertexShaderTag = "[vertex]";
 auto fragmentShaderTag = "[fragment]";
 
@@ -287,7 +287,7 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 }
 
 //TODO: this can also be added before compilation
-void ShaderProgram::addTexture(Texture* texture, const GLchar* samplerName)
+void ShaderProgram::addTexture(texture* texture, const GLchar* samplerName)
 {
 	use();
 	setUniformInt(samplerName, textures.size());
@@ -295,7 +295,7 @@ void ShaderProgram::addTexture(Texture* texture, const GLchar* samplerName)
 }
 
 
-void ShaderProgram::addVoxelField(Texture3D* texture, const GLchar* samplerName)
+void ShaderProgram::addVoxelField(texture_3d* texture, const GLchar* samplerName)
 {
 	addTexture(texture, samplerName);
 	//TODO change name depending on sampler name

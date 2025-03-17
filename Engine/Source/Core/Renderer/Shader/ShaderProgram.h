@@ -6,21 +6,21 @@
 #include <string>
 #include <vector>
 
-#include "../Texture/Texture.h"
-#include "../Texture/Texture3D.h"
+#include "../Texture/texture.h"
+#include "../Texture/texture_3d.h"
 
 struct RenderContext;
 class Object3D;
 
 struct Sampler
 {
-	Sampler(Texture* texture, const GLchar* sampler_name)
+	Sampler(texture* texture, const GLchar* sampler_name)
 		: texture(texture),
 		  samplerName(sampler_name)
 	{
 	}
 
-	Texture* texture;
+	texture* texture;
 	const GLchar* samplerName;
 };
 
@@ -85,8 +85,8 @@ public:
 	void setUniformMatrix4(const GLchar* name, const GLfloat* value);
 	void set_uniform_float(const GLchar* name, GLfloat value);
 	void set_uniform_array_float(const GLchar* name, const std::vector<float>* float_array);
-	void addTexture(Texture* texture, const GLchar* samplerName);
-	void addVoxelField(Texture3D* texture, const GLchar* samplerName);
+	void addTexture(texture* texture, const GLchar* samplerName);
+	void addVoxelField(texture_3d* texture, const GLchar* samplerName);
 	void setUniformInt(const GLchar* name, GLint value);
 };
 
