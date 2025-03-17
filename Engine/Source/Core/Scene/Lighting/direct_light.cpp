@@ -39,6 +39,11 @@ void direct_light::draw_object_specific_ui()
 	ImGui::DragFloat("Light to camera distance", &light_height_);
 }
 
+glm::vec3 direct_light::get_light_direction()
+{
+	return getForwardVector();
+}
+
 
 void direct_light::set_light_center_position(glm::vec3 position)
 {

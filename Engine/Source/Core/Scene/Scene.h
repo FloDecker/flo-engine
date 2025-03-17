@@ -12,6 +12,7 @@
 #include "../CommonDataStructures/StructColorRange.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
 #include "../CommonDataStructures/collision_channel.h"
+#include "../CommonDataStructures/irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
 class mesh_collider;
@@ -93,7 +94,10 @@ public:
 	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                              collision_channel collision_channel);
 	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
-											  collision_channel collision_channel);
+											  collision_channel collision_channel, Object3D* ignore = nullptr);
+
+	irradiance_information get_irradiance_information(Object3D *object_3d, glm::vec3 pos_ws, glm::vec3 normal_ws);
+	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;

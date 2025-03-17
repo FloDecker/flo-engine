@@ -3,6 +3,7 @@
 #include "../../Core/Scene/Modifiers/Implementations/Colliders/mesh_collider.h"
 #include "../Core/Scene/Scene.h"
 
+
 StackedBB::StackedBB(Scene* scene, std::vector<collider_modifier*> leafs)
 {
 	leaf_nodes = leafs;
@@ -251,7 +252,7 @@ void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center
 }
 
 void StackedBB::scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction,
-	ray_cast_result* result, float ray_length)
+	ray_cast_result* result, float ray_length, Object3D* ignore)
 {
 	auto start = std::chrono::system_clock::now();
 
@@ -263,7 +264,7 @@ void StackedBB::scene_geometry_raycast(const glm::vec3& ray_start, const glm::ve
 	if (get_scene_bb_entry_element() != nullptr)
 	{
 		auto bb_root_node = get_scene_bb_entry_element();
-		recursive_scene_geometry_raycast(bb_root_node, ray_start, ray_direction, result, ray_length);
+		recursive_scene_geometry_raycast(bb_root_node, ray_start, ray_direction, result, ray_length, ignore);
 		auto end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
 		//auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
@@ -318,9 +319,10 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 }
 
 void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_check, const glm::vec3& ray_start,
-	const glm::vec3& ray_direction, ray_cast_result* result, float ray_length)
+	const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore)
 {
-	if (!BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bb_to_check->bb, ray_start, ray_direction, result))
+	if (!BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bb_to_check->bb, ray_start, ray_direction, result) &&
+		!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, ray_start))
 	{
 		result->hit = false;
 		return;
@@ -330,7 +332,17 @@ void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_chec
 	if (is_bb_element_leaf_node(bb_to_check))
 	{
 		auto coll = get_scene_bb_element_leaf(bb_to_check);
+		if (coll->get_parent() == ignore)
+		{
+			result->hit = false;
+			return;
+		}
+		
 		coll->ray_intersection_world_space(ray_start, ray_direction,ray_length , true, result);
+		if (result->hit)
+		{
+			result->object_3d = coll->get_parent();
+		}
 		return;
 	}
 
@@ -340,8 +352,8 @@ void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_chec
 	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
 	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
 
-	recursive_scene_geometry_raycast(child_0, ray_start, ray_direction, &r_0, ray_length);
-	recursive_scene_geometry_raycast(child_1, ray_start, ray_direction, &r_1, ray_length);
+	recursive_scene_geometry_raycast(child_0, ray_start, ray_direction, &r_0, ray_length, ignore);
+	recursive_scene_geometry_raycast(child_1, ray_start, ray_direction, &r_1, ray_length, ignore);
 
 	if (r_0.hit && r_1.hit)
 	{

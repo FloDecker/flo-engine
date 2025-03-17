@@ -41,7 +41,7 @@ public:
 		float radius, ray_cast_result* result
 	);
 
-	void scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction, ray_cast_result* result, float ray_length);
+	void scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore = nullptr);
 
 private:
 	void calculateSceneTree();
@@ -53,8 +53,8 @@ private:
 		float radius, ray_cast_result* result
 	);
 
-	void recursive_scene_geometry_raycast(const kdTreeElement* bb_to_check, const glm::vec3& ray_start,
-	                                      const glm::vec3& ray_direction, ray_cast_result* result, float ray_length);
+	void recursive_scene_geometry_raycast(const ::kdTreeElement* bb_to_check, const glm::vec3& ray_start,
+	                                      const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore);
 
 
 	kdTreeElement* axis_aligned_bb_tree_ = nullptr;

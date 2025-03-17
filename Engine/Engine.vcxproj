@@ -445,6 +445,7 @@
         <ClInclude Include="Source\Content\Mesh.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\collider_intersection.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\collision_channel.h"/>
+        <ClInclude Include="Source\Core\CommonDataStructures\irradiance_information.h" />
         <ClInclude Include="Source\Core\CommonDataStructures\ray_cast_result.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\struct_intersection.h"/>
         <ClInclude Include="Source\Core\CommonDataStructures\StructColorRange.h"/>

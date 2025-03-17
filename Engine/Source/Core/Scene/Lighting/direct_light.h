@@ -26,6 +26,7 @@ public:
 	float angle = 10.0f;
 	float light_pos_update_interval = 1.0f;
 	void draw_object_specific_ui() override;
+	glm::vec3 get_light_direction();
 
 protected:
 	void on_light_changed() override;

@@ -41,9 +41,9 @@ void ObjectInfo::gui_tick()
 	ImGui::BeginDisabled(disabled);
 
 
-	bool transform_changed = ImGui::InputFloat3("WS Position", pos, "%.3f", ImGuiInputTextFlags_CharsDecimal);
-	transform_changed |= ImGui::InputFloat3("Rotation", rot, "%.3f", ImGuiInputTextFlags_CharsDecimal);
-	transform_changed |= ImGui::InputFloat3("Scale", scale, "%.3f", ImGuiInputTextFlags_CharsDecimal);
+	bool transform_changed = ImGui::DragFloat3("WS Position", pos,1,0,0 ,"%.3f", ImGuiInputTextFlags_CharsDecimal);
+	transform_changed |= ImGui::DragFloat3("Rotation", rot,1,0,0 , "%.3f", ImGuiInputTextFlags_CharsDecimal);
+	transform_changed |= ImGui::DragFloat3("Scale", scale, 1,0,0, "%.3f", ImGuiInputTextFlags_CharsDecimal);
 
 
 	if (scene_->has_selected_object())

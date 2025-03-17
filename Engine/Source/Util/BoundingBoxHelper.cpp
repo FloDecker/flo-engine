@@ -187,6 +187,8 @@ bool BoundingBoxHelper::ray_axis_aligned_bb_intersection(const StructBoundingBox
                                                          glm::vec3 ray_origin_ws, glm::vec3 ray_direction_ws,
                                                          ray_cast_result* intersection)
 {
+
+	
 	*intersection = {};
 	glm::vec3 normals[6] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 	glm::vec3 points[6] = {
