@@ -3,7 +3,7 @@
 class texture
 {
 public:
-	void use(unsigned int textureUnit) const;
+	virtual void use(unsigned int textureUnit) const;
 
 protected:
 	unsigned int texture_;

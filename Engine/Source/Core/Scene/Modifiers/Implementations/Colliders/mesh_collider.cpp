@@ -1,6 +1,7 @@
 ﻿#include "mesh_collider.h"
 
 #include <random>
+#include <gtx/string_cast.hpp>
 
 #include "../../../../../Util/math_util.h"
 #include "../../Content/Mesh.h"
@@ -62,7 +63,7 @@ void mesh_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::v
 					dot(face_normal, ray_direction_ls));
 
 			if (t <= 0) continue;
-			
+
 			glm::vec3 hit_point = ray_origin_ls + t * ray_direction_ls;
 			auto c = glm::vec3();
 
@@ -196,13 +197,11 @@ glm::vec3 mesh_collider::get_center_of_mass_local()
 
 void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, unsigned amount)
 {
-	std::cout << "scatter_points_on_surface\n";
 	std::random_device rd; // Seed the random number generator
 	std::mt19937 gen(rd()); // Mersenne Twister PRNG
 	std::uniform_int_distribution<int> dist_vertex_arrays(0, vertex_arrays_.size() - 1); // Range [1, 100]
 
 	int randomNumber = dist_vertex_arrays(gen);
-	std::cout << "scatter_points_on_surface 2\n";
 
 	for (int i = 0; i < amount; i++)
 	{
@@ -215,8 +214,16 @@ void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, unsig
 		auto v_2 = v->vertices->at(v->indices->at(random_index + 1));
 		auto v_3 = v->vertices->at(v->indices->at(random_index + 2));
 
-		auto p = math_util::get_random_point_in_triangle(v_1.position, v_2.position, v_3.position);
-		auto n = normalize(v_1.normal + v_2.normal + v_3.normal);
-		points->push_back({parent->transform_vertex_to_world_space(p), parent->transform_vector_to_world_space(n)});
+		glm::vec3 p = math_util::get_random_point_in_triangle(v_1.position, v_2.position, v_3.position);
+		glm::vec3 n = normalize(v_1.normal + v_2.normal + v_3.normal);
+		p = parent->transform_vertex_to_world_space(p);
+		n = parent->transform_vector_to_world_space(n);
+		std::printf(glm::to_string(p).c_str());
+		points->push_back({
+				.position = p,
+				.normal = n,
+				.tex_coords = {}
+			}
+		);
 	}
 }

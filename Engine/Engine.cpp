@@ -28,6 +28,7 @@
 #include "Source/Core/GUI/SceneTree.h"
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
 #include "Source/Core/Renderer/Primitives/quad_fill_screen.h"
+#include "Source/Core/Renderer/Texture/texture_buffer_object.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_atmospheric_scattering.h"
@@ -251,6 +252,10 @@ int main()
 	auto* gaussian_gi_shader = new ShaderProgram();
 	gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
 	gaussian_gi_shader->compileShader();
+	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_color_, "surfels_texture_buffer_color_");
+	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_normals_, "surfels_texture_buffer_normals_");
+	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_positions_, "surfels_texture_buffer_positions_");
+	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_radii_, "surfels_texture_buffer_radii_");
 
 
 	auto* worldPosMat = new ShaderProgram();
@@ -261,6 +266,14 @@ int main()
 	plane->materials.push_back(lightTestMaterial);
 	sphere->materials.push_back(lightTestMaterial);
 
+	//DELTE ME
+
+	auto remove_me_text_buffer = new texture_buffer_object();
+	std::vector<glm::vec3> a;
+	a.push_back(glm::vec3(1.0, 0.5, 0.0));
+	a.push_back(glm::vec3(1.0, 0.5, 0.0));
+	remove_me_text_buffer->init(2, &a);
+	
 
 	/////ADD SCENE GEOMETRY:
 
@@ -357,113 +370,7 @@ int main()
 	scene->get_physics_engine()->add_spring(spring2, spring4, 200.0);
 
 	auto g = new gaussianizer(scene->get_root());
-
-	{
-		/*
-		    auto plane1 = new Mesh3D(plane, &global_context);
-		    plane1->setScale(6,6,6);
-		    plane1->setPositionLocal(0, 0, 0);
-		    plane1->setRotationLocalDegrees(-90, 0, 0);
-		    root->addChild(plane1);
-		    plane1->name = "plane 1";
-		
-		
-		    auto cube1 = new Mesh3D(cube, &global_context);
-		    mSphere1->addChild(cube1);
-		    cube1->set_position_global(0, 10, 0);
-		    cube1->name = "THE CUUUUBE1";
-		
-		    auto cube2 = new Mesh3D(cube, &global_context);
-		    mSphere1->addChild(cube2);
-		    cube2->set_position_global(1, 13, 1);
-		    cube2->name = "THE CUUUUBE2";
-		
-		    auto cube3 = new Mesh3D(cube, &global_context);
-		    mSphere1->addChild(cube3);
-		    cube3->set_position_global(0, 17, 0);
-		    cube3->name = "THE CUUUUBE3";
-		
-		    auto triangle = new Mesh3D(me_test_triangle, &global_context);
-		    mSphere1->addChild(triangle);
-		    triangle->set_position_global(0, 20, 0);
-		    triangle->name = "triangle";
-		    triangle->materials.push_back(triangle_visualizer_material);
-		
-
-		    auto test_building = new Mesh3D(me_test_building,&global_context);
-		    root->addChild(test_building);
-		    test_building->set_position_global(0,2,0);
-		    test_building->setRotationLocalDegrees(90,0,0);
-		    test_building->name = "Test Building";
-		
-		
-		    //ADD LIGHTS
-		    auto light1 = new PointLight(&global_context);
-		    root->addChild(light1);
-		
-		    //TEST LINE
-		    auto line_test = new Line3D(root,glm::vec3(0,0,0),glm::vec3(3,3,-3), &global_context);
-		
-		    //TEST CUBE
-		    auto cube_test = new Cube3D(&global_context);
-		    root->addChild(cube_test);
-		    cube_test->set_position_global(0,0,0);
-		    cube_test->setScale(8,8,8);
-		
-		    
-		    //TEST 3D TEXTURE
-		
-		    /**
-		    auto test_texture_3d = new Texture3D();
-		    test_texture_3d->initalize_as_voxel_data({-4,-4,-4},{4,4,4},8);
-		    //for (unsigned int x = 0 ;x< 8;x++)
-		    //{
-		    //    for (unsigned int y = 0 ;y< 8;y++)
-		    //    {
-		    //        for (unsigned int z = 0 ;z< 8;z++)
-		    //        {
-		    //            test_texture_3d->write_to_voxel_field(x%15,y%15,z%15,15,x,y,z);
-		    //        }
-		    //    }
-		    //}
-		    //test_texture_3d->write_to_voxel_field(15,15,15,15,0,0,0);
-		
-		    //test_texture_3d->initialize();
-		
-		    auto* m_gi_test_mater = new ShaderProgram();
-		    //m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelGI.glsl");
-		    m_gi_test_mater->loadFromFile("EngineContent/Shader/VoxelVisualizer.glsl");
-		    m_gi_test_mater->compileShader();
-		    m_gi_test_mater->addVoxelField(test_texture_3d,"voxelData");
-		    plane1->materials.push_back(m_gi_test_mater);
-		    test_building->materials.push_back(triangle_visualizer_material);
-		
-		    //TEST VOXELIZER
-		    
-		    //auto vox = new Voxelizer(&global_context, &scene_context);
-		    //vox->setScale(4,4,4);
-		    //root->addChild(vox);
-		    //vox->set_position_global(0,0,0);
-		    //vox->voxel_precision = 8;
-		
-		
-		
-		
-		
-		    //vox->recalculate();
-		    //vox->load_into_voxel_texture_df(test_texture_3d);
-		    //test_texture_3d->initialize();
-		    ///////////////////////////////////////////////////////////////
-		    */
-	}
-
-	auto engine_handler_arrow_model = loadModel("EngineContent/Arrow.fbx");
-	engine_handler_arrow_model->initializeVertexArrays();
-
-	auto handlertest = new Mesh3D(scene->get_root(), engine_handler_arrow_model);
-	handlertest->setPositionLocal(20, 0, 0);
-	handlertest->name = "handlertest";
-	handlertest->set_material(normal_debug_shader);
+	
 
 
 	//TODO: this call should be automatically called when changing the scene
@@ -487,7 +394,7 @@ int main()
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50, 50, 1);
 
-	auto a = new plane_3d(scene->get_root());
+	new plane_3d(scene->get_root());
 
 	//object_plane->setScale(20);
 
@@ -582,8 +489,6 @@ int main()
 		lightTestMaterial->recompile_if_changed();
 		pp_shader->recompile_if_changed();
 		gaussian_gi_shader->recompile_if_changed();
-		auto rot = glfwGetTime() * 10;
-		handlertest->look_at_local(mSphere1->getWorldPosition());
 
 
 		editor3DCamera->calculateView();

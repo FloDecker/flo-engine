@@ -6,6 +6,7 @@
 #include "../PhysicsEngine/PhysicsEngine.h"
 #include "Modifiers/Implementations/Colliders/mesh_collider.h"
 #include "SceneTools/gaussianizer.h"
+#include "../Renderer/Texture/texture_buffer_object.h"
 
 SceneRoot::SceneRoot(GlobalContext* global_context, Scene* scene): Object3D()
 {
@@ -43,6 +44,12 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	light_pass_render_context_ = new RenderContext();
 	light_pass_render_context_->light_pass_depth_only_shader = global_context->light_pass_depth_only_shader;
 	light_pass_render_context_->pass = render_pass_lighting;
+
+
+	surfels_texture_buffer_positions_ = new texture_buffer_object();
+	surfels_texture_buffer_normals_ = new texture_buffer_object();
+	surfels_texture_buffer_color_ = new texture_buffer_object();
+	surfels_texture_buffer_radii_ = new texture_buffer_object();
 }
 
 
@@ -148,7 +155,7 @@ ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, 
 	return result;
 }
 
-irradiance_information Scene::get_irradiance_information(Object3D* object_3d, glm::vec3 pos_ws, glm::vec3 normal_ws)
+irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws)
 {
 	//for (unsigned int i = 0; i < irradiance_samples; ++i)
 	//{
@@ -156,34 +163,20 @@ irradiance_information Scene::get_irradiance_information(Object3D* object_3d, gl
 	//	auto r = ray_cast_in_scene(pos_ws, v, 4000, VISIBILITY);
 	//	
 	//}
-	irradiance_information irradiance = irradiance_information();
+	auto irradiance = irradiance_information();
 	irradiance.pos = pos_ws;
+	irradiance.normal = normal_ws;
 
-
-	if (direct_light_ != nullptr)
+	auto r = ray_cast_in_scene(pos_ws, normal_ws, 4000, VISIBILITY);
+	if (r.hit)
 	{
-		auto sun_direction = direct_light_->get_light_direction();
-		if (glm::dot(sun_direction, normal_ws) <= 0)
-		{
-			irradiance.color = glm::vec3(0.0, 0.0, 0.0);
-			return irradiance;
-		}
-		auto start_pos = pos_ws + normal_ws * 0.1f;
-		auto r = ray_cast_in_scene_unoptimized(start_pos, sun_direction, 4000,
-		                           VISIBILITY);
-		if (r.hit)
-		{
-
-			irradiance.color = glm::vec3(0.0, 0, 0);
-			return irradiance;
-		}
-		auto sun_angle = glm::dot(sun_direction, normal_ws);
-		irradiance.color = glm::vec3(sun_angle, sun_angle, sun_angle);
-		return irradiance;
+		irradiance.color = glm::vec3(0.0, 0.0, 0.0);
+	}
+	else
+	{
+		irradiance.color = glm::vec3(0.0, 0.0, 1.0);
 	}
 
-
-	irradiance.color = glm::vec3(1.0, 1.0, 1.0);
 	return irradiance;
 }
 
@@ -233,6 +226,39 @@ glm::vec3 Scene::uniformHemisphereSample(glm::vec3 normal)
 		vector_local.x * Ty + vector_local.y * By + vector_local.z * normal.y,
 		vector_local.x * Tz + vector_local.y * Bz + vector_local.z * normal.z
 	};
+}
+
+void Scene::recalculate_surfels()
+{
+	std::vector<glm::vec3> positions;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec3> colors;
+	std::vector<float> radii;
+
+	unsigned int size = 0;
+	for (auto g : gaussianinzers_)
+	{
+		for (auto s : g->samples())
+		{
+			//positions.push_back(s.mean);
+			positions.push_back(s.mean);
+			normals.push_back(s.normal);
+			radii.push_back(s.radius);
+
+			auto i = get_irradiance_information(s.mean, s.normal);
+			colors.push_back(i.color);
+			size++;
+		}
+	}
+
+	has_surfels_buffer_ = true;
+	surfels_texture_buffer_positions_->init(size, &positions);
+
+	surfels_texture_buffer_normals_->init(size, &normals);
+
+	surfels_texture_buffer_color_->init(size, &colors);
+
+	surfels_texture_buffer_radii_->init(size, &radii);
 }
 
 

@@ -270,20 +270,6 @@ void ShaderProgram::add_header_uniforms(Object3D* object_3d, RenderContext* rend
 		this->set_uniform_array_float(name_ambient_light_colors_sample_positions, &color_range->sample_points);
 		this->set_uniform_array_vec3_f(name_u_ambient_light_colors, &color_range->colors);
 	}
-
-	if (flag_gaussian_lighting_)
-	{
-		auto result = std::vector<gaussian>();
-		object_3d->get_scene()->get_gaussian_approx_at(object_3d->getWorldPosition(), &result);
-		for (unsigned int i = 0; i < result.size(); ++i)
-		{
-			std::string baseName = "gaussians[" + std::to_string(i) + "]";
-			set_uniform_vec3_f((baseName + ".mean").c_str(), value_ptr(result[i].mean));
-			set_uniform_vec3_f((baseName + ".normal").c_str(), value_ptr(result[i].normal));
-			set_uniform_vec3_f((baseName + ".color").c_str(), value_ptr(result[i].color));
-			set_uniform_float((baseName + ".radius").c_str(), result[i].radius);
-		}
-	}
 }
 
 //TODO: this can also be added before compilation

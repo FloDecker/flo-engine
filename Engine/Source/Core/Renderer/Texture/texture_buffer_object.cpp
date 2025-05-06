@@ -1,16 +1,7 @@
 ﻿#include "texture_buffer_object.h"
 
+#include <iostream>
 #include <GL/glew.h>
-
-texture_buffer_object::texture_buffer_object(int data_size)
-{
-	data_size_ = data_size;
-}
-
-texture_buffer_object::texture_buffer_object(int data_size, std::vector<float>* data): texture_buffer_object(data_size)
-{
-	init_float_(data);
-}
 
 void texture_buffer_object::generate_and_bind_buffer()
 {
@@ -19,14 +10,14 @@ void texture_buffer_object::generate_and_bind_buffer()
 	glBindBuffer(GL_TEXTURE_BUFFER, texture_buffer_);
 }
 
-void texture_buffer_object::generate_and_attach_texture()
+void texture_buffer_object::generate_and_attach_texture(int internal_format)
 {
 	// Step 3: Generate a texture and bind it to the buffer
 	glGenTextures(1, &texture_);
 	glBindTexture(GL_TEXTURE_BUFFER, texture_);
 
 	// Step 4: Attach the buffer to the texture
-	glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, texture_buffer_);
+	glTexBuffer(GL_TEXTURE_BUFFER, internal_format, texture_buffer_);
 
 	// Cleanup: Unbind
 	glBindBuffer(GL_TEXTURE_BUFFER, 0);
@@ -36,7 +27,7 @@ void texture_buffer_object::generate_and_attach_texture()
 bool texture_buffer_object::init(int data_size, std::vector<float>* data)
 {
 	data_size_ = data_size;
-	if (initialized_) {return false;}
+	if (initialized_) { return false; }
 	init_float_(data);
 	return true;
 }
@@ -44,9 +35,16 @@ bool texture_buffer_object::init(int data_size, std::vector<float>* data)
 bool texture_buffer_object::init(int data_size, std::vector<glm::vec3>* data)
 {
 	data_size_ = data_size;
-	if (initialized_) {return false;}
+	if (initialized_) { return false; }
 	init_vec3_(data);
 	return true;
+}
+
+void texture_buffer_object::use(unsigned textureUnit) const
+{
+	if (!initialized_) return;
+	glActiveTexture(GL_TEXTURE0 + textureUnit);
+	glBindTexture(GL_TEXTURE_BUFFER, texture_);
 }
 
 void texture_buffer_object::init_float_(std::vector<float>* data)
@@ -55,7 +53,7 @@ void texture_buffer_object::init_float_(std::vector<float>* data)
 	generate_and_bind_buffer();
 	// Step 2: Allocate and fill buffer with data
 	glBufferData(GL_TEXTURE_BUFFER, data_size_ * sizeof(float), data->data(), GL_STATIC_DRAW);
-	generate_and_attach_texture();
+	generate_and_attach_texture(GL_R32F);
 	initialized_ = true;
 }
 
@@ -66,6 +64,6 @@ void texture_buffer_object::init_vec3_(std::vector<glm::vec3>* data)
 	generate_and_bind_buffer();
 	// Step 2: Allocate and fill buffer with data
 	glBufferData(GL_TEXTURE_BUFFER, data_size_ * sizeof(glm::vec3), data->data(), GL_STATIC_DRAW);
-	generate_and_attach_texture();
+	generate_and_attach_texture(GL_RGB32F);
 	initialized_ = true;
 }

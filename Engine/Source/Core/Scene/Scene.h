@@ -15,6 +15,7 @@
 #include "../CommonDataStructures/irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
+class texture_buffer_object;
 class gaussianizer;
 struct gaussian;
 class mesh_collider;
@@ -49,6 +50,7 @@ public:
 	visual_debug_tools* get_debug_tools() const;
 
 	int gaussian_samples_per_object = 128;
+
 
 	//render passes
 	void draw_scene(RenderContext* render_context) const;
@@ -104,10 +106,16 @@ public:
 	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                              collision_channel collision_channel);
 	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
-											  collision_channel collision_channel, Object3D* ignore = nullptr);
+	                                  collision_channel collision_channel, Object3D* ignore = nullptr);
 
-	irradiance_information get_irradiance_information(Object3D *object_3d, glm::vec3 pos_ws, glm::vec3 normal_ws);
+	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
+
+	texture_buffer_object* surfels_texture_buffer_positions_;
+	texture_buffer_object* surfels_texture_buffer_normals_;
+	texture_buffer_object* surfels_texture_buffer_color_;
+	texture_buffer_object* surfels_texture_buffer_radii_;
+	void recalculate_surfels();
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
@@ -137,6 +145,10 @@ private:
 	//direct light
 	bool has_direct_light_ = false;
 	direct_light* direct_light_ = nullptr;
+
+	//global illumination
+	bool has_surfels_buffer_ = false;
+
 
 	//skybox
 	bool has_sky_box = false;

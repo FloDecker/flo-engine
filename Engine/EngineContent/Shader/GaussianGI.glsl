@@ -23,6 +23,11 @@ in vec3 cameraPosWs;
 in vec3 vertexPosWs;
 in vec3 normalWS;
 
+uniform samplerBuffer surfels_texture_buffer_color_;
+uniform samplerBuffer surfels_texture_buffer_normals_;
+uniform samplerBuffer surfels_texture_buffer_positions_;
+uniform samplerBuffer surfels_texture_buffer_radii_;
+
 
 //static for testing
 //vec3 _lightPos = vec3(0.0, 0.5, -4.0);
@@ -48,8 +53,6 @@ struct Gaussian {
     vec3 color;
     float radius;
 };
-
-uniform Gaussian gaussians[128];
 
 //uniform vec3 gaussian_pos[GAUSSIAN_SAMPLES];
 //uniform vec3 gaussian_normal[GAUSSIAN_SAMPLES];
@@ -182,35 +185,16 @@ void main() {
     vec3 view_reflect = _reflection_vector(viewDir);
 
     //float t = areaOfTriangleOnUnitSphere(vec3(0,-3,0),vec3(4,-3,0),vec3(0,0,0),vertexPosWs);
-    vec3 color_result = vec3(0, 0, 0);
-
-    for (int i = 0; i < GAUSSIAN_SAMPLES; i++) {
-        float e_radius = gaussians[i].radius*1;
-        vec3 e_pos = gaussians[i].mean;
-        vec3 e_normal = gaussians[i].normal;
-
-        float r = float(ray_circle_distance(e_radius, e_pos, e_normal, vertexPosWs, view_reflect));
-        float t = areaOfCircleOnUnitSphere(e_radius, e_pos, e_normal, vertexPosWs);
-
-        r = clamp(r, 0, 1);
-        t = clamp(t, 0, 1);
-
-        color_result+= vec3(t / AREA_UNIT_SPHERE);
-        color_result+= vec3(r);
+    vec3 color_result = abs(texelFetch(surfels_texture_buffer_positions_, 18).rgb*0.01);
+    
+    float d = 0;
+    
+    for (int i = 0; i < 128; i++) {
+        vec3 surfle_pos = texelFetch(surfels_texture_buffer_positions_, i).rgb;
+        d = max(d,float(distance(surfle_pos, vertexPosWs) <= 1.0));
     }
-    float e_radius = gaussians[120].radius;
-    vec3 e_pos = gaussians[120].mean;
-    vec3 e_normal = vec3(1, 0, 0);
-
-    float r = float(ray_circle_distance(e_radius, e_pos, e_normal, vertexPosWs, view_reflect));
-    float t = areaOfCircleOnUnitSphere(e_radius, e_pos, e_normal, vertexPosWs);
-
-    r = clamp(r, 0, 1);
-    t = clamp(t, 0, 1);
-
-    vec3 c = vec3(t / AREA_UNIT_SPHERE + r);
-    FragColor = vec4(abs(c), 1.0);
-    FragColor = vec4(color_result, 1.0);
+    
+    FragColor = vec4(vec3(d), 1.0);
     //FragColor = vec4(vec3(abs(gaussians[3].normal)), 1.0);
 
 }
