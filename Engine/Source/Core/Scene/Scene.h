@@ -111,6 +111,8 @@ public:
 	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 
+	//surfels
+	unsigned int SURFEL_BUFFER_AMOUNT = 8192;
 	texture_buffer_object* surfels_texture_buffer_positions_;
 	texture_buffer_object* surfels_texture_buffer_normals_;
 	texture_buffer_object* surfels_texture_buffer_color_;
@@ -155,4 +157,7 @@ private:
 	sky_box* sky_box_ = nullptr;
 
 	RenderContext* light_pass_render_context_;
+
+	void init_surfels_buffer();
+
 };

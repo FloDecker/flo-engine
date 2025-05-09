@@ -265,15 +265,7 @@ int main()
 
 	plane->materials.push_back(lightTestMaterial);
 	sphere->materials.push_back(lightTestMaterial);
-
-	//DELTE ME
-
-	auto remove_me_text_buffer = new texture_buffer_object();
-	std::vector<glm::vec3> a;
-	a.push_back(glm::vec3(1.0, 0.5, 0.0));
-	a.push_back(glm::vec3(1.0, 0.5, 0.0));
-	remove_me_text_buffer->init(2, &a);
-	
+		
 
 	/////ADD SCENE GEOMETRY:
 

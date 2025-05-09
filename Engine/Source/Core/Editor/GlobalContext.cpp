@@ -62,3 +62,8 @@ void Logger::print_info(std::string log)
 {
 	print_to_log(log_info, log);
 }
+
+void Logger::print_warning(std::string log)
+{
+	print_to_log(log_warning, log);
+}

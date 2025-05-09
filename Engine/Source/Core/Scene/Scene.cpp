@@ -230,6 +230,12 @@ glm::vec3 Scene::uniformHemisphereSample(glm::vec3 normal)
 
 void Scene::recalculate_surfels()
 {
+
+	if (!has_surfels_buffer_)
+	{
+		init_surfels_buffer();
+	}
+	
 	std::vector<glm::vec3> positions;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec3> colors;
@@ -250,15 +256,41 @@ void Scene::recalculate_surfels()
 			size++;
 		}
 	}
+	bool success = true;
+	success&= surfels_texture_buffer_positions_->update_vec3(&positions, 0);
+	success&= surfels_texture_buffer_normals_->update_vec3(&normals, 0);
+	success&= surfels_texture_buffer_color_->update_vec3(&colors, 0);
+	success&= surfels_texture_buffer_radii_->update_float(&radii, 0);
+	if (success)
+	{
+		global_context_->logger->print_info("surfels updated");
 
+	} else
+	{
+		global_context_->logger->print_warning("surfels couldn't been updated correctly");
+	}
+
+}
+
+void Scene::init_surfels_buffer()
+{
+	if (has_surfels_buffer_) {
+		global_context_->logger->print_warning("Scene already initialized surfel buffers");
+		return;
+	};
+
+	global_context_->logger->print_info("Initializing surfel buffer...");
+	global_context_->logger->print_info(std::format("Surfel buffer size : {}", SURFEL_BUFFER_AMOUNT));
+	surfels_texture_buffer_positions_->init_vec3(SURFEL_BUFFER_AMOUNT);
+	surfels_texture_buffer_normals_->init_vec3(SURFEL_BUFFER_AMOUNT);
+	surfels_texture_buffer_color_->init_vec3(SURFEL_BUFFER_AMOUNT);
+	surfels_texture_buffer_radii_->init_float(SURFEL_BUFFER_AMOUNT);
+	global_context_->logger->print_info(std::format("Surfel buffer total memory : {}",
+		sizeof(glm::vec3) * SURFEL_BUFFER_AMOUNT * 3 + sizeof(float) * SURFEL_BUFFER_AMOUNT)
+		);
+	
 	has_surfels_buffer_ = true;
-	surfels_texture_buffer_positions_->init(size, &positions);
 
-	surfels_texture_buffer_normals_->init(size, &normals);
-
-	surfels_texture_buffer_color_->init(size, &colors);
-
-	surfels_texture_buffer_radii_->init(size, &radii);
 }
 
 

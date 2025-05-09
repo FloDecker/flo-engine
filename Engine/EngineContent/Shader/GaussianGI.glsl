@@ -189,7 +189,7 @@ void main() {
     
     float d = 0;
     
-    for (int i = 0; i < 128; i++) {
+    for (int i = 0; i < 512; i++) {
         vec3 surfle_pos = texelFetch(surfels_texture_buffer_positions_, i).rgb;
         d = max(d,float(distance(surfle_pos, vertexPosWs) <= 1.0));
     }
