@@ -112,11 +112,18 @@ public:
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 
 	//surfels
-	unsigned int SURFEL_BUFFER_AMOUNT = 8192;
+
+	float SURFELS_BUCKET_SIZE = 1.0f; //in ws units
+	unsigned int SURFELS_GRID_SIZE = 128; //actual size is SURFELS_BUCKET_SIZE * SURFELS_GRID_SIZE
+	
+	unsigned int SURFEL_BUFFER_AMOUNT = 1000000;
+	
 	texture_buffer_object* surfels_texture_buffer_positions_;
 	texture_buffer_object* surfels_texture_buffer_normals_;
 	texture_buffer_object* surfels_texture_buffer_color_;
 	texture_buffer_object* surfels_texture_buffer_radii_;
+	
+	texture_buffer_object* surfels_uniform_grid;
 	void recalculate_surfels();
 
 private:
@@ -159,5 +166,6 @@ private:
 	RenderContext* light_pass_render_context_;
 
 	void init_surfels_buffer();
-
+	unsigned int get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[]);
+	unsigned int get_surfel_bucket_from_ws_pos(glm::vec3 ws_pos) const;
 };

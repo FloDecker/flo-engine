@@ -218,7 +218,6 @@ void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, unsig
 		glm::vec3 n = normalize(v_1.normal + v_2.normal + v_3.normal);
 		p = parent->transform_vertex_to_world_space(p);
 		n = parent->transform_vector_to_world_space(n);
-		std::printf(glm::to_string(p).c_str());
 		points->push_back({
 				.position = p,
 				.normal = n,

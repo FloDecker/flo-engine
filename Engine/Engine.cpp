@@ -256,6 +256,7 @@ int main()
 	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_normals_, "surfels_texture_buffer_normals_");
 	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_positions_, "surfels_texture_buffer_positions_");
 	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_radii_, "surfels_texture_buffer_radii_");
+	gaussian_gi_shader->addTexture(scene->surfels_uniform_grid, "surfels_uniform_grid");
 
 
 	auto* worldPosMat = new ShaderProgram();
@@ -381,7 +382,7 @@ int main()
 	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
-	object_plane->set_material(lightTestMaterial);
+	object_plane->set_material(gaussian_gi_shader);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50, 50, 1);

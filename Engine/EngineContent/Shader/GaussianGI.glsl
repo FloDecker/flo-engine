@@ -27,6 +27,7 @@ uniform samplerBuffer surfels_texture_buffer_color_;
 uniform samplerBuffer surfels_texture_buffer_normals_;
 uniform samplerBuffer surfels_texture_buffer_positions_;
 uniform samplerBuffer surfels_texture_buffer_radii_;
+uniform usamplerBuffer surfels_uniform_grid;
 
 
 //static for testing
@@ -157,6 +158,20 @@ float areaOfTriangleOnUnitSphere(vec3 p1, vec3 p2, vec3 p3, vec3 sphereCenter) {
 
 }
 
+
+float SURFELS_BUCKET_SIZE = 1.0f; //in ws units
+uint SURFELS_GRID_SIZE = 128; //actual size is SURFELS_BUCKET_SIZE * SURFELS_GRID_SIZE
+uint SURFEL_BUFFER_AMOUNT = 8192;
+
+
+uint get_pos_in_uniform_grid() {
+    vec3 ws_pos = vertexPosWs;
+    ws_pos /= SURFELS_BUCKET_SIZE;
+    ws_pos += SURFELS_GRID_SIZE*0.5f;
+    ws_pos = floor(ws_pos);
+    return uint(ws_pos.x + SURFELS_GRID_SIZE * ws_pos.y + SURFELS_GRID_SIZE * (SURFELS_GRID_SIZE * ws_pos.z));
+}
+
 void main() {
 
 
@@ -186,13 +201,19 @@ void main() {
 
     //float t = areaOfTriangleOnUnitSphere(vec3(0,-3,0),vec3(4,-3,0),vec3(0,0,0),vertexPosWs);
     vec3 color_result = abs(texelFetch(surfels_texture_buffer_positions_, 18).rgb*0.01);
+    int p = int(get_pos_in_uniform_grid());
+    uvec2 bucket_info = texelFetch(surfels_uniform_grid,p).rg;
+    int bucket_size = int(bucket_info.g);
+    int bucket_offset = int(bucket_info.r);
     
     float d = 0;
     
-    for (int i = 0; i < 512; i++) {
-        vec3 surfle_pos = texelFetch(surfels_texture_buffer_positions_, i).rgb;
-        d = max(d,float(distance(surfle_pos, vertexPosWs) <= 1.0));
+    for (int i = 0; i < bucket_size; i++) {
+        vec3 surfle_pos = texelFetch(surfels_texture_buffer_positions_, bucket_offset + i).rgb;
+        d = max(d,float(distance(surfle_pos, vertexPosWs) <= 0.05));
     }
+    
+    
     
     FragColor = vec4(vec3(d), 1.0);
     //FragColor = vec4(vec3(abs(gaussians[3].normal)), 1.0);
