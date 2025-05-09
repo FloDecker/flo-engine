@@ -1,6 +1,5 @@
 ﻿#include "primitive_instance.h"
 
-#include <gtc/type_ptr.hpp>
 
 #include "../Scene/Object3D.h"
 #include "Primitives/primitive.h"

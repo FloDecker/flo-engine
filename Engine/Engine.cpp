@@ -381,7 +381,7 @@ int main()
 	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
-	object_plane->set_material(gaussian_gi_shader);
+	object_plane->set_material(lightTestMaterial);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50, 50, 1);
