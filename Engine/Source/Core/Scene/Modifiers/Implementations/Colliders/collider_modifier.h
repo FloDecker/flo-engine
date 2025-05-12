@@ -27,7 +27,7 @@ public:
 	virtual struct_intersection check_intersection(collider_modifier* other) = 0;
 	virtual struct_intersection check_intersection_with(box_collider* box) = 0;
 	virtual struct_intersection check_intersection_with(mesh_collider* mesh) = 0;
-	virtual void scatter_points_on_surface(std::vector<vertex>* points, unsigned int amount) = 0;
+	virtual void scatter_points_on_surface(std::vector<vertex>* points, float points_per_square_meter) = 0;
 
 	virtual void is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_result* result) = 0;
 	ray_cast_result* is_in_proximity(glm::vec3 center_ws, float radius);

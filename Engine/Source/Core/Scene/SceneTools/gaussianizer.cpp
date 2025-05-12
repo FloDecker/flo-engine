@@ -37,7 +37,7 @@ void gaussianizer::draw_object_specific_ui()
 		}
 	}
 
-	ImGui::DragInt("samples per object", &amount_);
+	ImGui::DragInt("points per square meter", &points_per_square_meter);
 	if (ImGui::Button("Recalculate"))
 	{
 		snap_samples_to_closest_surface();
@@ -57,7 +57,7 @@ void gaussianizer::snap_samples_to_closest_surface()
 	auto points = std::vector<vertex>();
 	for (collider_modifier* collider : colliders_in_bb)
 	{
-		collider->scatter_points_on_surface(&points, amount_);
+		collider->scatter_points_on_surface(&points, points_per_square_meter);
 	}
 
 	for (auto point : points)

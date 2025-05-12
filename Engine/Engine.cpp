@@ -387,6 +387,11 @@ int main()
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50, 50, 1);
 
+	auto object_house = new Mesh3D(scene->get_root(), me_test_building);
+	object_house->name = "object_house";
+	object_house->set_material(gaussian_gi_shader);
+	object_house->set_position_global(-12,-1.7,0);
+	object_house->setRotationLocal(-90,0,0);
 	new plane_3d(scene->get_root());
 
 	//object_plane->setScale(20);

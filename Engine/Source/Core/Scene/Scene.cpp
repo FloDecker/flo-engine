@@ -168,7 +168,7 @@ irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::
 	irradiance.pos = pos_ws;
 	irradiance.normal = normal_ws;
 
-	auto r = ray_cast_in_scene(pos_ws, normal_ws, 4000, VISIBILITY);
+	auto r = ray_cast_in_scene(pos_ws, direct_light_->get_light_direction(), 4000, VISIBILITY);
 	if (r.hit)
 	{
 		irradiance.color = glm::vec3(0.0, 0.0, 0.0);

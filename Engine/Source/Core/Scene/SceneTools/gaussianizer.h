@@ -28,5 +28,5 @@ private:
 	void clear_samples();
 	void calculate_gaussian();
 	bool draw_debug_tools_;
-	int amount_ = 100;
+	int points_per_square_meter = 1;
 };

@@ -31,7 +31,7 @@ public:
 	void is_in_proximity(glm::vec3 center_ws, float radius, ray_cast_result* result) override;
 	struct_intersection check_intersection_with(mesh_collider* mesh) override;
 	glm::vec3 get_center_of_mass_local() override;
-	void scatter_points_on_surface(std::vector<vertex>* points, unsigned amount) override;
+	void scatter_points_on_surface(std::vector<vertex>* points, float points_per_square_meter) override;
 
 protected:
 	StructBoundingBox calculate_world_space_bounding_box_internal_() override;

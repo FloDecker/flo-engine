@@ -192,7 +192,7 @@ void main() {
     float diffEase = 1 - pow(1 - _light_diffuse_intensity, 3);
     float specIntensity  = pow(specAngle, _specularExponent)*diffEase;
 
-    FragColor = vec4(vec3(
+    vec4 c = vec4(vec3(
     _light_diffuse_intensity  * _object_color
     + specIntensity
     + _ambientLightIntensity * _ambientMaterialConstant), 1.0);
@@ -200,19 +200,22 @@ void main() {
     vec3 view_reflect = _reflection_vector(viewDir);
 
     //float t = areaOfTriangleOnUnitSphere(vec3(0,-3,0),vec3(4,-3,0),vec3(0,0,0),vertexPosWs);
-    vec3 color_result = abs(texelFetch(surfels_texture_buffer_positions_, 18).rgb*0.01);
     int p = int(get_pos_in_uniform_grid());
     uvec2 bucket_info = texelFetch(surfels_uniform_grid,p).rg;
     int bucket_size = int(bucket_info.g);
     int bucket_offset = int(bucket_info.r);
     
-    float d = 0;
+    vec3 d = vec3(0,0,0);
     
     for (int i = 0; i < bucket_size; i++) {
         vec3 surfle_pos = texelFetch(surfels_texture_buffer_positions_, bucket_offset + i).rgb;
-        d = max(d,float(distance(surfle_pos, vertexPosWs) <= 0.05));
+        if (distance(surfle_pos, vertexPosWs) <= 0.05){
+            d = texelFetch(surfels_texture_buffer_color_, bucket_offset + i).rgb;
+            d.r = 1.0;
+
+        }
+
     }
-    
     
     
     FragColor = vec4(vec3(d), 1.0);

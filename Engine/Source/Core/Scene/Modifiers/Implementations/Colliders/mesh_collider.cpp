@@ -195,34 +195,58 @@ glm::vec3 mesh_collider::get_center_of_mass_local()
 	return center_of_mass / static_cast<float>(vertices);
 }
 
-void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, unsigned amount)
+void mesh_collider::scatter_points_on_surface(std::vector<vertex>* points, float points_per_square_meter)
 {
 	std::random_device rd; // Seed the random number generator
 	std::mt19937 gen(rd()); // Mersenne Twister PRNG
-	std::uniform_int_distribution<int> dist_vertex_arrays(0, vertex_arrays_.size() - 1); // Range [1, 100]
-
-	int randomNumber = dist_vertex_arrays(gen);
-
-	for (int i = 0; i < amount; i++)
+	std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f); 
+	
+	for (unsigned int i = 0; i < vertex_arrays_.size(); i++)
 	{
-		auto v = vertex_arrays_.at(dist_vertex_arrays(gen));
-		std::uniform_int_distribution<int> dist_vertices(0, v->indices->size() - 1); // Range [1, 100]
+		auto vertex_array = this->vertex_arrays_.at(i);
+		for (int i = 0; i < vertex_array->indices->size() - 1; i+=3)
+		{
+			//size of triangle
+			
+			auto v_1 = vertex_array->vertices->at(vertex_array->indices->at(i));
+			auto v_2 = vertex_array->vertices->at(vertex_array->indices->at(i+ 1));
+			auto v_3 = vertex_array->vertices->at(vertex_array->indices->at(i+ 2));
+
+			auto v_1_2 = v_2.position - v_1.position;
+			auto v_1_3 = v_3.position - v_1.position;
+
+			auto area = 0.5f * glm::length(glm::cross(parent->transform_vector_to_world_space(v_1_2), parent->transform_vector_to_world_space(v_1_3)));
+
+			auto amount = points_per_square_meter * area;
+
+			int amount_whole = floor(amount) +
+				(float_dist_0_1(gen) < amount - floor(amount) ? 1 : 0);
+			
+			for (int t = 0; t < amount_whole; t++)
+			{
+				glm::vec3 p = math_util::get_random_point_in_triangle(v_1.position, v_2.position, v_3.position);
+				glm::vec3 n = normalize(v_1.normal + v_2.normal + v_3.normal);
+				p = parent->transform_vertex_to_world_space(p);
+				n = parent->transform_vector_to_world_space(n);
+				points->push_back({
+						.position = p,
+						.normal = n,
+						.tex_coords = {}
+					}
+				);
+			}
+		}
+		
+	}
+	for (int i = 0; i < points_per_square_meter; i++)
+	{
+		auto v = vertex_arrays_.at(float_dist_0_1(gen));
+		std::uniform_int_distribution<int> dist_vertices(0, v->indices->size() - 1); 
 		auto random_index = dist_vertices(gen);
 		random_index -= random_index % 3;
 		random_index = std::max(0, random_index);
-		auto v_1 = v->vertices->at(v->indices->at(random_index));
-		auto v_2 = v->vertices->at(v->indices->at(random_index + 1));
-		auto v_3 = v->vertices->at(v->indices->at(random_index + 2));
 
-		glm::vec3 p = math_util::get_random_point_in_triangle(v_1.position, v_2.position, v_3.position);
-		glm::vec3 n = normalize(v_1.normal + v_2.normal + v_3.normal);
-		p = parent->transform_vertex_to_world_space(p);
-		n = parent->transform_vector_to_world_space(n);
-		points->push_back({
-				.position = p,
-				.normal = n,
-				.tex_coords = {}
-			}
-		);
+
+
 	}
 }
