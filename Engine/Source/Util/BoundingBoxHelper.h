@@ -34,6 +34,8 @@ public:
 
 	//checks if two bounding boxes are overlapping
 	static bool are_overlapping(StructBoundingBox* a, StructBoundingBox* b);
+	//from https://gamedev.stackexchange.com/questions/156870/how-do-i-implement-a-aabb-sphere-collision
+	static bool are_overlapping(StructBoundingBox* a, StructBoundingSphere* b);
 
 	//checks if a point is contained in a bounding box
 	static bool is_in_bounding_box(const StructBoundingBox* bounding_box, const glm::vec3& p,
@@ -49,6 +51,9 @@ public:
 	//bb edges
 	static std::array<glm::vec3, 8> get_vertices(const StructBoundingBox* bounding_box, const glm::mat4& transform_a);
 
+	//from https://gamedev.stackexchange.com/questions/156870/how-do-i-implement-a-aabb-sphere-collision
+	static float sq_dist_point_aabb(glm::vec3 p, StructBoundingBox* b);
+	
 	static glm::vec3 get_center_of_bb(const StructBoundingBox* bounding_box);
 	static glm::vec3 get_scale_of_bb(const StructBoundingBox* bounding_box);
 	static glm::vec3 get_half_sizes_of_bb(const StructBoundingBox* bounding_box);

@@ -168,16 +168,24 @@ irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::
 	irradiance.pos = pos_ws;
 	irradiance.normal = normal_ws;
 
-	auto r = ray_cast_in_scene(pos_ws, direct_light_->get_light_direction(), 4000, VISIBILITY);
-	if (r.hit)
-	{
-		irradiance.color = glm::vec3(0.0, 0.0, 0.0);
-	}
-	else
-	{
-		irradiance.color = glm::vec3(0.0, 0.0, 1.0);
-	}
+	//auto r = ray_cast_in_scene(pos_ws + normal_ws * 0.1f, direct_light_->get_light_direction(), 4000, VISIBILITY);
+	//if (r.hit)
+	//{
+	//	irradiance.color = glm::vec3(0.0, 0.0, 0.0);
+	//}
+	//else
+	//{
+	//	irradiance.color = direct_light_->color;
+	//}
 
+	float ambient_hits = 0;
+	for (int i = 0; i < gi_primary_rays; i++)
+	{
+		auto d = uniformHemisphereSample(normal_ws);
+		auto r = ray_cast_in_scene(pos_ws + normal_ws * 0.1f, d, 4000, VISIBILITY);
+		ambient_hits+= (r.hit) ? 0.0 : 1.0/static_cast<float>(gi_primary_rays);
+	}
+	irradiance.color+=ambient_hits * glm::vec3(1.0, 1.0, 1.0);
 	return irradiance;
 }
 
@@ -292,15 +300,23 @@ void Scene::recalculate_surfels()
 	for (unsigned int i = 0; i < size; i++)
 	{
 		auto p = positions[i];
-		unsigned int bucket = get_surfel_bucket_from_ws_pos(p);
+		auto n = normals[i];
+		unsigned int buckets_for_surfle[8] = {};
+		unsigned int buckets_length = get_surfel_buckets_from_ws_pos(p,n, buckets_for_surfle);
+		//unsigned int bucket = get_surfel_bucket_from_ws_pos(p);
 
-		if (buckets.contains(bucket))
+		for (int x = 0; x < buckets_length; x++)
 		{
-			buckets[bucket].push_back(i);
-		} else
-		{
-			buckets[bucket] = std::vector<unsigned int>{i};
+			auto bucket = buckets_for_surfle[x];
+			if (buckets.contains(bucket))
+			{
+				buckets[bucket].push_back(i);
+			} else
+			{
+				buckets[bucket] = std::vector<unsigned int>{i};
+			}
 		}
+
 	}
 
 	std::vector<glm::vec3> positions_surfel_stack;
@@ -326,13 +342,6 @@ void Scene::recalculate_surfels()
 			surfel_stack_counter++;
 		}
 	}
-
-	unsigned int index = 0;
-
-	for (auto b : buckets)
-	{
-		
-	}
 	
 	bool success = true;
 	success&= surfels_texture_buffer_positions_->update_vec3(&positions_surfel_stack, 0);
@@ -350,14 +359,54 @@ void Scene::recalculate_surfels()
 
 }
 
-
-unsigned int Scene::get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[4])
+//TODO : currently the surfle is considered a circle and is therefor placed in buckets it doesent belong to,
+//this doesent affect visuals but performance 
+unsigned int Scene::get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[8])
 {
-		
-	return 0;
+	buckets[0] = get_surfel_bucket_from_ws_pos(ws_pos);
+	auto surfel_bucket_center = get_surfel_bucket_center(ws_pos);
+	auto center_pos_v = ws_pos - surfel_bucket_center;
+	center_pos_v.x = center_pos_v.x > 0 ? 1.0f : -1.0f;
+	center_pos_v.y = center_pos_v.y > 0 ? 1.0f : -1.0f;
+	center_pos_v.z = center_pos_v.z > 0 ? 1.0f : -1.0f;
+	center_pos_v = normalize(center_pos_v);
+
+	StructBoundingSphere b = {ws_pos, SURFELS_BUCKET_SIZE * 0.5f};
+	StructBoundingBox bb = {};
+	const glm::vec3 component_multiplier[8] = {
+		glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		glm::vec3(1.0f, 1.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f),
+		glm::vec3(1.0f, 0.0f, 1.0f),
+		glm::vec3(0.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+	};
+	unsigned int filled_buckets = 1;
+	
+	auto half_size = glm::vec3(0.5) * SURFELS_BUCKET_SIZE;
+	for (int i = 0 ; i < 7; i++)
+	{
+		auto center_neighbour = surfel_bucket_center + glm::normalize(center_pos_v * component_multiplier[i]) * SURFELS_BUCKET_SIZE;
+		bb.min = center_neighbour - half_size;
+		bb.max = center_neighbour + half_size;
+		if (BoundingBoxHelper::are_overlapping(&bb, &b))
+		{
+			buckets[filled_buckets] = get_surfel_bucket_from_ws_pos(center_neighbour);
+			filled_buckets++;
+			
+		}
+	}
+	return filled_buckets;
 }
 
 
+glm::vec3 Scene::get_surfel_bucket_center(glm::vec3 ws_pos) const
+{
+	ws_pos /= SURFELS_BUCKET_SIZE;
+	ws_pos = glm::floor(ws_pos) + 0.5f ;
+	return  ws_pos * SURFELS_BUCKET_SIZE;
+}
 
 unsigned int Scene::get_surfel_bucket_from_ws_pos(glm::vec3 ws_pos) const
 {
@@ -435,7 +484,7 @@ void Scene::get_gaussian_approx_at(glm::vec3 ws_pos, std::vector<gaussian>* resu
 		return;
 	}
 
-	for (int i = 0; i < gaussian_samples_per_object; ++i)
+	for (int i = 0; i < gi_primary_rays; ++i)
 	{
 		if (gaussianinzers_.at(0)->samples().size() > i)
 		{

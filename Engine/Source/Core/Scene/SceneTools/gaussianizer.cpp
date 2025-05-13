@@ -62,7 +62,7 @@ void gaussianizer::snap_samples_to_closest_surface()
 
 	for (auto point : points)
 	{
-		samples_.push_back({point.position, point.normal, {1, 1, 1}, 1.0});
+		samples_.push_back({point.position, point.normal, {1, 1, 1}, 1.0f/points_per_square_meter});
 	}
 }
 

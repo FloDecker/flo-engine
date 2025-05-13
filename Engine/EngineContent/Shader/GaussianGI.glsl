@@ -192,12 +192,7 @@ void main() {
     float diffEase = 1 - pow(1 - _light_diffuse_intensity, 3);
     float specIntensity  = pow(specAngle, _specularExponent)*diffEase;
 
-    vec4 c = vec4(vec3(
-    _light_diffuse_intensity  * _object_color
-    + specIntensity
-    + _ambientLightIntensity * _ambientMaterialConstant), 1.0);
 
-    vec3 view_reflect = _reflection_vector(viewDir);
 
     //float t = areaOfTriangleOnUnitSphere(vec3(0,-3,0),vec3(4,-3,0),vec3(0,0,0),vertexPosWs);
     int p = int(get_pos_in_uniform_grid());
@@ -206,19 +201,28 @@ void main() {
     int bucket_offset = int(bucket_info.r);
     
     vec3 d = vec3(0,0,0);
-    
+    float total = 0;
+    float costest = 1000.0;
     for (int i = 0; i < bucket_size; i++) {
         vec3 surfle_pos = texelFetch(surfels_texture_buffer_positions_, bucket_offset + i).rgb;
-        if (distance(surfle_pos, vertexPosWs) <= 0.05){
-            d = texelFetch(surfels_texture_buffer_color_, bucket_offset + i).rgb;
-            d.r = 1.0;
+        float surfle_radius = texelFetch(surfels_texture_buffer_radii_, bucket_offset + i).r ;
+        
+        if (distance(surfle_pos, vertexPosWs) <= surfle_radius){
+            vec3 surfle_normal = texelFetch(surfels_texture_buffer_normals_, bucket_offset + i).rgb;
+            if (dot(surfle_normal, normalWS) > 0.1) { //only consider with near equal normals
+                float weight = (1-distance(surfle_pos, vertexPosWs) / surfle_radius);
+                d+=texelFetch(surfels_texture_buffer_color_, bucket_offset + i).rgb * weight;
+                total+=weight;
+            }
 
         }
 
     }
-    
-    
-    FragColor = vec4(vec3(d), 1.0);
+    d/=total;
+
+    vec3 c =d * vec3(50.0/255.0, 139.0/255.0, 168.0/255.0)  * _object_color ;
+
+    FragColor = vec4(vec3(c), 1.0);
     //FragColor = vec4(vec3(abs(gaussians[3].normal)), 1.0);
 
 }

@@ -363,7 +363,7 @@ int main()
 	scene->get_physics_engine()->add_spring(spring2, spring4, 200.0);
 
 	auto g = new gaussianizer(scene->get_root());
-	
+	g->set_position_global(-12,-1.7,0);
 
 
 	//TODO: this call should be automatically called when changing the scene

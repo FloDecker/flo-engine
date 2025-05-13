@@ -115,6 +115,15 @@ bool BoundingBoxHelper::are_overlapping(StructBoundingBox* a, StructBoundingBox*
 	return true;
 }
 
+bool BoundingBoxHelper::are_overlapping(StructBoundingBox* a, StructBoundingSphere* b)
+{
+	float sqDist = sq_dist_point_aabb( b->center, a );
+
+	// Sphere and AABB intersect if the (squared) distance between them is
+	// less than the (squared) sphere radius.
+	return sqDist <= b->radius * b->radius;
+}
+
 bool BoundingBoxHelper::is_in_bounding_box(const StructBoundingBox* bounding_box, const glm::vec3& p,
                                            const float uniform_scale_addition)
 {
@@ -162,6 +171,20 @@ std::array<glm::vec3, 8> BoundingBoxHelper::get_vertices(const StructBoundingBox
 		transform_a * glm::vec4(bounding_box->max.x, bounding_box->max.y, bounding_box->max.z, 1) // 7
 	};
 }
+
+float BoundingBoxHelper::sq_dist_point_aabb(glm::vec3 p, StructBoundingBox* b)
+{
+	float sqDist = 0.0f;
+	for( int i = 0; i < 3; i++ ){
+		// for each axis count any excess distance outside box extents
+		float v = p[i];
+		if( v < b->min[i] ) sqDist += (b->min[i] - v) * (b->min[i] - v);
+		if( v > b->max[i] ) sqDist += (v - b->max[i]) * (v - b->max[i]);
+	}
+	return sqDist;
+}
+
+
 
 glm::vec3 BoundingBoxHelper::get_center_of_bb(const StructBoundingBox* bounding_box)
 {

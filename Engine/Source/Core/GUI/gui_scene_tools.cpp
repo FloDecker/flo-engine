@@ -11,12 +11,12 @@ void gui_scene_tools::gui_tick()
 		scene_->recalculate_from_root();
 	}
 
-	if (ImGui::Button("Generate sufels"))
+	if (ImGui::Button("Generate surfels"))
 	{
 		scene_->recalculate_surfels();
 	}
 
 
-	ImGui::DragInt("Gaussian samples per object", &scene_->gaussian_samples_per_object);
+	ImGui::DragInt("surfel primary rays", &scene_->gi_primary_rays);
 	ImGui::End();
 }

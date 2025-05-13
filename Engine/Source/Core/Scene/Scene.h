@@ -49,7 +49,7 @@ public:
 
 	visual_debug_tools* get_debug_tools() const;
 
-	int gaussian_samples_per_object = 128;
+	int gi_primary_rays = 10;
 
 
 	//render passes
@@ -167,5 +167,6 @@ private:
 
 	void init_surfels_buffer();
 	unsigned int get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[]);
+	glm::vec3 get_surfel_bucket_center(glm::vec3 ws_pos) const;
 	unsigned int get_surfel_bucket_from_ws_pos(glm::vec3 ws_pos) const;
 };
