@@ -14,9 +14,13 @@
 #include "../CommonDataStructures/collision_channel.h"
 #include "../CommonDataStructures/irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
+#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 
 class texture_buffer_object;
-class gaussianizer;
+class SurfelManager;
 struct gaussian;
 class mesh_collider;
 class collider_modifier;
@@ -49,7 +53,6 @@ public:
 
 	visual_debug_tools* get_debug_tools() const;
 
-	int gi_primary_rays = 10;
 
 
 	//render passes
@@ -79,17 +82,12 @@ public:
 
 	//returns an approximation of the ao color at a given position in world space
 	StructColorRange* get_ao_color_at(int samples, glm::vec3 ws_pos) const;
-
-	//Returns a gaussian splatting approximation of the scene at pos
-	void get_gaussian_approx_at(glm::vec3 ws_pos, std::vector<gaussian>* result) const;
+	
 
 	//register scene objects
 	void register_global_light(direct_light* direct_light);
 	void register_sky_box(sky_box* skybox);
-
-
-	void register_gaussianizer(gaussianizer* gaussianizer);
-
+	
 	//register collider
 	void register_collider(collider_modifier* collider);
 
@@ -108,28 +106,15 @@ public:
 	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                  collision_channel collision_channel, Object3D* ignore = nullptr);
 
-	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws);
+	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 
-	//surfels
-
-	float SURFELS_BUCKET_SIZE = 1.0f; //in ws units
-	unsigned int SURFELS_GRID_SIZE = 128; //actual size is SURFELS_BUCKET_SIZE * SURFELS_GRID_SIZE
-	
-	unsigned int SURFEL_BUFFER_AMOUNT = 1000000;
-	
-	texture_buffer_object* surfels_texture_buffer_positions_;
-	texture_buffer_object* surfels_texture_buffer_normals_;
-	texture_buffer_object* surfels_texture_buffer_color_;
-	texture_buffer_object* surfels_texture_buffer_radii_;
-	
-	texture_buffer_object* surfels_uniform_grid;
-	void recalculate_surfels();
+	SurfelManager* get_surfel_manager() const;
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
 	std::vector<collider_modifier*> colliders_;
-	std::vector<gaussianizer*> gaussianinzers_;
+	SurfelManager *surfel_manager_;
 
 	std::map<collision_channel, StackedBB*> scene_bb;
 	GlobalContext* global_context_;
@@ -154,19 +139,16 @@ private:
 	//direct light
 	bool has_direct_light_ = false;
 	direct_light* direct_light_ = nullptr;
-
-	//global illumination
-	bool has_surfels_buffer_ = false;
-
+	
 
 	//skybox
 	bool has_sky_box = false;
 	sky_box* sky_box_ = nullptr;
 
 	RenderContext* light_pass_render_context_;
-
-	void init_surfels_buffer();
-	unsigned int get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[]);
-	glm::vec3 get_surfel_bucket_center(glm::vec3 ws_pos) const;
-	unsigned int get_surfel_bucket_from_ws_pos(glm::vec3 ws_pos) const;
 };
+
+inline SurfelManager* Scene::get_surfel_manager() const
+{
+	return surfel_manager_;
+}

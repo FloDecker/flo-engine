@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "../Scene/Scene.h"
+#include "../Scene/SceneTools/SurfelManager.h"
 
 void gui_scene_tools::gui_tick()
 {
@@ -10,13 +11,7 @@ void gui_scene_tools::gui_tick()
 	{
 		scene_->recalculate_from_root();
 	}
-
-	if (ImGui::Button("Generate surfels"))
-	{
-		scene_->recalculate_surfels();
-	}
-
-
-	ImGui::DragInt("surfel primary rays", &scene_->gi_primary_rays);
+	
+	scene_->get_surfel_manager()->draw_ui();
 	ImGui::End();
 }

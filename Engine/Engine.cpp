@@ -35,7 +35,7 @@
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
 #include "Source/Core/Scene/Primitive3D/plane_3d.h"
-#include "Source/Core/Scene/SceneTools/gaussianizer.h"
+#include "Source/Core/Scene/SceneTools/SurfelManager.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 
@@ -252,11 +252,7 @@ int main()
 	auto* gaussian_gi_shader = new ShaderProgram();
 	gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
 	gaussian_gi_shader->compileShader();
-	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_color_, "surfels_texture_buffer_color_");
-	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_normals_, "surfels_texture_buffer_normals_");
-	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_positions_, "surfels_texture_buffer_positions_");
-	gaussian_gi_shader->addTexture(scene->surfels_texture_buffer_radii_, "surfels_texture_buffer_radii_");
-	gaussian_gi_shader->addTexture(scene->surfels_uniform_grid, "surfels_uniform_grid");
+	scene->get_surfel_manager()->add_surfel_uniforms_to_shader(gaussian_gi_shader);
 
 
 	auto* worldPosMat = new ShaderProgram();
@@ -361,9 +357,6 @@ int main()
 	scene->get_physics_engine()->add_spring(spring4, spring1, 200.0);
 	scene->get_physics_engine()->add_spring(spring3, spring1, 200.0);
 	scene->get_physics_engine()->add_spring(spring2, spring4, 200.0);
-
-	auto g = new gaussianizer(scene->get_root());
-	g->set_position_global(-12,-1.7,0);
 
 
 	//TODO: this call should be automatically called when changing the scene
