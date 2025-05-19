@@ -19,9 +19,9 @@
 #include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 #include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 
+class SurfelManagerUniformGrid;
 class texture_buffer_object;
-class SurfelManager;
-struct gaussian;
+struct surfel;
 class mesh_collider;
 class collider_modifier;
 class PhysicsEngine;
@@ -109,12 +109,12 @@ public:
 	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 
-	SurfelManager* get_surfel_manager() const;
+	SurfelManagerUniformGrid* get_surfel_manager() const;
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
 	std::vector<collider_modifier*> colliders_;
-	SurfelManager *surfel_manager_;
+	SurfelManagerUniformGrid *surfel_manager_;
 
 	std::map<collision_channel, StackedBB*> scene_bb;
 	GlobalContext* global_context_;
@@ -148,7 +148,7 @@ private:
 	RenderContext* light_pass_render_context_;
 };
 
-inline SurfelManager* Scene::get_surfel_manager() const
+inline SurfelManagerUniformGrid* Scene::get_surfel_manager() const
 {
 	return surfel_manager_;
 }

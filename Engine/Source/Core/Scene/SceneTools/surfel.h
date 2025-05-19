@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <vec3.hpp>
 
-struct gaussian
+struct surfel
 {
 	glm::vec3 mean;
 	glm::vec3 normal;

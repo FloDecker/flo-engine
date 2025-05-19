@@ -1,11 +1,11 @@
-﻿#include "SurfelManager.h"
+﻿#include "SurfelManagerUniformGrid.h"
 
 #include "../Scene.h"
 #include "../../../Util/BoundingBoxHelper.h"
 #include "../Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "../../Renderer/Texture/texture_buffer_object.h"
 
-SurfelManager::SurfelManager(Scene* scene)
+SurfelManagerUniformGrid::SurfelManagerUniformGrid(Scene* scene)
 {
 	scene_ = scene;
 	surfels_texture_buffer_positions_ = new texture_buffer_object();
@@ -15,12 +15,12 @@ SurfelManager::SurfelManager(Scene* scene)
 	surfels_uniform_grid = new texture_buffer_object();
 }
 
-void SurfelManager::clear_samples()
+void SurfelManagerUniformGrid::clear_samples()
 {
 	samples_.clear();
 }
 
-void SurfelManager::draw_ui()
+void SurfelManagerUniformGrid::draw_ui()
 {
 	
 	if (ImGui::Button("Generate surfels"))
@@ -47,7 +47,7 @@ void SurfelManager::draw_ui()
 
 
 
-void SurfelManager::snap_samples_to_closest_surface()
+void SurfelManagerUniformGrid::snap_samples_to_closest_surface()
 {
 	clear_samples();
 	//StructBoundingBox boundingbox = {lower_left, upper_right};
@@ -66,12 +66,12 @@ void SurfelManager::snap_samples_to_closest_surface()
 	}
 }
 
-std::vector<gaussian> SurfelManager::samples()
+std::vector<surfel> SurfelManagerUniformGrid::samples()
 {
 	return samples_;
 }
 
-void SurfelManager::add_surfel_uniforms_to_shader(ShaderProgram* shader) const
+void SurfelManagerUniformGrid::add_surfel_uniforms_to_shader(ShaderProgram* shader) const
 {
 	shader->addTexture(surfels_texture_buffer_color_, "surfels_texture_buffer_color_");
 	shader->addTexture(surfels_texture_buffer_normals_, "surfels_texture_buffer_normals_");
@@ -81,7 +81,7 @@ void SurfelManager::add_surfel_uniforms_to_shader(ShaderProgram* shader) const
 }
 
 
-void SurfelManager::init_surfels_buffer()
+void SurfelManagerUniformGrid::init_surfels_buffer()
 {
 	if (has_surfels_buffer_) {
 		scene_->get_global_context()->logger->print_warning("Scene already initialized surfel buffers");
@@ -108,7 +108,7 @@ void SurfelManager::init_surfels_buffer()
 	
 }
 
-void SurfelManager::recalculate_surfels()
+void SurfelManagerUniformGrid::recalculate_surfels()
 {
 
 	if (!has_surfels_buffer_)
@@ -204,7 +204,7 @@ void SurfelManager::recalculate_surfels()
 
 //TODO : currently the surfle is considered a circle and is therefor placed in buckets it doesent belong to,
 //this doesent affect visuals but performance 
-unsigned int SurfelManager::get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[8])
+unsigned int SurfelManagerUniformGrid::get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm::vec3 ws_normal, unsigned int buckets[8])
 {
 	buckets[0] = get_surfel_bucket_from_ws_pos(ws_pos);
 	auto surfel_bucket_center = get_surfel_bucket_center(ws_pos);
@@ -244,14 +244,14 @@ unsigned int SurfelManager::get_surfel_buckets_from_ws_pos(glm::vec3 ws_pos, glm
 }
 
 
-glm::vec3 SurfelManager::get_surfel_bucket_center(glm::vec3 ws_pos) const
+glm::vec3 SurfelManagerUniformGrid::get_surfel_bucket_center(glm::vec3 ws_pos) const
 {
 	ws_pos /= SURFELS_BUCKET_SIZE;
 	ws_pos = glm::floor(ws_pos) + 0.5f ;
 	return  ws_pos * SURFELS_BUCKET_SIZE;
 }
 
-unsigned int SurfelManager::get_surfel_bucket_from_ws_pos(glm::vec3 ws_pos) const
+unsigned int SurfelManagerUniformGrid::get_surfel_bucket_from_ws_pos(glm::vec3 ws_pos) const
 {
 	ws_pos /= SURFELS_BUCKET_SIZE;
 	ws_pos += SURFELS_GRID_SIZE*0.5f;

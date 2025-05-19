@@ -1,12 +1,12 @@
 ﻿#pragma once
 #include "../Object3D.h"
 #include "../Scene.h"
-#include "gaussian.h"
+#include "surfel.h"
 
-class SurfelManager
+class SurfelManagerUniformGrid
 {
 public:
-	SurfelManager(Scene* scene);
+	SurfelManagerUniformGrid(Scene* scene);
 	void draw_ui();
 
 	
@@ -16,7 +16,7 @@ public:
 
 	
 	void snap_samples_to_closest_surface();
-	std::vector<gaussian> samples();
+	std::vector<surfel> samples();
 	void add_surfel_uniforms_to_shader(ShaderProgram* shader) const; 
 	void recalculate_surfels();
 
@@ -33,9 +33,8 @@ private:
 	texture_buffer_object* surfels_texture_buffer_color_;
 	texture_buffer_object* surfels_texture_buffer_radii_;
 	texture_buffer_object* surfels_uniform_grid;
-
 	
-	std::vector<gaussian> samples_ = std::vector<gaussian>();
+	std::vector<surfel> samples_ = std::vector<surfel>();
 	void clear_samples();
 	bool draw_debug_tools_ = false;
 	float points_per_square_meter = 1;
