@@ -35,7 +35,7 @@
 #include "Source/Core/Scene/Lighting/SkyBox/sky_box_simple_sky_sphere.h"
 #include "Source/Core/Scene/Modifiers/Implementations/Colliders/box_collider.h"
 #include "Source/Core/Scene/Primitive3D/plane_3d.h"
-#include "Source/Core/Scene/SceneTools/SurfelManagerUniformGrid.h"
+#include "Source/Core/Scene/SceneTools/SurfelManagerOctree.h"
 #define WINDOW_HEIGHT (1080/2)
 #define WINDOW_WIDTH (1920/2)
 

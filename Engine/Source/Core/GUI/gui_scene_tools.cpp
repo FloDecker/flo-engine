@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 #include "../Scene/Scene.h"
-#include "../Scene/SceneTools/SurfelManagerUniformGrid.h"
+#include "../Scene/SceneTools/SurfelManagerOctree.h"
 
 void gui_scene_tools::gui_tick()
 {

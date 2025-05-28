@@ -5,7 +5,7 @@
 #include "Lighting/SkyBox/sky_box.h"
 #include "../PhysicsEngine/PhysicsEngine.h"
 #include "Modifiers/Implementations/Colliders/mesh_collider.h"
-#include "SceneTools/SurfelManagerUniformGrid.h"
+#include "SceneTools/SurfelManagerOctree.h"
 #include "../Renderer/Texture/texture_buffer_object.h"
 
 SceneRoot::SceneRoot(GlobalContext* global_context, Scene* scene): Object3D()
@@ -45,7 +45,7 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	light_pass_render_context_->light_pass_depth_only_shader = global_context->light_pass_depth_only_shader;
 	light_pass_render_context_->pass = render_pass_lighting;
 
-	surfel_manager_ = new SurfelManagerUniformGrid(this);
+	surfel_manager_ = new SurfelManagerOctree(this);
 }
 
 

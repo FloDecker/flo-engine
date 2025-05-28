@@ -14,12 +14,8 @@
 #include "../CommonDataStructures/collision_channel.h"
 #include "../CommonDataStructures/irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
-#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
-#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
-#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
-#include "SceneTools/VoxelizerTools/AbstractVoxelizer.h"
 
-class SurfelManagerUniformGrid;
+class SurfelManagerOctree;
 class texture_buffer_object;
 struct surfel;
 class mesh_collider;
@@ -109,12 +105,12 @@ public:
 	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 
-	SurfelManagerUniformGrid* get_surfel_manager() const;
+	SurfelManagerOctree* get_surfel_manager() const;
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
 	std::vector<collider_modifier*> colliders_;
-	SurfelManagerUniformGrid *surfel_manager_;
+	SurfelManagerOctree *surfel_manager_;
 
 	std::map<collision_channel, StackedBB*> scene_bb;
 	GlobalContext* global_context_;
@@ -148,7 +144,7 @@ private:
 	RenderContext* light_pass_render_context_;
 };
 
-inline SurfelManagerUniformGrid* Scene::get_surfel_manager() const
+inline SurfelManagerOctree* Scene::get_surfel_manager() const
 {
 	return surfel_manager_;
 }

@@ -11,7 +11,6 @@
 #include "../../Scene/Object3D.h"
 #include "../RenderContext.h"
 #include "../../Scene/Scene.h"
-#include "../../Scene/SceneTools/SurfelManagerUniformGrid.h"
 
 
 class texture;

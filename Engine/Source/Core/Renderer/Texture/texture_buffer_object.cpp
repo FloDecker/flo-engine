@@ -31,7 +31,7 @@ bool texture_buffer_object::init_float(unsigned int data_size)
 	generate_and_bind_buffer();
 	// Step 2: Allocate and fill buffer with data
 	std::vector<float> data(data_size_, 0);
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(float) * data_size_, data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(float) * data_size_, data.data(), GL_DYNAMIC_DRAW);
 	generate_and_attach_texture(GL_R32F);
 	initialized_ = true;
 }
@@ -43,7 +43,7 @@ bool texture_buffer_object::init_vec3(unsigned int data_size)
 	generate_and_bind_buffer();
 	// Step 2: Allocate and fill buffer with data
 	std::vector<glm::vec3> data(data_size_, {0, 0, 0});
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec3) * data_size_, data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec3) * data_size_, data.data(), GL_DYNAMIC_DRAW);
 	generate_and_attach_texture(GL_RGB32F);
 	initialized_ = true;
 }
@@ -55,8 +55,20 @@ bool texture_buffer_object::init_u_int_2(unsigned int data_size)
 	generate_and_bind_buffer();
 	// Step 2: Allocate and fill buffer with data
 	std::vector<glm::u32vec2> data(data_size_ ,glm::u32vec2{0,0});
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::u32vec2) * data_size_, data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::u32vec2) * data_size_, data.data(), GL_DYNAMIC_DRAW);
 	generate_and_attach_texture(GL_RG32UI);
+	initialized_ = true;
+}
+
+bool texture_buffer_object::init_u_int(unsigned int data_size)
+{
+	data_size_ = data_size;
+	if (initialized_) { return false; }
+	generate_and_bind_buffer();
+	// Step 2: Allocate and fill buffer with data
+	std::vector<uint32_t> data(data_size_ ,0);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(uint32_t) * data_size_, data.data(), GL_DYNAMIC_DRAW);
+	generate_and_attach_texture(GL_R32UI);
 	initialized_ = true;
 }
 
@@ -77,12 +89,31 @@ bool texture_buffer_object::update_float(std::vector<float>* data, unsigned int 
 
 	unsigned int size = sizeof(float) * data->size();
 	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, sizeof(float) *  offset, size,
-	                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+	                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 	memcpy(ptr, data->data(), size);
 	glUnmapBuffer(GL_TEXTURE_BUFFER);
 
 	glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
+	return true;
+}
+
+bool texture_buffer_object::update_float_single(const float* data, unsigned int offset)
+{
+	if (data_size_ < offset + 1)
+	{
+		return false;
+	}
+	glBindBuffer(GL_TEXTURE_BUFFER, texture_buffer_);
+
+	unsigned int size = sizeof(float) ;
+	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, size * offset, size,
+								 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+	memcpy(ptr, data, size);
+	glUnmapBuffer(GL_TEXTURE_BUFFER);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+	
 	return true;
 }
 
@@ -96,8 +127,27 @@ bool texture_buffer_object::update_vec3(std::vector<glm::vec3>* data, unsigned i
 
 	unsigned int size = sizeof(glm::vec3) * data->size();
 	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, sizeof(glm::vec3) * offset, size,
-	                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+	                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 	memcpy(ptr, data->data(), size);
+	glUnmapBuffer(GL_TEXTURE_BUFFER);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+	
+	return true;
+}
+
+bool texture_buffer_object::update_vec3_single(const glm::vec3* data, unsigned int offset)
+{
+	if (data_size_ < offset + 1)
+	{
+		return false;
+	}
+	glBindBuffer(GL_TEXTURE_BUFFER, texture_buffer_);
+
+	unsigned int size = sizeof(glm::vec3) ;
+	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, sizeof(glm::vec3) * offset, size,
+								 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+	memcpy(ptr, data, size);
 	glUnmapBuffer(GL_TEXTURE_BUFFER);
 
 	glBindBuffer(GL_TEXTURE_BUFFER, 0);
@@ -115,8 +165,46 @@ bool texture_buffer_object::update_u_int_2(std::vector<glm::u32vec2>* data, unsi
 
 	unsigned int size = sizeof(glm::u32vec2) * data->size();
 	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, sizeof(glm::u32vec2) * offset, size,
-								 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+								 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 	memcpy(ptr, data->data(), size);
+	glUnmapBuffer(GL_TEXTURE_BUFFER);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+	
+	return true;
+}
+
+bool texture_buffer_object::update_u_int(std::vector<uint32_t>* data, unsigned int offset)
+{
+	if (data_size_ < offset + data->size())
+	{
+		return false;
+	}
+	glBindBuffer(GL_TEXTURE_BUFFER, texture_buffer_);
+
+	unsigned int size = sizeof(uint32_t) * data->size();
+	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, offset * sizeof(uint32_t), size,
+								 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+	memcpy(ptr, data->data(), size);
+	glUnmapBuffer(GL_TEXTURE_BUFFER);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+	
+	return true;
+}
+
+bool texture_buffer_object::update_u_int(uint32_t* data, unsigned int length, unsigned int offset)
+{
+	if (data_size_ < offset + length)
+	{
+		return false;
+	}
+	glBindBuffer(GL_TEXTURE_BUFFER, texture_buffer_);
+
+	unsigned int size = sizeof(uint32_t) * length;
+	void* ptr = glMapBufferRange(GL_TEXTURE_BUFFER, offset * sizeof(uint32_t), size,
+								 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+	memcpy(ptr, data, size);
 	glUnmapBuffer(GL_TEXTURE_BUFFER);
 
 	glBindBuffer(GL_TEXTURE_BUFFER, 0);
