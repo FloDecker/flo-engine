@@ -57,6 +57,9 @@ public:
 	void light_pass(camera* current_camera) const;
 	void custom_pass(RenderContext* render_context) const;
 
+	//this is called after drawing the current frame
+	void post_draw() const;
+
 
 	void select_object(Object3D* object);
 	void deselect();
@@ -86,8 +89,7 @@ public:
 	
 	//register collider
 	void register_collider(collider_modifier* collider);
-
-
+	
 	//COLLISIONS AND INTERSECTIONS
 
 	void recalculate_collision_channel_bb_hierarchy(collision_channel channel) const;

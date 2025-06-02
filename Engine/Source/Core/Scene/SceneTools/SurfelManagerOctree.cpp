@@ -16,14 +16,11 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
     surfels_texture_buffer_radii_ = new texture_buffer_object();
     surfels_octree = new texture_buffer_object();
 
-    //init octree
-    octree_ = new surfel_octree_element[1000000];
-    octree_[0] = {.surfels_at_layer_amount = 0, .surfels_at_layer_pointer = 0, .next_layer_surfels_pointer = {}};
 }
 
 void SurfelManagerOctree::clear_samples()
 {
-    samples_.clear();
+    surfels_.clear();
 }
 
 void SurfelManagerOctree::draw_ui()
@@ -36,7 +33,7 @@ void SurfelManagerOctree::draw_ui()
 
     if (draw_debug_tools_)
     {
-        for (auto sample : samples_)
+        for (auto sample : surfels_)
         {
             scene_->get_debug_tools()->draw_debug_point(sample.mean);
         }
@@ -48,6 +45,7 @@ void SurfelManagerOctree::draw_ui()
         snap_samples_to_closest_surface();
     }
     ImGui::DragInt("surfel primary rays", &gi_primary_rays);
+    ImGui::DragInt("surfel updates per tick", &update_surfels_per_tick);
 }
 
 
@@ -87,12 +85,67 @@ static uint8_t get_pos_of_next_surfel_index_(glm::vec3 pos_relative)
 bool SurfelManagerOctree::insert_surfel_into_octree(const surfel* surfel)
 {
     auto target_level = get_octree_level_for_surfel(surfel);
-    return insert_surfel_into_octree_recursive(surfel, 0, {0, 0, 0}, target_level, 0);
+    return insert_surfel_into_octree_recursive(surfel, 0, {0, 0, 0}, target_level, 0, true, surfel->mean);
 }
+
+bool SurfelManagerOctree::insert_surfel_in_surrounding_buckets(const surfel* surfel,
+                                                               int target_layer)
+{
+    auto surfel_bucket_center = get_surfel_bucket_center(surfel->mean, target_layer);
+
+    auto center_pos_v = surfel->mean - surfel_bucket_center;
+    center_pos_v.x = center_pos_v.x > 0 ? 1.0f : -1.0f;
+    center_pos_v.y = center_pos_v.y > 0 ? 1.0f : -1.0f;
+    center_pos_v.z = center_pos_v.z > 0 ? 1.0f : -1.0f;
+    center_pos_v = normalize(center_pos_v);
+
+    float bucket_size = total_extension/pow(2,target_layer);
+    
+    
+    StructBoundingSphere b = {surfel->mean, bucket_size * 0.5f};
+    StructBoundingBox bb = {};
+    const glm::vec3 component_multiplier[8] = {
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(1.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+    };
+    
+    auto half_size = glm::vec3(0.5) * bucket_size;
+    for (int i = 0 ; i < 7; i++)
+    {
+        auto center_neighbour = surfel_bucket_center + glm::normalize(center_pos_v * component_multiplier[i]) * bucket_size;
+        bb.min = center_neighbour - half_size;
+        bb.max = center_neighbour + half_size;
+        if (BoundingBoxHelper::are_overlapping(&bb, &b))
+        {
+            insert_surfel_into_octree_recursive(surfel,0,{0,0,0},target_layer,0,false, center_neighbour);
+        }
+    }
+    
+    return true;
+}
+
+
+glm::vec3 SurfelManagerOctree::get_surfel_bucket_center(glm::vec3 ws_pos, int level) const
+{
+    if (level == 0) return glm::vec3(0, 0, 0);
+    float bucket_amount_at_level = pow(2,level);
+    auto bucket_extension_ws = total_extension / bucket_amount_at_level;
+    ws_pos /= total_extension*0.5;
+    ws_pos *= bucket_amount_at_level*0.5f;
+    ws_pos = glm::floor(ws_pos) + 0.5f;
+    return  ws_pos * bucket_extension_ws;
+}
+
+
 
 bool SurfelManagerOctree::insert_surfel_into_octree_recursive(const surfel* surfel_to_insert, int current_layer,
                                                               glm::vec3 current_center, int target_layer,
-                                                              int current_octree_element_index)
+                                                              int current_octree_element_index, bool insert_into_surroundings, glm::vec3 target_pos)
 {
     auto current_octree_element = &octree_[current_octree_element_index];
     if (target_layer < current_layer)
@@ -103,18 +156,25 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(const surfel* surf
     {
         //insert -> write this to gpu memory
         uint32_t surfel_bucket_pointer;
-
-        if (get_surfel_count_in_octree_element(current_octree_element) <= 0)
+        auto surfel_count = get_surfel_count_in_octree_element(current_octree_element);
+        if (surfel_count <= 0)
         {
             //create new
             create_space_for_new_surfel_data(surfel_bucket_pointer);
             current_octree_element->surfels_at_layer_pointer = surfel_bucket_pointer;
-        } else if (get_surfel_count_in_octree_element(current_octree_element) > SURFEL_BUCKET_SIZE_ON_GPU)
-            //TODO resize surfel buckets when more space is needed  
+        } else if (surfel_count > SURFEL_BUCKET_SIZE_ON_GPU)
         {
+            //TODO resize surfel buckets when more space is needed  
+            memory_limitation_bucket_size++;
             return false;
         }
-        if (upload_surfel_data(surfel_to_insert, current_octree_element))
+        auto pos = current_octree_element->surfels_at_layer_pointer + surfel_count;
+        surfel_to_insert->surfel_in_gpu_memory->push_back(pos);
+        if (insert_into_surroundings)
+        {
+            insert_surfel_in_surrounding_buckets(surfel_to_insert, target_layer);
+        }
+        if (upload_surfel_data(surfel_to_insert))
         {
             increment_surfel_count_in_octree_element(current_octree_element);
             return true; //data is successfully uploaded to gpu memeory 
@@ -122,7 +182,7 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(const surfel* surf
         return false; //data couldn't be uploaded
     }
 
-    auto pos_relative = surfel_to_insert->mean - current_center;
+    auto pos_relative = target_pos - current_center;
     auto next_index = get_pos_of_next_surfel_index_(pos_relative);
     uint32_t next_octree_index;
     if (is_child_octree_bit_set_at_(current_octree_element, next_index))
@@ -156,13 +216,14 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(const surfel* surf
 
 
     return insert_surfel_into_octree_recursive(surfel_to_insert, ++current_layer, next_center, target_layer,
-                                               next_octree_index);
+                                               next_octree_index, insert_into_surroundings, target_pos);
 }
 
 bool SurfelManagerOctree::create_new_octree_element(uint32_t& index)
 {
     if (next_free_spot_in_octree_ >= SURFEL_OCTREE_SIZE)
     {
+        memory_limitation_octree_size++;
         return false;
     }
 
@@ -174,22 +235,29 @@ bool SurfelManagerOctree::create_new_octree_element(uint32_t& index)
 
 bool SurfelManagerOctree::create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array)
 {
+    if (SURFELS_BOTTOM_LEVEL_SIZE  <= surfel_stack_pointer / SURFEL_BUCKET_SIZE_ON_GPU)
+    {
+        //the surfel buffer on the gpu is already full
+        memory_limitation_count_bottom_size++;
+        return false;
+    }
+
     pointer_ins_surfel_array = surfel_stack_pointer;
     surfel_stack_pointer += SURFEL_BUCKET_SIZE_ON_GPU;
     return true;
 }
 
 //TODO: veryyyy inefficient
-bool SurfelManagerOctree::upload_surfel_data(const surfel* surfel_to_insert,
-                                             const surfel_octree_element* surfel_octree_element) const
+bool SurfelManagerOctree::upload_surfel_data(const surfel* surfel_to_insert) const
 {
     bool s = true;
-    auto pos = surfel_octree_element->surfels_at_layer_pointer + get_surfel_count_in_octree_element(
-        surfel_octree_element);
-    s &= surfels_texture_buffer_positions_->update_vec3_single(&surfel_to_insert->mean, pos);
-    s &= surfels_texture_buffer_normals_->update_vec3_single(&surfel_to_insert->normal, pos);
-    s &= surfels_texture_buffer_color_->update_vec3_single(&surfel_to_insert->color, pos);
-    s &= surfels_texture_buffer_radii_->update_float_single(&surfel_to_insert->radius, pos);
+    for (unsigned int insert_at_index : *surfel_to_insert->surfel_in_gpu_memory)
+    {
+        s &= surfels_texture_buffer_positions_->update_vec3_single(&surfel_to_insert->mean, insert_at_index);
+        s &= surfels_texture_buffer_normals_->update_vec3_single(&surfel_to_insert->normal, insert_at_index);
+        s &= surfels_texture_buffer_color_->update_vec3_single(&surfel_to_insert->diffuse_irradiance, insert_at_index);
+        s &= surfels_texture_buffer_radii_->update_float_single(&surfel_to_insert->radius, insert_at_index);
+    }
     return s;
 }
 
@@ -214,16 +282,16 @@ void SurfelManagerOctree::snap_samples_to_closest_surface()
     for (auto point : points)
     {
         //TODO :remove me thats a test
-        std::random_device rd; // Seed the random number generator
-        std::mt19937 gen(rd()); // Mersenne Twister PRNG
-        std::uniform_real_distribution<float> float_dist_0_1(1.0f / points_per_square_meter, 10.0f); 
-        samples_.push_back({point.position, point.normal, {1, 1, 1}, float_dist_0_1(gen)});
+        //std::random_device rd; // Seed the random number generator
+        //std::mt19937 gen(rd()); // Mersenne Twister PRNG
+        //std::uniform_real_distribution<float> float_dist_0_1(1.0f / points_per_square_meter, 5.0f); 
+        surfels_.push_back({point.position, point.normal, {1, 1, 1}, 1.0f / points_per_square_meter});
     }
 }
 
 std::vector<surfel> SurfelManagerOctree::samples()
 {
-    return samples_;
+    return surfels_;
 }
 
 void SurfelManagerOctree::add_surfel_uniforms_to_shader(ShaderProgram* shader) const
@@ -267,20 +335,36 @@ void SurfelManagerOctree::init_surfels_buffer()
     has_surfels_buffer_ = true;
 }
 
+void SurfelManagerOctree::reset_surfels_buffer()
+{
+    next_free_spot_in_octree_ = 1;
+    last_updated_surfel = 0;
+    surfel_stack_pointer = 0;
+    free(octree_);
+    octree_ = new surfel_octree_element[1000000];
+    octree_[0] = {.surfels_at_layer_amount = 0, .surfels_at_layer_pointer = 0, .next_layer_surfels_pointer = {}};
+}
+
 void SurfelManagerOctree::recalculate_surfels()
 {
     if (!has_surfels_buffer_)
     {
         init_surfels_buffer();
     }
+    reset_surfels_buffer();
 
+    
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> colors;
     std::vector<float> radii;
 
+    memory_limitation_octree_size=0;
+    memory_limitation_count_bottom_size=0;
+    memory_limitation_bucket_size=0;
+
     int sucessfull_inserts = 0;
-    for (auto s : samples_)
+    for (auto s : surfels_)
     {
         //positions.push_back(s.mean);
         positions.push_back(s.mean);
@@ -295,7 +379,31 @@ void SurfelManagerOctree::recalculate_surfels()
     dump_surfle_octree_to_gpu_memory_();
     scene_->get_global_context()->logger->print_info(std::format(
         "surfel octree created {} surfels out of {} have been inserted ",
-        sucessfull_inserts, samples_.size()));
+        sucessfull_inserts, surfels_.size()));
+
+    scene_->get_global_context()->logger->print_info(std::format("Memory limitation for octree size was met in {} cases", memory_limitation_octree_size));
+    scene_->get_global_context()->logger->print_info(std::format("Memory limitation for bottom level buckets was met in {} cases", memory_limitation_count_bottom_size));
+    scene_->get_global_context()->logger->print_info(std::format("Memory limitation for single bucket size was met in {} cases", memory_limitation_bucket_size));
+}
+
+void SurfelManagerOctree::update_surfels()
+{
+    if (surfels_.size() == 0) return;
+    for (int i = 0; i < update_surfels_per_tick; i++)
+    {
+        surfel *s = &surfels_.at(last_updated_surfel);
+        auto irradiance_info = scene_->get_irradiance_information(s->mean, s->normal, gi_primary_rays);
+        s->diffuse_irradiance = s->diffuse_irradiance * static_cast<float>(s->samples) + irradiance_info.color * static_cast<float>(gi_primary_rays);
+        s->samples+=gi_primary_rays;
+        s->diffuse_irradiance /= static_cast<float>(s->samples);
+        upload_surfel_data(s);
+        last_updated_surfel++;
+        if (last_updated_surfel >= surfels_.size())
+        {
+            last_updated_surfel = 0;
+        }
+        
+    }
 }
 
 
@@ -324,3 +432,4 @@ unsigned int SurfelManagerOctree::get_surfel_count_in_octree_element(const surfe
     constexpr uint32_t mask = 0x00FFFFFF;
     return surfel_octree_element->surfels_at_layer_amount & mask;
 }
+

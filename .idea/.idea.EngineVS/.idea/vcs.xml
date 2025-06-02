@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Dependencies/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Engine/Source/External/eventpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Engine/Source/External/imgui" vcs="Git" />
   </component>

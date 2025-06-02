@@ -2,6 +2,12 @@
 #include "../Object3D.h"
 #include "../Scene.h"
 #include "surfel.h"
+#include "VoxelizerTools/AbstractVoxelizer.h"
+#include "VoxelizerTools/AbstractVoxelizer.h"
+#include "VoxelizerTools/AbstractVoxelizer.h"
+#include "VoxelizerTools/AbstractVoxelizer.h"
+#include "VoxelizerTools/AbstractVoxelizer.h"
+#include "VoxelizerTools/AbstractVoxelizer.h"
 
 struct surfel_octree_element
 {
@@ -19,6 +25,7 @@ public:
 
 	
 	unsigned int samples_per_meter = 2;
+	int update_surfels_per_tick = 1;
 	float surface_attachment_radius = 1.0f;
 	int gi_primary_rays = 10;
 
@@ -28,10 +35,12 @@ public:
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(const surfel *surfel);
 	
+	
 	void snap_samples_to_closest_surface();
 	std::vector<surfel> samples();
 	void add_surfel_uniforms_to_shader(ShaderProgram* shader) const; 
 	void recalculate_surfels();
+	void update_surfels();
 
 private:
 	Scene* scene_;
@@ -40,11 +49,14 @@ private:
 	//cpu representation of ocree:
 	surfel_octree_element* octree_;
 	
-	float SURFELS_BUCKET_SIZE = 1.0f; //in ws units
 	unsigned int SURFELS_BOTTOM_LEVEL_SIZE = 40000; //actual size is SURFEL_BUCKET_SIZE_ON_GPU * SURFEL_BUCKET_SIZE_ON_GPU
 	unsigned int SURFEL_OCTREE_SIZE = 100000;
-	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 10; //space amount allocated for the surfels an octree element points to 
+	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 64; //space amount allocated for the surfels an octree element points to 
 
+	
+	unsigned int memory_limitation_count_bottom_size = 0;
+	unsigned int memory_limitation_octree_size = 0;
+	unsigned int memory_limitation_bucket_size = 0;
 	
 	texture_buffer_object* surfels_texture_buffer_positions_;
 	texture_buffer_object* surfels_texture_buffer_normals_;
@@ -52,23 +64,25 @@ private:
 	texture_buffer_object* surfels_texture_buffer_radii_;
 	texture_buffer_object* surfels_octree;
 	
-	std::vector<surfel> samples_ = std::vector<surfel>();
+	std::vector<surfel> surfels_ = std::vector<surfel>();
 	void clear_samples();
 	bool draw_debug_tools_ = false;
 	float points_per_square_meter = 1;
 	
 	void init_surfels_buffer();
+	void reset_surfels_buffer();
 
 	static bool is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element, uint8_t pos);
 	static void set_child_octree_bit_at_(surfel_octree_element* surfel_octree_element, uint8_t pos);
 	static void increment_surfel_count_in_octree_element(surfel_octree_element* surfel_octree_element);
 	static unsigned int get_surfel_count_in_octree_element(const surfel_octree_element* surfel_octree_element);
-
+	bool insert_surfel_in_surrounding_buckets(const surfel* surfel, int target_layer);
+	glm::vec3 get_surfel_bucket_center(glm::vec3 ws_pos, int level) const;
 	bool insert_surfel_into_octree_recursive(const surfel *surfel_to_insert, int current_layer, glm::vec3 current_center, int target_layer, int
-	                                         current_octree_element_index);
+	                                         current_octree_element_index, bool insert_into_surroundings, glm::vec3 target_pos);
 	uint32_t next_free_spot_in_octree_ = 1;
 	bool create_new_octree_element(uint32_t& index);
-
+	uint32_t last_updated_surfel = 0;
 	//GPU calls
 
 	//surfel stack
@@ -77,7 +91,7 @@ private:
 
 	uint32_t surfel_stack_pointer = 0;
 	bool create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array);
-	bool upload_surfel_data(const surfel *surfel_to_insert, const surfel_octree_element* surfel_octree_element) const;
+	bool upload_surfel_data(const surfel *surfel_to_insert) const;
 
 	void dump_surfle_octree_to_gpu_memory_();
 

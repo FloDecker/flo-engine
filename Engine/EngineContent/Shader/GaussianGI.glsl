@@ -233,9 +233,11 @@ vec3 get_color_from_octree(vec3 pos) {
     vec3 final_color = vec3(0.0);
     int index = 0;
     
-    int amount_texture_fetches = 0;
+    int amount_texture_fetches = 0; //amount of texture fetches
+    int amount_contribution = 0;//count the amount of correct hits 
     
     vec3 current_center = vec3(0,0,0);
+    float feched_samples = 0;
     for (int current_layer = 0; current_layer < 100 ; current_layer++) {
         uint bucket_info = texelFetch(surfels_uniform_grid,index).r;
         amount_texture_fetches++;
@@ -249,19 +251,23 @@ vec3 get_color_from_octree(vec3 pos) {
             surfle_data_pointer = int(texelFetch(surfels_uniform_grid, index + 1)).r;
             amount_texture_fetches++;
             //sample all of the surfels in bucket 
-
+            
             for (int i = 0; i < surfels_amount; i++) {
                 vec3 surfel_pos = texelFetch(surfels_texture_buffer_positions_, surfle_data_pointer + i).xyz;
                 amount_texture_fetches++;
                 float surfel_radius = texelFetch(surfels_texture_buffer_radii_, surfle_data_pointer + i).x;
                 amount_texture_fetches++;
 
-                if (distance(vertexPosWs, surfel_pos) < surfel_radius) {
-                    //vec3 surfel_normal = texelFetch(surfels_texture_buffer_normals_, surfle_data_pointer + i).xyz;
-                    //amount_texture_fetches++;
-                    //if(dot(surfel_normal, normalWS) > 0.01) {
-                        final_color+=vec3(0.01);
-                    //}                    
+                if (distance(vertexPosWs, surfel_pos) < surfel_radius*0.5 ) {
+                    vec3 surfel_normal = texelFetch(surfels_texture_buffer_normals_, surfle_data_pointer + i).xyz;
+                    amount_texture_fetches++;
+                    if(dot(surfel_normal, normalWS) > 0.1) {
+                    vec3 c = texelFetch(surfels_texture_buffer_color_, surfle_data_pointer + i).xyz;
+                    amount_texture_fetches++;
+                        final_color+=c;
+                        amount_contribution++;
+                        feched_samples+=1;
+                    }                    
 
                 }
             }
@@ -274,8 +280,9 @@ vec3 get_color_from_octree(vec3 pos) {
             amount_texture_fetches++;
             current_center = get_next_center(current_center,pos_relative, current_layer);
         } else {
-            return final_color;
+            //return final_color/feched_samples;
             //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
+            return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }
     return vec3(1,0,0);

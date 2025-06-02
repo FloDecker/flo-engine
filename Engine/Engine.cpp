@@ -508,6 +508,8 @@ int main()
 		//swap front and back buffer
 		glfwSwapBuffers(window);
 
+		//POST DRAW:
+		scene->post_draw();
 
 		//clear clicked / released arrays
 		memset(keyClicked, 0, KEY_AMOUNT * sizeof(bool));
