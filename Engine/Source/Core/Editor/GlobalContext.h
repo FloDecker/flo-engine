@@ -40,6 +40,7 @@ public:
 	std::vector<log_entry>* get_log_entries();
 	void print_info(std::string log);
 	void print_warning(std::string log);
+	void print_error(std::string log);
 
 private:
 	std::vector<log_entry> log_array_;

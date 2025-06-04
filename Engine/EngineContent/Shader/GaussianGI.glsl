@@ -74,9 +74,9 @@ vec3 float_to_heat_map (float f) {
     //   f
     //);
     return mix(
-        vec3(1, 0, 0),
-        vec3(0, 1, 0),
-        f
+    vec3(1, 0, 0),
+    vec3(0, 1, 0),
+    f
     );
 }
 
@@ -172,8 +172,8 @@ float areaOfTriangleOnUnitSphere(vec3 p1, vec3 p2, vec3 p3, vec3 sphereCenter) {
 }
 
 
-float SURFELS_BUCKET_SIZE = 1.0f; //in ws units
-uint SURFELS_GRID_SIZE = 128; //actual size is SURFELS_BUCKET_SIZE * SURFELS_GRID_SIZE
+float SURFELS_BUCKET_SIZE = 1.0f;//in ws units
+uint SURFELS_GRID_SIZE = 128;//actual size is SURFELS_BUCKET_SIZE * SURFELS_GRID_SIZE
 uint SURFEL_BUFFER_AMOUNT = 8192;
 
 
@@ -219,27 +219,27 @@ vec3 get_next_center(vec3 current_center, vec3 pos_relative, int current_layer) 
     pos_relative.x >= 0 ? 1.0 : -1.0,
     pos_relative.y >= 0 ? 1.0 : -1.0,
     pos_relative.z >= 0 ? 1.0 : -1.0
-    ) * 0.5f * (total_extension / pow(2.0f,current_layer + 1));
+    ) * 0.5f * (total_extension / pow(2.0f, current_layer + 1));
     return next_center;
 }
 
 vec3 debug_bits(uint i) {
     uint t = uint(mod(int(ceil(vertexPosWs.x)), 32));
     bool s = (i & (1u << t)) != 0;
-    return vec3(s,t/32.0,0.0);
+    return vec3(s, t/32.0, 0.0);
 }
 
 vec3 get_color_from_octree(vec3 pos) {
     vec3 final_color = vec3(0.0);
     int index = 0;
-    
-    int amount_texture_fetches = 0; //amount of texture fetches
+
+    int amount_texture_fetches = 0;//amount of texture fetches
     int amount_contribution = 0;//count the amount of correct hits 
-    
-    vec3 current_center = vec3(0,0,0);
+
+    vec3 current_center = vec3(0, 0, 0);
     float feched_samples = 0;
-    for (int current_layer = 0; current_layer < 100 ; current_layer++) {
-        uint bucket_info = texelFetch(surfels_uniform_grid,index).r;
+    for (int current_layer = 0; current_layer < 100; current_layer++) {
+        uint bucket_info = texelFetch(surfels_uniform_grid, index).r;
         amount_texture_fetches++;
         //bucket contains surfels 
         uint surfels_amount = get_surfel_amount(bucket_info);
@@ -251,41 +251,45 @@ vec3 get_color_from_octree(vec3 pos) {
             surfle_data_pointer = int(texelFetch(surfels_uniform_grid, index + 1)).r;
             amount_texture_fetches++;
             //sample all of the surfels in bucket 
-            
+
             for (int i = 0; i < surfels_amount; i++) {
                 vec3 surfel_pos = texelFetch(surfels_texture_buffer_positions_, surfle_data_pointer + i).xyz;
                 amount_texture_fetches++;
                 float surfel_radius = texelFetch(surfels_texture_buffer_radii_, surfle_data_pointer + i).x;
                 amount_texture_fetches++;
 
-                if (distance(vertexPosWs, surfel_pos) < surfel_radius*0.5 ) {
+                if (distance(vertexPosWs, surfel_pos) < surfel_radius*0.5) {
                     vec3 surfel_normal = texelFetch(surfels_texture_buffer_normals_, surfle_data_pointer + i).xyz;
                     amount_texture_fetches++;
-                    if(dot(surfel_normal, normalWS) > 0.1) {
-                    vec3 c = texelFetch(surfels_texture_buffer_color_, surfle_data_pointer + i).xyz;
-                    amount_texture_fetches++;
+                    if (dot(surfel_normal, normalWS) > 0.1) {
+                        vec3 c = texelFetch(surfels_texture_buffer_color_, surfle_data_pointer + i).xyz;
+                        amount_texture_fetches++;
                         final_color+=c;
                         amount_contribution++;
                         feched_samples+=1;
-                    }                    
+                        //return vec3(float(i/8.0), float(i/8.0), 0.1);
+                    }
 
                 }
             }
+
+            //return vec3(current_center*0.1);
+            //return vec3(float(surfels_amount*.1));
         }
         vec3 pos_relative = pos - current_center;
         uint index_of_next_pointer = get_pos_of_next_surfel_index_(pos_relative);
         if (is_child_octree_bit_set_at(bucket_info, int(index_of_next_pointer))) {
             //there is another child octree containing information for this texel
-            index = 10*int(texelFetch(surfels_uniform_grid,index + 2 + int(index_of_next_pointer)).r);
+            index = 10*int(texelFetch(surfels_uniform_grid, index + 2 + int(index_of_next_pointer)).r);
             amount_texture_fetches++;
-            current_center = get_next_center(current_center,pos_relative, current_layer);
+            current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            //return final_color/feched_samples;
+            return final_color/feched_samples;
             //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
-            return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
+            //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }
-    return vec3(1,0,0);
+    return vec3(1, 0, 0);
 }
 
 void main() {
@@ -309,17 +313,16 @@ void main() {
     float specIntensity  = pow(specAngle, _specularExponent)*diffEase;
 
 
-
     //float t = areaOfTriangleOnUnitSphere(vec3(0,-3,0),vec3(4,-3,0),vec3(0,0,0),vertexPosWs);
     int p = int(get_pos_in_uniform_grid());
-    uint bucket_info = texelFetch(surfels_uniform_grid,10).r;
+    uint bucket_info = texelFetch(surfels_uniform_grid, 10).r;
 
-    
-   
+
+
     vec3 d = get_color_from_octree(vertexPosWs);
-    
-    
-    float f = is_child_octree_bit_set_at(bucket_info,1) ? 1.0 : 0.0;
+
+
+    float f = is_child_octree_bit_set_at(bucket_info, 1) ? 1.0 : 0.0;
     vec3 test = texelFetch(surfels_texture_buffer_positions_, 0).xyz;
 
     FragColor = vec4(d, 1.0);
