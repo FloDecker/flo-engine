@@ -135,7 +135,6 @@ bool texture_buffer_object::update_vec3(std::vector<glm::vec3>* data, unsigned i
 
 	return true;
 }
-
 bool texture_buffer_object::update_vec3_single(const glm::vec3* data, unsigned int offset)
 {
 	if (data_size_ < offset + 1)

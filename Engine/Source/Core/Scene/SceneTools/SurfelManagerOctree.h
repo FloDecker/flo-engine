@@ -1,7 +1,11 @@
 ﻿#pragma once
+#include <set>
+
 #include "../Object3D.h"
 #include "../Scene.h"
 #include "surfel.h"
+#include <thread>
+
 
 //this is mapped 1:1 to GPU memory 
 struct surfel_octree_element
@@ -40,10 +44,16 @@ public:
 	bool remove_surfel(const surfel* surfel);
 
 
-	void snap_samples_to_closest_surface();
+	void generate_surfels();
 	void add_surfel_uniforms_to_shader(ShaderProgram* shader) const;
 	void recalculate_surfels();
 	void update_surfels();
+	surfel* get_closest_neighbour_on_level(const surfel* s) const;
+	
+	static glm::vec3 get_illumination_gradient(const surfel* s_1, const surfel* s_2);
+	static surfel get_combining_surfel(const surfel* s_1, const surfel* s_2);
+	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel);
+
 
 private:
 	Scene* scene_;
@@ -58,7 +68,7 @@ private:
 	unsigned int SURFELS_BOTTOM_LEVEL_SIZE = 40000;
 	//actual size is SURFEL_BUCKET_SIZE_ON_GPU * SURFEL_BUCKET_SIZE_ON_GPU
 	unsigned int SURFEL_OCTREE_SIZE = 100000;
-	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 64; //space amount allocated for the surfels an octree element points to 
+	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 128; //space amount allocated for the surfels an octree element points to 
 	const uint32_t MAX_SURFEL_BUCKET_SIZE_ON_GPU = 1024;
 
 	unsigned int memory_limitation_count_bottom_size = 0;
@@ -77,6 +87,7 @@ private:
 	void clear_samples();
 	bool draw_debug_tools_ = false;
 	float points_per_square_meter = 1;
+	float starting_radius = 1.0f;
 
 	void init_surfels_buffer();
 	void reset_surfels_buffer();
@@ -91,10 +102,14 @@ private:
 	static unsigned int get_surfel_count_in_octree_element(const surfel_octree_element* surfel_octree_element);
 	bool insert_surfel_in_surrounding_buckets(surfel* surfel, int target_layer);
 	glm::vec3 get_surfel_bucket_center(glm::vec3 ws_pos, int level) const;
+	glm::vec3 get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center, glm::vec<3, float> pos_relative) const;
 	bool insert_surfel_into_octree_recursive(surfel* surfel_to_insert, int current_layer, glm::vec3 current_center,
 	                                         int target_layer, int
 	                                         current_octree_element_index, bool insert_into_surroundings,
 	                                         glm::vec3 target_pos);
+	void get_surfels_in_radius_recursive(glm::vec3 ws_pos, float radius, int current_layer, glm::vec3 current_center, int current_octree_element_index, std::set
+	                                     <surfel*>* found_surfels);
+	void get_overlapping_octree_elements (glm::vec3 center, float radius, int layer, std::vector<glm::vec3>& result) const;
 	uint32_t next_free_spot_in_octree_ = 1;
 	bool create_new_octree_element(uint32_t& index, uint32_t parent_index);
 	uint32_t last_updated_surfel = 0;
@@ -111,6 +126,7 @@ private:
 	bool upload_surfel_data(surfel* surfel_to_insert, unsigned int insertion_index) const;
 
 	bool update_surfel_data(surfel* surfel_to_insert) const;
+	void update_surfel_thread();
 	int get_surfel_pos_in_bucket(unsigned int bucket_index, const surfel* surfel_to_find) const;
 
 	void dump_surfel_octree_to_gpu_memory();

@@ -257,24 +257,21 @@ vec3 get_color_from_octree(vec3 pos) {
                 amount_texture_fetches++;
                 float surfel_radius = texelFetch(surfels_texture_buffer_radii_, surfle_data_pointer + i).x;
                 amount_texture_fetches++;
-
-                if (distance(vertexPosWs, surfel_pos) < surfel_radius*0.5) {
+                float d = distance(vertexPosWs, surfel_pos);
+                if (d < surfel_radius*0.5) {
                     vec3 surfel_normal = texelFetch(surfels_texture_buffer_normals_, surfle_data_pointer + i).xyz;
                     amount_texture_fetches++;
                     if (dot(surfel_normal, normalWS) > 0.1) {
                         vec3 c = texelFetch(surfels_texture_buffer_color_, surfle_data_pointer + i).xyz;
                         amount_texture_fetches++;
-                        final_color+=c;
+                        float attenuation = 1.0 - d;
+                        final_color+=c*attenuation;
                         amount_contribution++;
-                        feched_samples+=1;
-                        //return vec3(float(i/8.0), float(i/8.0), 0.1);
+                        feched_samples+=attenuation;
                     }
 
                 }
             }
-
-            //return vec3(current_center*0.1);
-            //return vec3(float(surfels_amount*.1));
         }
         vec3 pos_relative = pos - current_center;
         uint index_of_next_pointer = get_pos_of_next_surfel_index_(pos_relative);
@@ -284,8 +281,8 @@ vec3 get_color_from_octree(vec3 pos) {
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            return final_color/feched_samples;
-            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
+            //return final_color/feched_samples;
+            return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }

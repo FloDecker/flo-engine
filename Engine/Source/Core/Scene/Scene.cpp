@@ -151,7 +151,7 @@ ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, 
 	return result;
 }
 
-irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays)
+surfel_irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays, float disc_radius)
 {
 	//for (unsigned int i = 0; i < irradiance_samples; ++i)
 	//{
@@ -159,7 +159,7 @@ irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::
 	//	auto r = ray_cast_in_scene(pos_ws, v, 4000, VISIBILITY);
 	//	
 	//}
-	auto irradiance = irradiance_information();
+	auto irradiance = surfel_irradiance_information();
 	irradiance.pos = pos_ws;
 	irradiance.normal = normal_ws;
 
@@ -177,7 +177,8 @@ irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::
 	for (int i = 0; i < primary_rays; i++)
 	{
 		auto d = uniformHemisphereSample(normal_ws);
-		auto r = ray_cast_in_scene(pos_ws + normal_ws * 0.1f, d, 4000, VISIBILITY);
+		auto ray_start_pos = disc_radius > 0 ? uniformDiscSample_ws(pos_ws, normal_ws, disc_radius) : pos_ws;
+		auto r = ray_cast_in_scene(ray_start_pos + normal_ws * 0.1f, d, 4000, VISIBILITY);
 		ambient_hits+= (r.hit) ? 0.0 : 1.0/static_cast<float>(primary_rays);
 	}
 	irradiance.color+=ambient_hits * glm::vec3(1.0, 1.0, 1.0);
@@ -232,6 +233,25 @@ glm::vec3 Scene::uniformHemisphereSample(glm::vec3 normal)
 	};
 }
 
+//from https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+glm::vec2 Scene::uniformDiscSample(float radius)
+{
+	float u1 = static_cast<float>(rand()) / RAND_MAX;
+	float u2 = static_cast<float>(rand()) / RAND_MAX;
+	auto r = radius * sqrt(u1);
+	auto theta = u2 * 2 * glm::pi<float>();
+	return{r * cos(theta), r * sin(theta)};
+}
+
+//
+glm::vec3 Scene::uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float radius)
+{
+	glm::vec3 helper = (fabs(normal.x) > fabs(normal.z)) ? glm::vec3(0, 0, 1) : glm::vec3(1, 0, 0);
+	auto tangent = glm::normalize(glm::cross(helper, normal));
+	auto bitangent = glm::cross(normal, tangent);
+	auto pos_on_disc = uniformDiscSample(radius);
+	return pos + tangent * pos_on_disc.x + bitangent * pos_on_disc.y;
+}
 
 
 void Scene::recalculate_at(Object3D* parent)

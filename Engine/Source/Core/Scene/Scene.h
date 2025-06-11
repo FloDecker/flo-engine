@@ -12,7 +12,7 @@
 #include "../CommonDataStructures/StructColorRange.h"
 #include "../CommonDataStructures/StructMeshTriangleFilter.h"
 #include "../CommonDataStructures/collision_channel.h"
-#include "../CommonDataStructures/irradiance_information.h"
+#include "../CommonDataStructures/surfel_irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
 class SurfelManagerOctree;
@@ -50,7 +50,6 @@ public:
 	visual_debug_tools* get_debug_tools() const;
 
 
-
 	//render passes
 	void draw_scene(RenderContext* render_context) const;
 	void draw_debug_tools(const RenderContext* render_context) const;
@@ -81,15 +80,15 @@ public:
 
 	//returns an approximation of the ao color at a given position in world space
 	StructColorRange* get_ao_color_at(int samples, glm::vec3 ws_pos) const;
-	
+
 
 	//register scene objects
 	void register_global_light(direct_light* direct_light);
 	void register_sky_box(sky_box* skybox);
-	
+
 	//register collider
 	void register_collider(collider_modifier* collider);
-	
+
 	//COLLISIONS AND INTERSECTIONS
 
 	void recalculate_collision_channel_bb_hierarchy(collision_channel channel) const;
@@ -104,15 +103,18 @@ public:
 	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                  collision_channel collision_channel, Object3D* ignore = nullptr);
 
-	irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays);
+	surfel_irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
+	                                                  float disc_radius = 0.0f);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
+	static glm::vec2 uniformDiscSample(float radius);
+	static glm::vec3 uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float radius);
 
 	SurfelManagerOctree* get_surfel_manager() const;
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;
 	std::vector<collider_modifier*> colliders_;
-	SurfelManagerOctree *surfel_manager_;
+	SurfelManagerOctree* surfel_manager_;
 
 	std::map<collision_channel, StackedBB*> scene_bb;
 	GlobalContext* global_context_;
@@ -137,7 +139,7 @@ private:
 	//direct light
 	bool has_direct_light_ = false;
 	direct_light* direct_light_ = nullptr;
-	
+
 
 	//skybox
 	bool has_sky_box = false;

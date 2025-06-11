@@ -130,7 +130,7 @@ void SurfelManagerUniformGrid::recalculate_surfels()
 		normals.push_back(s.normal);
 		radii.push_back(s.radius);
 
-		auto i = scene_->get_irradiance_information(s.mean, s.normal, gi_primary_rays);
+		auto i = scene_->get_irradiance_information(s.mean, s.normal, gi_primary_rays, s.radius);
 		colors.push_back(i.color);
 		size++;
 	}
