@@ -52,7 +52,8 @@ public:
 	
 	static glm::vec3 get_illumination_gradient(const surfel* s_1, const surfel* s_2);
 	static surfel get_combining_surfel(const surfel* s_1, const surfel* s_2);
-	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel);
+	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
+	                   max_gradient_difference);
 
 
 private:

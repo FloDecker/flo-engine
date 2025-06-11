@@ -642,8 +642,8 @@ void SurfelManagerOctree::update_surfels()
 		if (neighbour_surfel != nullptr)
 		{
 			auto gradient = abs(length(get_illumination_gradient(s, neighbour_surfel)));
-			
-			if (gradient * (s->radius + neighbour_surfel->radius )< 0.01 && glm::distance(neighbour_surfel->mean, s->mean) < neighbour_surfel->radius + s->
+			auto gradient_adjusted = gradient * (s->radius + neighbour_surfel->radius );
+			if (gradient_adjusted < 0.01 && glm::distance(neighbour_surfel->mean, s->mean) < neighbour_surfel->radius + s->
 				radius)
 			{
 				auto combined_surfel = get_combining_surfel(s, neighbour_surfel);
@@ -651,21 +651,22 @@ void SurfelManagerOctree::update_surfels()
 				auto test_2 = glm::distance(s->mean, combined_surfel.mean);
 				auto test_3 = glm::distance(neighbour_surfel->mean, combined_surfel.mean);
 				auto overlaps = std::set<surfel*>();
-				get_surfels_in_radius_recursive(combined_surfel.mean, combined_surfel.radius, 0, {0,0,0}, 0,  &overlaps);
-				if (overlaps.size() <= 2)
-				{
-					if (merge_surfels(s, neighbour_surfel, combined_surfel))
-					{
-						//surfels were merged
+				get_surfels_in_radius_recursive(combined_surfel.mean, combined_surfel.radius, 0, {0, 0, 0}, 0,
+				                                &overlaps);
 
-						std::erase_if(surfels_,
-						              [&](const std::unique_ptr<surfel>& ptr)
-						              {
-							              return ptr.get() == s || ptr.get() == neighbour_surfel;
-						              });
-						update = false;
-					}
+				if (merge_surfels(s, neighbour_surfel, combined_surfel, overlaps, 0.01))
+				{
+					//surfels were merged
+
+					std::erase_if(surfels_,
+					              [&](const std::unique_ptr<surfel>& ptr)
+					              {
+						              return ptr.get() == s || ptr.get() == neighbour_surfel || overlaps.contains(
+							              ptr.get());
+					              });
+					update = false;
 				}
+				
 		
 			}
 		}
@@ -758,14 +759,40 @@ surfel SurfelManagerOctree::get_combining_surfel(const surfel* s_1, const surfel
 
 }
 
-bool SurfelManagerOctree::merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel)
+bool SurfelManagerOctree::merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
+                                        max_gradient_difference)
 {
+	if (additional_overlaps.size() > 2)
+	{
+		//there are more overlaps to check
+		for (auto surfel_overlap : additional_overlaps)
+		{
+			if (surfel_overlap != s_1 && surfel_overlap != s_2)
+			{
+				if (abs(glm::length(get_illumination_gradient(s_1, surfel_overlap))) > max_gradient_difference ||
+					abs(glm::length(get_illumination_gradient(s_2, surfel_overlap))) > max_gradient_difference)
+				{
+					return false;
+				}
+			}
+		}
+	}
+	
+	
 	remove_surfel(s_1);
 	remove_surfel(s_2);
-
-	//check if there are other surfels that would be affected by this merge
-	//e.g. if there are surfels on the same level or lower that would be overlapped by the new surfel
-
+	
+	if (additional_overlaps.size() > 2)
+	{
+		//there are more overlaps to check
+		for (auto surfel_overlap : additional_overlaps)
+		{
+			if (surfel_overlap != s_1 && surfel_overlap != s_2)
+			{
+				remove_surfel(surfel_overlap);
+			}
+		}
+	}
 	
 	auto new_surfel_pointer = std::make_unique<surfel>(new_surfel);
 

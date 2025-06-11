@@ -258,13 +258,13 @@ vec3 get_color_from_octree(vec3 pos) {
                 float surfel_radius = texelFetch(surfels_texture_buffer_radii_, surfle_data_pointer + i).x;
                 amount_texture_fetches++;
                 float d = distance(vertexPosWs, surfel_pos);
-                if (d < surfel_radius*0.5) {
+                if (d < surfel_radius * 0.5f) {
                     vec3 surfel_normal = texelFetch(surfels_texture_buffer_normals_, surfle_data_pointer + i).xyz;
                     amount_texture_fetches++;
                     if (dot(surfel_normal, normalWS) > 0.1) {
                         vec3 c = texelFetch(surfels_texture_buffer_color_, surfle_data_pointer + i).xyz;
                         amount_texture_fetches++;
-                        float attenuation = 1.0 - d;
+                        float attenuation = 1.0 - surfel_radius / d;
                         final_color+=c*attenuation;
                         amount_contribution++;
                         feched_samples+=attenuation;
@@ -281,8 +281,8 @@ vec3 get_color_from_octree(vec3 pos) {
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            //return final_color/feched_samples;
-            return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
+            return final_color/feched_samples;
+            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }
