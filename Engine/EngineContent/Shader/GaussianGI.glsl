@@ -250,7 +250,9 @@ vec3 get_color_from_octree(vec3 pos) {
         if (surfels_amount > 0) {
             surfle_data_pointer = int(texelFetch(surfels_uniform_grid, index + 1)).r;
             amount_texture_fetches++;
-            //sample all of the surfels in bucket 
+            //sample all of the surfels in bucket
+            
+            
 
             for (int i = 0; i < surfels_amount; i++) {
                 vec3 surfel_pos = texelFetch(surfels_texture_buffer_positions_, surfle_data_pointer + i).xyz;
@@ -258,13 +260,13 @@ vec3 get_color_from_octree(vec3 pos) {
                 float surfel_radius = texelFetch(surfels_texture_buffer_radii_, surfle_data_pointer + i).x;
                 amount_texture_fetches++;
                 float d = distance(vertexPosWs, surfel_pos);
-                if (d < surfel_radius * 0.5f) {
+                if (d < surfel_radius) {
                     vec3 surfel_normal = texelFetch(surfels_texture_buffer_normals_, surfle_data_pointer + i).xyz;
                     amount_texture_fetches++;
                     if (dot(surfel_normal, normalWS) > 0.1) {
                         vec3 c = texelFetch(surfels_texture_buffer_color_, surfle_data_pointer + i).xyz;
                         amount_texture_fetches++;
-                        float attenuation = 1.0 - surfel_radius / d;
+                        float attenuation = 1.0f - d / surfel_radius;
                         final_color+=c*attenuation;
                         amount_contribution++;
                         feched_samples+=attenuation;
@@ -282,7 +284,7 @@ vec3 get_color_from_octree(vec3 pos) {
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
             return final_color/feched_samples;
-            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
+            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.001);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }

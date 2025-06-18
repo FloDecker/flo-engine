@@ -40,3 +40,22 @@ glm::vec3 math_util::get_random_point_in_triangle(const glm::vec3 A, const glm::
 
 	return a * A + b * B + c * C;
 }
+
+glm::vec3 math_util::get_tangent(glm::vec3 normal)
+{
+	glm::vec3 helper = (fabs(normal.x) > fabs(normal.z)) ? glm::vec3(0, 0, 1) : glm::vec3(1, 0, 0);
+	return glm::normalize(glm::cross(helper, normal));
+}
+
+std::pair<glm::vec3, glm::vec3> math_util::get_tangent_and_bi_tangent(glm::vec3 normal)
+{
+	auto t = get_tangent(normal);
+	return std::make_pair(t, glm::cross(normal, t));
+}
+
+float math_util::component_average(const glm::vec3 v)
+{
+	return (v.x+v.y+v.z) / 3.0f;
+}
+
+

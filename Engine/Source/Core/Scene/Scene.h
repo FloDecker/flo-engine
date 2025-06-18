@@ -104,7 +104,7 @@ public:
 	                                  collision_channel collision_channel, Object3D* ignore = nullptr);
 
 	surfel_irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
-	                                                  float disc_radius = 0.0f);
+	                                                         float disc_radius = 0.0f);
 	static glm::vec3 uniformHemisphereSample(glm::vec3 normal);
 	static glm::vec2 uniformDiscSample(float radius);
 	static glm::vec3 uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float radius);

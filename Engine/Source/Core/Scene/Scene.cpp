@@ -151,7 +151,8 @@ ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, 
 	return result;
 }
 
-surfel_irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays, float disc_radius)
+surfel_irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
+                                                                float disc_radius)
 {
 	//for (unsigned int i = 0; i < irradiance_samples; ++i)
 	//{
@@ -180,7 +181,8 @@ surfel_irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws
 		auto ray_start_pos = disc_radius > 0 ? uniformDiscSample_ws(pos_ws, normal_ws, disc_radius) : pos_ws;
 		auto r = ray_cast_in_scene(ray_start_pos + normal_ws * 0.1f, d, 4000, VISIBILITY);
 		ambient_hits+= (r.hit) ? 0.0 : 1.0/static_cast<float>(primary_rays);
-	}
+ 	}
+	
 	irradiance.color+=ambient_hits * glm::vec3(1.0, 1.0, 1.0);
 	return irradiance;
 }

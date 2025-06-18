@@ -4,8 +4,6 @@
 #include "../Object3D.h"
 #include "../Scene.h"
 #include "surfel.h"
-#include <thread>
-
 
 //this is mapped 1:1 to GPU memory 
 struct surfel_octree_element
@@ -35,6 +33,9 @@ public:
 	int update_surfels_per_tick = 1;
 	float surface_attachment_radius = 1.0f;
 	int gi_primary_rays = 10;
+	float illumination_derivative_threshold = 0.1f;
+	float minimal_surfel_radius = 1.0f;
+	bool update_surfels_next_tick = true;
 
 	float total_extension = 512.0;
 	int octree_levels = 9;
@@ -54,7 +55,7 @@ public:
 	static surfel get_combining_surfel(const surfel* s_1, const surfel* s_2);
 	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
 	                   max_gradient_difference);
-
+	bool insert_surfel(const surfel& surfel_to_insert);
 
 private:
 	Scene* scene_;
@@ -69,7 +70,7 @@ private:
 	unsigned int SURFELS_BOTTOM_LEVEL_SIZE = 40000;
 	//actual size is SURFEL_BUCKET_SIZE_ON_GPU * SURFEL_BUCKET_SIZE_ON_GPU
 	unsigned int SURFEL_OCTREE_SIZE = 100000;
-	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 128; //space amount allocated for the surfels an octree element points to 
+	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 512; //space amount allocated for the surfels an octree element points to 
 	const uint32_t MAX_SURFEL_BUCKET_SIZE_ON_GPU = 1024;
 
 	unsigned int memory_limitation_count_bottom_size = 0;
@@ -134,4 +135,7 @@ private:
 	void update_octree_data_on_gpu(unsigned int octree_index);
 	void remove_surfel_from_bucket_on_gpu(unsigned int bucket_start, unsigned int index,
 	                                      unsigned int last_bucket_element);
+
+	glm::vec2 get_surfel_illumination_gradient(surfel* s);
+	void create_packed_circles(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color);
 };
