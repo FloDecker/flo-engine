@@ -59,3 +59,10 @@ float math_util::component_average(const glm::vec3 v)
 }
 
 
+
+glm::vec3 math_util::get_weighted_average(const glm::vec3 a, const glm::vec3 b, const float w_a, const float w_b)
+{
+	return (a * w_a + b * w_b) / (w_a + w_b);
+}
+
+

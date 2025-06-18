@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "../Core/Renderer/Primitives/vertex_array.h"
-#include "Material.h"
+class ShaderProgram;
 
 class Mesh
 {

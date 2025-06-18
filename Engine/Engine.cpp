@@ -252,7 +252,6 @@ int main()
 	auto* gaussian_gi_shader = new ShaderProgram();
 	gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
 	gaussian_gi_shader->compileShader();
-	scene->get_surfel_manager()->add_surfel_uniforms_to_shader(gaussian_gi_shader);
 
 
 	auto* worldPosMat = new ShaderProgram();

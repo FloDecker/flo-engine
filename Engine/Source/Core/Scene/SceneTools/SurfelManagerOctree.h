@@ -4,6 +4,7 @@
 #include "../Object3D.h"
 #include "../Scene.h"
 #include "surfel.h"
+#include "../../Renderer/ssbo.h"
 
 //this is mapped 1:1 to GPU memory 
 struct surfel_octree_element
@@ -14,6 +15,13 @@ struct surfel_octree_element
 	uint32_t next_layer_surfels_pointer[8];
 };
 
+
+struct surfel_gpu
+{
+	glm::vec4 position_r = {};
+	glm::vec4 normal = {};
+	glm::vec4 color = {};
+};
 //this holds additional metadata information of the buckets that is only needed on the CPU
 struct surfel_octree_metadata
 {
@@ -22,6 +30,7 @@ struct surfel_octree_metadata
 	//-> they are in the same order as on the GPU 
 	std::vector<surfel*>* surfels = new std::vector<surfel*>;
 };
+
 
 class SurfelManagerOctree
 {
@@ -46,7 +55,6 @@ public:
 
 
 	void generate_surfels();
-	void add_surfel_uniforms_to_shader(ShaderProgram* shader) const;
 	void recalculate_surfels();
 	void update_surfels();
 	surfel* get_closest_neighbour_on_level(const surfel* s) const;
@@ -77,11 +85,8 @@ private:
 	unsigned int memory_limitation_octree_size = 0;
 	unsigned int memory_limitation_bucket_size = 0;
 
-	texture_buffer_object* surfels_texture_buffer_positions_;
-	texture_buffer_object* surfels_texture_buffer_normals_;
-	texture_buffer_object* surfels_texture_buffer_color_;
-	texture_buffer_object* surfels_texture_buffer_radii_;
-	texture_buffer_object* surfels_octree;
+	ssbo<surfel_gpu>* surfel_ssbo_;
+	ssbo<surfel_octree_element>* surfels_octree;
 
 	//a vector that holds all surfels currently used
 	std::vector<std::unique_ptr<surfel>> surfels_ = std::vector<std::unique_ptr<surfel>>();

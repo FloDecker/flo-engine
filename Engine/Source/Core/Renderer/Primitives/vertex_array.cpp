@@ -3,6 +3,8 @@
 //
 #include "vertex_array.h"
 #define GLM_ENABLE_EXPERIMENTAL
+#include <iostream>
+
 #include "gtx/string_cast.hpp"
 
 

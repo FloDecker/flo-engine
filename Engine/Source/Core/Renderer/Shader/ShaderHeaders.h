@@ -13,7 +13,7 @@ auto name_ambient_light_colors_sample_positions = "u_ambient_light_colors_sample
 
 //header for standard vertex shader
 auto VERTEX_SHADER_HEADER_BASE =
-	"#version 420 core \n"
+	"#version 430 core \n"
 	"layout (location = 0) in vec3 aPos;\n"
 	"layout (location = 1) in vec3 aNormal;\n"
 	"layout (location = 2) in vec2 aUV;\n"
@@ -24,7 +24,7 @@ auto VERTEX_SHADER_HEADER_BASE =
 
 //header for standard fragment shader
 auto FRAGMENT_SHADER_HEADER_BASE =
-	"#version 420 core\n"
+	"#version 430 core\n"
 	"out vec4 FragColor;\n";
 
 

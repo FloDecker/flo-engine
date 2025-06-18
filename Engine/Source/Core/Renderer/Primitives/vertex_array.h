@@ -6,7 +6,7 @@
 
 
 #include "primitive.h"
-#include "../Shader/ShaderProgram.h"
+#include "../Shader/AbstractShaderProgram.h"
 #include <glm.hpp>
 #include <vector>
 #include "../../CommonDataStructures/StructVertexArray.h"

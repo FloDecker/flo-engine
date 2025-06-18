@@ -9,4 +9,6 @@ public:
 	static glm::vec3 get_tangent(glm::vec3 normal);
 	static std::pair<glm::vec3,glm::vec3> get_tangent_and_bi_tangent(glm::vec3 normal);
 	static float component_average(glm::vec3 v);
+	static glm::vec3 get_weighted_average(const glm::vec3 a, const glm::vec3 b, const float w_a, const float w_b);
+
 };

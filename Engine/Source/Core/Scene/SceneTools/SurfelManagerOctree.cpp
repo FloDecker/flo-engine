@@ -14,11 +14,10 @@
 SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 {
 	scene_ = scene;
-	surfels_texture_buffer_positions_ = new texture_buffer_object();
-	surfels_texture_buffer_normals_ = new texture_buffer_object();
-	surfels_texture_buffer_color_ = new texture_buffer_object();
-	surfels_texture_buffer_radii_ = new texture_buffer_object();
-	surfels_octree = new texture_buffer_object();
+	surfel_ssbo_ = new ssbo<surfel_gpu>();
+	surfel_ssbo_->init_buffer_object(SURFELS_BOTTOM_LEVEL_SIZE * SURFEL_BUCKET_SIZE_ON_GPU, 0);
+	surfels_octree = new ssbo<surfel_octree_element>();
+	surfels_octree->init_buffer_object(SURFEL_OCTREE_SIZE,1);
 }
 
 void SurfelManagerOctree::clear_samples()
@@ -415,12 +414,10 @@ bool SurfelManagerOctree::create_space_for_new_surfel_data(uint32_t& pointer_ins
 //TODO: veryyyy inefficient
 bool SurfelManagerOctree::upload_surfel_data(surfel* surfel_to_insert, unsigned int insertion_index) const
 {
-	bool s = true;
-	s &= surfels_texture_buffer_positions_->update_vec3_single(&surfel_to_insert->mean, insertion_index);
-	s &= surfels_texture_buffer_normals_->update_vec3_single(&surfel_to_insert->normal, insertion_index);
-	s &= surfels_texture_buffer_color_->update_vec3_single(&surfel_to_insert->diffuse_irradiance, insertion_index);
-	s &= surfels_texture_buffer_radii_->update_float_single(&surfel_to_insert->radius, insertion_index);
-	return s;
+	const auto temp_surfel = surfel_gpu(
+		{surfel_to_insert->mean, surfel_to_insert->radius}, {surfel_to_insert->normal, 0.0f},
+		{surfel_to_insert->diffuse_irradiance, 1.0f});
+	return surfel_ssbo_->insert_data(&temp_surfel, insertion_index);
 }
 
 bool SurfelManagerOctree::update_surfel_data(surfel* surfel_to_insert) const
@@ -472,12 +469,13 @@ int SurfelManagerOctree::get_surfel_pos_in_bucket(unsigned int bucket_index, con
 
 void SurfelManagerOctree::dump_surfel_octree_to_gpu_memory()
 {
-	surfels_octree->update_u_int(&octree_[0].surfels_at_layer_amount, next_free_spot_in_octree_ * 10, 0);
+	surfels_octree->insert_data(&octree_[0], 0, next_free_spot_in_octree_);
 }
 
 void SurfelManagerOctree::update_octree_data_on_gpu(unsigned int octree_index)
 {
-	surfels_octree->update_u_int(&octree_[octree_index].surfels_at_layer_amount, 10, octree_index * 10);
+	
+	surfels_octree->insert_data(&octree_[octree_index], octree_index, 1);
 }
 
 void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_start, unsigned int index,
@@ -490,13 +488,8 @@ void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_s
 	auto from = bucket_start + index + 1;
 	auto to = bucket_start + index;
 	auto length = last_bucket_element - index - 1;
-	surfels_texture_buffer_positions_->move_data(sizeof(glm::vec3) * from, sizeof(glm::vec3) * to,
-	                                             sizeof(glm::vec3) * length);
-	surfels_texture_buffer_normals_->move_data(sizeof(glm::vec3) * from, sizeof(glm::vec3) * to,
-	                                           sizeof(glm::vec3) * length);
-	surfels_texture_buffer_color_->move_data(sizeof(glm::vec3) * from, sizeof(glm::vec3) * to,
-	                                         sizeof(glm::vec3) * length);
-	surfels_texture_buffer_radii_->move_data(sizeof(uint32_t) * from, sizeof(uint32_t) * to, sizeof(uint32_t) * length);
+	// ReSharper disable once CppExpressionWithoutSideEffects
+	surfel_ssbo_->move_data(from, to,length);
 }
 
 
@@ -530,15 +523,6 @@ void SurfelManagerOctree::generate_surfels()
 }
 
 
-void SurfelManagerOctree::add_surfel_uniforms_to_shader(ShaderProgram* shader) const
-{
-	shader->addTexture(surfels_texture_buffer_color_, "surfels_texture_buffer_color_");
-	shader->addTexture(surfels_texture_buffer_normals_, "surfels_texture_buffer_normals_");
-	shader->addTexture(surfels_texture_buffer_positions_, "surfels_texture_buffer_positions_");
-	shader->addTexture(surfels_texture_buffer_radii_, "surfels_texture_buffer_radii_");
-	shader->addTexture(surfels_octree, "surfels_uniform_grid");
-}
-
 void SurfelManagerOctree::init_surfels_buffer()
 {
 	if (has_surfels_buffer_)
@@ -549,14 +533,7 @@ void SurfelManagerOctree::init_surfels_buffer()
 
 	scene_->get_global_context()->logger->print_info("Initializing surfel buffer...");
 	scene_->get_global_context()->logger->print_info(std::format("Surfel buffer size : {}", SURFEL_OCTREE_SIZE));
-
-	surfels_octree->init_u_int(SURFEL_OCTREE_SIZE * 10);
-
-
-	surfels_texture_buffer_positions_->init_vec3(SURFELS_BOTTOM_LEVEL_SIZE * SURFEL_BUCKET_SIZE_ON_GPU);
-	surfels_texture_buffer_normals_->init_vec3(SURFELS_BOTTOM_LEVEL_SIZE * SURFEL_BUCKET_SIZE_ON_GPU);
-	surfels_texture_buffer_color_->init_vec3(SURFELS_BOTTOM_LEVEL_SIZE * SURFEL_BUCKET_SIZE_ON_GPU);
-	surfels_texture_buffer_radii_->init_float(SURFELS_BOTTOM_LEVEL_SIZE * SURFEL_BUCKET_SIZE_ON_GPU);
+	
 
 	scene_->get_global_context()->logger->print_info(std::format("Surfel buffer total memory : {}",
 	                                                             sizeof(glm::vec3) * SURFEL_OCTREE_SIZE * 3 + sizeof(
@@ -775,10 +752,8 @@ glm::vec2 SurfelManagerOctree::get_surfel_illumination_gradient(surfel* s)
 surfel SurfelManagerOctree::get_combining_surfel(const surfel* s_1, const surfel* s_2)
 {
 	auto new_normal = (s_1->normal + s_2->normal) * 0.5f;
-	auto new_irradiance =
-		(s_1->diffuse_irradiance * static_cast<float>(s_1->samples) +
-			s_2->diffuse_irradiance * static_cast<float>(s_2->samples)) /
-		static_cast<float>(s_1->samples + s_2->samples);
+	auto new_irradiance = math_util::get_weighted_average(s_1->diffuse_irradiance, s_2->diffuse_irradiance, s_1->samples, s_2->samples);
+	
 	auto distance = glm::distance(s_1->mean, s_2->mean);
 	auto new_radius = 0.0f;
 	glm::vec3 new_center;
@@ -815,10 +790,10 @@ surfel SurfelManagerOctree::get_combining_surfel(const surfel* s_1, const surfel
 		.in_surfel_buckets = {},
 		.samples = new_samples,
 		.diffuse_irradiance_samples = {
-			s_1->diffuse_irradiance_samples[0] + s_2->diffuse_irradiance_samples[0],
-			s_1->diffuse_irradiance_samples[1] + s_2->diffuse_irradiance_samples[1],
-			s_1->diffuse_irradiance_samples[2] + s_2->diffuse_irradiance_samples[2],
-			s_1->diffuse_irradiance_samples[3] + s_2->diffuse_irradiance_samples[3],
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[0], s_2->diffuse_irradiance_samples[0], s_1->samples, s_2->samples),
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[1], s_2->diffuse_irradiance_samples[1], s_1->samples, s_2->samples),
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[2], s_2->diffuse_irradiance_samples[2], s_1->samples, s_2->samples),
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[3], s_2->diffuse_irradiance_samples[3], s_1->samples, s_2->samples)
 		}
 	};
 
