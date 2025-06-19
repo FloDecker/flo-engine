@@ -48,10 +48,8 @@ struct Surfel {
     vec4 color;
 };
 
-
 struct OctreeElement
 {
-
     uint surfels_at_layer_amount;
     uint surfels_at_layer_pointer;
     uint next_layer_surfels_pointer[8];

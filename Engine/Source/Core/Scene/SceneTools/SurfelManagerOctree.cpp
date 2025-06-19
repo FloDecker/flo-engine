@@ -657,7 +657,6 @@ void SurfelManagerOctree::update_surfels()
 		s->diffuse_irradiance = irradiance_center_sum / 4.0f;
 		bool update = true;
 
-		/*
 		auto illumination_d = get_surfel_illumination_gradient(s);
 
 		if (glm::length(illumination_d) > illumination_derivative_threshold && s->radius >= minimal_surfel_radius)
@@ -666,7 +665,7 @@ void SurfelManagerOctree::update_surfels()
 			create_packed_circles(s->mean, s->normal, s->radius, s->diffuse_irradiance);
 			remove_surfel(s);
 			update = false;
-		}*/
+		}
 		//check if surfel has a neighbour with similar illumination
 		//check if surfel can be merged with neighbour
 				
