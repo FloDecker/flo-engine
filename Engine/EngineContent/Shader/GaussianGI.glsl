@@ -260,7 +260,7 @@ vec3 get_color_from_octree(vec3 pos) {
                 amount_texture_fetches++;
 
                 float d = distance(vertexPosWs, s.mean_r.xyz);
-                if (d < s.mean_r.w) {
+                if (d < s.mean_r.w ) {
                     if (dot(s.normal.xyz, normalWS) > 0.1) {
                         float attenuation = 1.0f - d / s.mean_r.w;
                         final_color+=s.color.rgb*attenuation;
@@ -278,8 +278,8 @@ vec3 get_color_from_octree(vec3 pos) {
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            return final_color/feched_samples;
-            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.001);
+            //return final_color/feched_samples;
+            return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }

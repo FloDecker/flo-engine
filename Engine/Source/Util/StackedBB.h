@@ -4,6 +4,7 @@
 
 #include "../Core/CommonDataStructures/StructBoundingBox.h"
 #include "../Core/CommonDataStructures/ray_cast_result.h"
+
 //ray trace acceleration structures
 
 //if child_0 = -1 -> child_1 indicates the position of the found collider in the sceneColliders array
@@ -41,7 +42,8 @@ public:
 		float radius, ray_cast_result* result
 	);
 
-	void scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore = nullptr);
+	void scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore = nullptr, bool
+	                            ignore_back_face = true);
 
 private:
 	void calculateSceneTree();
@@ -54,7 +56,8 @@ private:
 	);
 
 	void recursive_scene_geometry_raycast(const ::kdTreeElement* bb_to_check, const glm::vec3& ray_start,
-	                                      const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore);
+	                                      const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore, bool ignore_back_face =
+		                                      true);
 
 
 	kdTreeElement* axis_aligned_bb_tree_ = nullptr;

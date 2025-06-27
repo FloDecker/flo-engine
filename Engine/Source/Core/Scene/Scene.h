@@ -101,7 +101,7 @@ public:
 	ray_cast_result ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                              collision_channel collision_channel);
 	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
-	                                  collision_channel collision_channel, Object3D* ignore = nullptr);
+	                                  collision_channel collision_channel, Object3D* ignore = nullptr, bool ignore_back_face = true);
 
 	surfel_irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
 	                                                         float disc_radius = 0.0f);

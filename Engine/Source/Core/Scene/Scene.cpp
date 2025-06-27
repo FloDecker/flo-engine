@@ -142,44 +142,39 @@ ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3
 }
 
 ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
-                                         collision_channel collision_channel, Object3D* ignore)
+                                         collision_channel collision_channel, Object3D* ignore, bool ignore_back_face)
 {
 	ray_cast_result result;
 	result.distance_from_origin = std::numeric_limits<double>::max();
 	auto bb_tree = scene_bb[collision_channel];
-	bb_tree->scene_geometry_raycast(origin, direction, &result, max_distance, ignore);
+	bb_tree->scene_geometry_raycast(origin, direction, &result, max_distance, ignore, ignore_back_face);
 	return result;
 }
 
 surfel_irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
                                                                 float disc_radius)
 {
-	//for (unsigned int i = 0; i < irradiance_samples; ++i)
-	//{
-	//	auto v = uniformHemisphereSample(normal_ws);
-	//	auto r = ray_cast_in_scene(pos_ws, v, 4000, VISIBILITY);
-	//	
-	//}
 	auto irradiance = surfel_irradiance_information();
 	irradiance.pos = pos_ws;
 	irradiance.normal = normal_ws;
-
-	//auto r = ray_cast_in_scene(pos_ws + normal_ws * 0.1f, direct_light_->get_light_direction(), 4000, VISIBILITY);
-	//if (r.hit)
-	//{
-	//	irradiance.color = glm::vec3(0.0, 0.0, 0.0);
-	//}
-	//else
-	//{
-	//	irradiance.color = direct_light_->color;
-	//}
-
+	
+	auto r_n = ray_cast_in_scene(pos_ws + normal_ws * 0.1f, normal_ws, 4000, VISIBILITY, nullptr, false);
+	if (r_n.hit && r_n.hit_back_face)
+	{
+		get_debug_tools()->draw_debug_line(pos_ws, r_n.hit_world_space,{1,0,0},10.0f);
+		irradiance.inside_wall = true;
+		irradiance.color = {0,0,0};
+		return irradiance;
+	}
+	
 	float ambient_hits = 0;
 	for (int i = 0; i < primary_rays; i++)
 	{
 		auto d = uniformHemisphereSample(normal_ws);
 		auto ray_start_pos = disc_radius > 0 ? uniformDiscSample_ws(pos_ws, normal_ws, disc_radius) : pos_ws;
 		auto r = ray_cast_in_scene(ray_start_pos + normal_ws * 0.1f, d, 4000, VISIBILITY);
+		//get_debug_tools()->draw_debug_line(ray_start_pos + normal_ws * 0.1f, r.hit_world_space,{0,1,0},1.0f);
+
 		ambient_hits+= (r.hit) ? 0.0 : 1.0/static_cast<float>(primary_rays);
  	}
 	

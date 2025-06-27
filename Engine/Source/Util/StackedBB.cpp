@@ -252,7 +252,7 @@ void StackedBB::scene_geometry_proximity_check(const glm::vec3& proximity_center
 }
 
 void StackedBB::scene_geometry_raycast(const glm::vec3& ray_start, const glm::vec3& ray_direction,
-	ray_cast_result* result, float ray_length, Object3D* ignore)
+                                       ray_cast_result* result, float ray_length, Object3D* ignore, bool ignore_back_face)
 {
 	auto start = std::chrono::system_clock::now();
 
@@ -264,7 +264,7 @@ void StackedBB::scene_geometry_raycast(const glm::vec3& ray_start, const glm::ve
 	if (get_scene_bb_entry_element() != nullptr)
 	{
 		auto bb_root_node = get_scene_bb_entry_element();
-		recursive_scene_geometry_raycast(bb_root_node, ray_start, ray_direction, result, ray_length, ignore);
+		recursive_scene_geometry_raycast(bb_root_node, ray_start, ray_direction, result, ray_length, ignore, ignore_back_face);
 		auto end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
 		//auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
@@ -319,7 +319,7 @@ void StackedBB::recurse_proximity_check_bb_tree(const kdTreeElement* bb_to_check
 }
 
 void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_check, const glm::vec3& ray_start,
-	const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore)
+                                                 const glm::vec3& ray_direction, ray_cast_result* result, float ray_length, Object3D* ignore, bool ignore_back_face)
 {
 	if (!BoundingBoxHelper::ray_axis_aligned_bb_intersection(&bb_to_check->bb, ray_start, ray_direction, result) &&
 		!BoundingBoxHelper::is_in_bounding_box(&bb_to_check->bb, ray_start))
@@ -338,7 +338,7 @@ void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_chec
 			return;
 		}
 		
-		coll->ray_intersection_world_space(ray_start, ray_direction,ray_length , true, result);
+		coll->ray_intersection_world_space(ray_start, ray_direction,ray_length , ignore_back_face, result);
 		if (result->hit)
 		{
 			result->object_3d = coll->get_parent();
@@ -352,8 +352,8 @@ void StackedBB::recursive_scene_geometry_raycast(const kdTreeElement* bb_to_chec
 	auto child_0 = get_scene_bb_element(bb_to_check->child_0);
 	auto child_1 = get_scene_bb_element(bb_to_check->child_1);
 
-	recursive_scene_geometry_raycast(child_0, ray_start, ray_direction, &r_0, ray_length, ignore);
-	recursive_scene_geometry_raycast(child_1, ray_start, ray_direction, &r_1, ray_length, ignore);
+	recursive_scene_geometry_raycast(child_0, ray_start, ray_direction, &r_0, ray_length, ignore, ignore_back_face);
+	recursive_scene_geometry_raycast(child_1, ray_start, ray_direction, &r_1, ray_length, ignore, ignore_back_face);
 
 	if (r_0.hit && r_1.hit)
 	{

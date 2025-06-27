@@ -56,6 +56,7 @@ void mesh_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::v
 			glm::vec3 face_normal = normalize(v0.normal + v1.normal + v2.normal);
 
 			if (ignore_back_face && dot(face_normal, ray_direction_ls) > 0) continue;
+			if (dot(face_normal, ray_direction_ls) == 0.0f ) continue;
 
 			float d = -dot(face_normal, v0.position);
 			float t =
@@ -89,12 +90,13 @@ void mesh_collider::ray_intersection_local_space(glm::vec3 ray_origin_ls, glm::v
 			if (dot(face_normal, c) < 0) continue; // P is on the right side
 
 			auto hit_ws = glm::vec3(parent->getGlobalTransform() * glm::vec4(hit_point, 1));
-			auto distance = glm::distance(hit_ws, ray_origin_ls);
+			auto distance = glm::distance(hit_ws, parent->transform_vertex_to_world_space(ray_origin_ls));
 			// This ray hits the triangle
 			if (ray_cast_result_out->distance_from_origin > distance)
 			{
 				ray_cast_result_out->distance_from_origin = distance;
 				ray_cast_result_out->hit = true;
+				ray_cast_result_out->hit_back_face = dot(face_normal, ray_direction_ls) > 0;
 				ray_cast_result_out->hit_local = hit_point;
 				ray_cast_result_out->hit_normal_local = face_normal;
 				ray_cast_result_out->hit_world_space = hit_ws;

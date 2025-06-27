@@ -501,7 +501,7 @@
             <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
             <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
             <SDLCheck>true</SDLCheck>
-            <AdditionalIncludeDirectories>C:\Code\flo-engine\Dependencies\GLFW64\include;C:\Code\flo-engine\Dependencies\GLEW64\include;C:\Code\flo-engine\Dependencies\glm\glm;C:\Code\flo-engine\Dependencies\assimp64\include;C:\Code\flo-engine\\Dependencies\stb_image;C:\Code\flo-engine\Engine\Source\External\imgui;</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW64\include;$(SolutionDir)Dependencies\GLEW64\include;$(SolutionDir)Dependencies\glm\glm;$(SolutionDir)Dependencies\assimp64\include;$(SolutionDir)\Dependencies\stb_image;$(SolutionDir)Engine\Source\External\imgui;</AdditionalIncludeDirectories>
             <LinkCompiled>true</LinkCompiled>
         </ClCompile>
         <ClCompile Include="Source\Core\Scene\SceneTools\SurfelManagerUniformGrid.cpp"/>

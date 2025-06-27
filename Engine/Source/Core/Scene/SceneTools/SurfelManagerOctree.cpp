@@ -639,6 +639,7 @@ void SurfelManagerOctree::update_surfels()
 
 		auto tangent_bi_tangent = math_util::get_tangent_and_bi_tangent(s->normal);
 		glm::vec3 irradiance_center_sum = glm::vec3(0);
+		int wall_hits = 0;
 		for (int sample_index = 0; sample_index < 4; sample_index ++)
 		{
 			auto offset_2d = surfel_sample_offsets[sample_index];
@@ -646,15 +647,22 @@ void SurfelManagerOctree::update_surfels()
 			offset_3d*=s->radius;
 			
 			auto irradiance_info = scene_->get_irradiance_information(s->mean + offset_3d, s->normal, gi_primary_rays);
-			//scene_->get_debug_tools()->draw_debug_point(s->mean + offset_3d, 0.1f);
-			s->diffuse_irradiance_samples[sample_index] = s->diffuse_irradiance_samples[sample_index]
-				* static_cast<float>(s->samples) + irradiance_info.color * static_cast<float>(gi_primary_rays);
-			s->diffuse_irradiance_samples[sample_index] /= static_cast<float>(s->samples + gi_primary_rays);
-			irradiance_center_sum+=s->diffuse_irradiance_samples[sample_index];
+
+			if (irradiance_info.inside_wall)
+			{
+				wall_hits++;
+				s->diffuse_irradiance_samples[sample_index] = {0,0,0};
+			} else
+			{
+				s->diffuse_irradiance_samples[sample_index] = s->diffuse_irradiance_samples[sample_index]
+                		* static_cast<float>(s->samples) + irradiance_info.color * static_cast<float>(gi_primary_rays);
+                	s->diffuse_irradiance_samples[sample_index] /= static_cast<float>(s->samples + gi_primary_rays);
+                	irradiance_center_sum+=s->diffuse_irradiance_samples[sample_index];
+			}
 		}
 		
 		s->samples += gi_primary_rays;
-		s->diffuse_irradiance = irradiance_center_sum / 4.0f;
+		s->diffuse_irradiance = (wall_hits >= 4) ? glm::vec3(0.0) : irradiance_center_sum / static_cast<float>(4 - wall_hits);
 		bool update = true;
 
 		auto illumination_d = get_surfel_illumination_gradient(s);
@@ -674,7 +682,7 @@ void SurfelManagerOctree::update_surfels()
 		{
 			auto gradient = abs(length(get_illumination_gradient(s, neighbour_surfel)));
 			auto gradient_adjusted = gradient * (s->radius + neighbour_surfel->radius );
-			if (gradient_adjusted < 0.01 && glm::distance(neighbour_surfel->mean, s->mean) < neighbour_surfel->radius + s->
+			if (gradient_adjusted < 0.2 && glm::distance(neighbour_surfel->mean, s->mean) < neighbour_surfel->radius + s->
 				radius)
 			{
 				auto combined_surfel = get_combining_surfel(s, neighbour_surfel);
@@ -682,7 +690,7 @@ void SurfelManagerOctree::update_surfels()
 				get_surfels_in_radius_recursive(combined_surfel.mean, combined_surfel.radius, 0, {0, 0, 0}, 0,
 				                                &overlaps);
 
-				if (merge_surfels(s, neighbour_surfel, combined_surfel, overlaps, 0.01))
+				if (merge_surfels(s, neighbour_surfel, combined_surfel, overlaps, 0.2))
 				{
 					//surfels were merged
 					scene_->get_debug_tools()->draw_debug_point(combined_surfel.mean, 0.2, {1.0,0.0,0.0}, combined_surfel.radius);
