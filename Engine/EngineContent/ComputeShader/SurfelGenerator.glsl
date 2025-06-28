@@ -1,4 +1,5 @@
 ﻿#version 430 core
+#define PI 3.14159265359
 
 struct Surfel {
     vec4 mean_r;
@@ -13,6 +14,12 @@ struct OctreeElement
     uint next_layer_surfels_pointer[8];
 };
 
+struct Ray {
+    vec3 origin;
+    vec3 direction;
+    vec3 inverse_direction;
+};
+
 layout(std430, binding = 0) buffer SurfelBuffer {
     Surfel surfels[];
 };
@@ -21,8 +28,209 @@ layout(std430, binding = 1) buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+uint bitmask_surfel_amount = 0x00FFFFFF;
+
+bool intersect_AABB(vec3 bb_min, vec3 bb_max, Ray ray) {
+    vec3 t1 = (bb_min - ray.origin) * ray.inverse_direction;
+    vec3 t2 = (bb_max - ray.origin) * ray.inverse_direction;
+    vec3 tmin3 = min(t1, t2);
+    vec3 tmax3 = max(t1, t2);
+    float tmin = max(max(tmin3.x, tmin3.y), tmin3.z);
+    float tmax = min(min(tmax3.x, tmax3.y), tmax3.z);
+    return tmax >= tmin;
+}
+
+uint get_surfel_amount(uint i) {
+    return i & bitmask_surfel_amount;
+}
+
+bool is_child_octree_bit_set_at(uint i, uint pos)
+{
+    return (i & (1u << 31-pos)) != 0;
+}
+
+bool are_all_child_octree_bits_empty(uint i)
+{
+    return (bitmask_surfel_amount & i) == 0;
+}
+
+bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location) {
+    float d = -dot(s.normal.xyz, s.mean_r.xyz);
+    float t = -((dot(s.normal.xyz, r.origin) + d) /
+    dot(s.normal.xyz, r.direction));
+    if (t <= 0) return false;
+    hit_location = r.origin + t * r.direction;
+    return distance(s.mean_r.xyz, hit_location) <= s.mean_r.w;
+}
+
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec2 rand2(vec2 co) {
+    return vec2(rand(co), rand(co + 1.23)); // co + offset to get independent value
+}
+
+vec3 sampleHemisphereUniform(vec2 uv) {
+    uv = rand2(uv);
+    float theta = acos(1 - uv.x);
+    float phi = 2.0f *  PI * uv.y;
+    return vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+}
+
+
+bool traverseHERO(Ray ray, out vec3 c) {
+    const int MAX_DEPTH = 8;
+    const int MAX_STACK = 64;
+
+    // Stack to simulate traversal
+    uint node_ids_stack[MAX_STACK];
+    float node_size_stack[MAX_STACK];
+    vec3 node_min_stack[MAX_STACK];
+    node_ids_stack[0] = 0;
+    node_size_stack[0] = 512.0f;
+    node_min_stack[0] = vec3(-256);
+    
+    int stackPtr = 0;
+    
+    float closest_hit = 10000000;
+    vec3 current_best_hit;
+    bool has_hit = false;
+
+    for (int tries = 0; tries < 100 ; tries++) {
+        OctreeElement o = octreeElements[node_ids_stack[stackPtr]];
+        float current_bucket_size = node_size_stack[stackPtr];
+        vec3 current_bucket_min = node_min_stack[stackPtr];
+        if (stackPtr < 0) {
+            c = vec3(0,0,1);
+            return false;
+        }
+        
+        //check if there are surfels hit on the current layer 
+        uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
+        if (surfels_amount > 0) {
+            uint surfle_data_pointer = o.surfels_at_layer_pointer;
+            for (int i = 0; i < surfels_amount; i++) {
+                Surfel s = surfels[surfle_data_pointer + i];
+                vec3 hit_location;
+                if (ray_surfel_intersection(s,ray, hit_location)) {
+                    has_hit =true; //remvoe
+                    c = vec3(tries/1000.0f);
+                    return true;
+                    if (distance(hit_location, ray.origin) < closest_hit) {
+                        closest_hit = distance(hit_location, ray.origin);
+                        current_best_hit = hit_location;
+                        has_hit =true;
+                    }
+                }
+            }
+        }
+        stackPtr--;
+
+        //if there was an intersection and the current octree node doesent have children -> return
+        //if (are_all_child_octree_bits_empty(o.surfels_at_layer_amount) && has_hit)  {
+        //    return true;
+        //}
+        
+        
+        //if there are no intersections 
+        
+
+        int xDir = ray.direction.x >= 0.0 ? 0 : 1;
+        int yDir = ray.direction.y >= 0.0 ? 0 : 1;
+        int zDir = ray.direction.z >= 0.0 ? 0 : 1;
+        
+        
+        float children_size = current_bucket_size * 0.5f;
+        
+        for (int i = 0; i < 8; ++i) {
+            int morton = i; //^ (zDir | (yDir << 1) | (xDir << 2));
+            if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount,morton)) continue;
+            uint childIndex = o.next_layer_surfels_pointer[morton];
+            
+            vec3 offset = vec3(
+            (morton & (1<<2) ) != 0 ? 1.0 : 0.0,
+            (morton & (1<<1) ) != 0 ? 1.0 : 0.0,
+            (morton & (1<<0) ) != 0 ? 1.0 : 0.0
+            );
+
+          
+            // Descend into child
+            vec3 child_min = current_bucket_min + offset * children_size;
+            
+            if (!intersect_AABB(child_min, child_min + vec3(children_size), ray)) continue;
+
+
+            // Push remaining children to stack
+            if (stackPtr < MAX_STACK) {
+                stackPtr++;
+                node_ids_stack[stackPtr] = childIndex;
+                node_size_stack[stackPtr] = children_size;
+                node_min_stack[stackPtr] = child_min;
+            }
+        }
+    }
+    
+    return false;
+}
+
+void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
+    vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    tangent = normalize(cross(up, normal));
+    bitangent = cross(normal, tangent);
+}
+
+vec4 approx_lighting_for_pos(vec3 pos, vec3 normal, vec4 color_sampled_old) {
+    vec3 color_out = vec3(0.0f);
+    vec3 color_pre = color_sampled_old.rgb;
+    float sampled_pre = color_sampled_old.a;
+    const int iterations = 2;
+    for (int i = 0; i < iterations ; i++) {
+        vec3 d =sampleHemisphereUniform(pos.xy*pos.z + i + sampled_pre);
+        vec3 tangent;
+        vec3 bitangent;
+        
+        getTangentBasis(normal, tangent, bitangent);
+        vec3 s = normalize(normal * d.b + d.r * tangent + d.g * bitangent);
+        s*= vec3(1.0);
+        Ray r;
+        r.origin = pos;
+        r.direction = s;
+        r.inverse_direction = 1.0f/s;
+        
+        vec3 c;
+        if (!traverseHERO(r, c)) {
+            color_out+=vec3(1.0);
+        }
+    }
+    return vec4( (color_out + color_pre * sampled_pre) / (iterations + sampled_pre)
+     , sampled_pre + iterations);
+}
+
 
 void main() {
-    
+    OctreeElement o = octreeElements[gl_GlobalInvocationID.x];
+    uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
+    if (surfels_amount > 0) {
+        uint surfle_data_pointer = o.surfels_at_layer_pointer;
+        for (int i = 0; i < surfels_amount; i++) {
+            Surfel s = surfels[surfle_data_pointer + i];
+            Ray r;
+            r.origin = s.mean_r.xyz + s.normal.xyz * 0.1f;
+            r.direction = s.normal.xyz;
+            r.inverse_direction = 1/r.direction;
+            vec3 c;
+            bool intersected = traverseHERO(r, c);
+            surfels[surfle_data_pointer + i].color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
+            //surfels[surfle_data_pointer + i].color = vec4(c,1);
+            //if (intersected) {
+            //    surfels[surfle_data_pointer + i].color = vec4(c,1);
+            //}else {
+            //    surfels[surfle_data_pointer + i].color = vec4(1,0,0,1);
+            //}
+        }
+    }
+
 }

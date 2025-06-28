@@ -15,6 +15,7 @@
 #include "../CommonDataStructures/surfel_irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
+class compute_shader;
 class SurfelManagerOctree;
 class texture_buffer_object;
 struct surfel;
@@ -110,6 +111,9 @@ public:
 	static glm::vec3 uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float radius);
 
 	SurfelManagerOctree* get_surfel_manager() const;
+
+	//TODO: FOR TEST REMOVE
+	compute_shader* test_compute_shader;
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;

@@ -173,20 +173,6 @@ float areaOfTriangleOnUnitSphere(vec3 p1, vec3 p2, vec3 p3, vec3 sphereCenter) {
 
 }
 
-
-float SURFELS_BUCKET_SIZE = 1.0f;//in ws units
-uint SURFELS_GRID_SIZE = 128;//actual size is SURFELS_BUCKET_SIZE * SURFELS_GRID_SIZE
-uint SURFEL_BUFFER_AMOUNT = 8192;
-
-
-uint get_pos_in_uniform_grid() {
-    vec3 ws_pos = vertexPosWs;
-    ws_pos /= SURFELS_BUCKET_SIZE;
-    ws_pos += SURFELS_GRID_SIZE*0.5f;
-    ws_pos = floor(ws_pos);
-    return uint(ws_pos.x + SURFELS_GRID_SIZE * ws_pos.y + SURFELS_GRID_SIZE * (SURFELS_GRID_SIZE * ws_pos.z));
-}
-
 uint get_surfel_amount(uint i) {
     return i & bitmask_surfel_amount;
 }
@@ -278,8 +264,8 @@ vec3 get_color_from_octree(vec3 pos) {
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            //return final_color/feched_samples;
-            return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
+            return final_color/feched_samples;
+            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }
@@ -308,10 +294,8 @@ void main() {
 
 
     //float t = areaOfTriangleOnUnitSphere(vec3(0,-3,0),vec3(4,-3,0),vec3(0,0,0),vertexPosWs);
-    int p = int(get_pos_in_uniform_grid());
     vec3 d = get_color_from_octree(vertexPosWs);
-    
-    FragColor = vec4(d, 1.0);
-    //FragColor = vec4(vec3(abs(gaussians[3].normal)), 1.0);
 
+    FragColor = vec4(d, 1.0);
+    //FragColor = surfels[4].color;
 }

@@ -28,6 +28,7 @@
 #include "Source/Core/GUI/SceneTree.h"
 #include "Source/Core/PhysicsEngine/PhysicsEngine.h"
 #include "Source/Core/Renderer/Primitives/quad_fill_screen.h"
+#include "Source/Core/Renderer/Shader/compute_shader.h"
 #include "Source/Core/Renderer/Texture/texture_buffer_object.h"
 #include "Source/Core/Scene/DebugPrimitives/Line3D.h"
 #include "Source/External/eventpp/include/eventpp/callbacklist.h"
@@ -222,6 +223,11 @@ int main()
 	me_inertia_test->initializeVertexArrays();
 
 	//init shaders
+
+	//compute shader
+	scene->test_compute_shader = new compute_shader();
+	scene->test_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelGenerator.glsl");
+	scene->test_compute_shader->compileShader();
 
 	auto* normal_debug_shader = new ShaderProgram();
 	normal_debug_shader->loadFromFile("EngineContent/Shader/NormalVisualizer.glsl");
@@ -480,7 +486,10 @@ int main()
 		pp_shader->recompile_if_changed();
 		gaussian_gi_shader->recompile_if_changed();
 
+		scene->test_compute_shader->recompile_if_changed();
+	
 
+		
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();
 

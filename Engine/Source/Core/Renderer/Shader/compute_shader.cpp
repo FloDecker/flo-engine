@@ -26,6 +26,7 @@ void compute_shader::loadFromFile(std::string pathOfMaterial)
 	{
 		std::getline(materialFileStream, line);
 		compute_shader_source_.append(line);
+		compute_shader_source_.append("\n");
 
 	}
 }
