@@ -37,9 +37,9 @@ void SurfelManagerOctree::draw_ui()
 		}
 		reset_surfels_buffer();
 		auto s = surfel();
-		s.mean = glm::vec3(-12, -4, 8);
+		s.mean = glm::vec3(-255.5, -255.5, -255.5);
 		s.normal = glm::vec3(0, 1, 0);
-		s.radius = 24;
+		s.radius = 1;
 		insert_surfel(s);*/
 	}
 

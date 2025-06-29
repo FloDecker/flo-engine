@@ -16,7 +16,7 @@ void gui_scene_tools::gui_tick()
 	if (ImGui::Button("Dispatch compute shader"))
 	{
 		scene_->test_compute_shader->use();
-		glDispatchCompute(1024, 1, 1);
+		glDispatchCompute(16, 16, 16);
 		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 	

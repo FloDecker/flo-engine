@@ -1,6 +1,6 @@
 ﻿#version 430 core
 #define PI 3.14159265359
-
+#define OCTREE_TOTOAL_EXTENSION 512
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -28,7 +28,7 @@ layout(std430, binding = 1) buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
-layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 27, local_size_y = 1, local_size_z = 1) in;
 
 uint bitmask_surfel_amount = 0x00FFFFFF;
 
@@ -70,14 +70,14 @@ float rand(vec2 co) {
 }
 
 vec2 rand2(vec2 co) {
-    return vec2(rand(co), rand(co + 1.23)); // co + offset to get independent value
+    return vec2(rand(co), rand(co + 1.23));// co + offset to get independent value
 }
 
 vec3 sampleHemisphereUniform(vec2 uv) {
     uv = rand2(uv);
     float theta = acos(1 - uv.x);
     float phi = 2.0f *  PI * uv.y;
-    return vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+    return vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 }
 
 
@@ -90,24 +90,24 @@ bool traverseHERO(Ray ray, out vec3 c) {
     float node_size_stack[MAX_STACK];
     vec3 node_min_stack[MAX_STACK];
     node_ids_stack[0] = 0;
-    node_size_stack[0] = 512.0f;
-    node_min_stack[0] = vec3(-256);
-    
+    node_size_stack[0] = OCTREE_TOTOAL_EXTENSION;
+    node_min_stack[0] = vec3(-OCTREE_TOTOAL_EXTENSION*0.5f);
+
     int stackPtr = 0;
-    
+
     float closest_hit = 10000000;
     vec3 current_best_hit;
     bool has_hit = false;
 
-    for (int tries = 0; tries < 100 ; tries++) {
+    for (int tries = 0; tries < 100; tries++) {
         OctreeElement o = octreeElements[node_ids_stack[stackPtr]];
         float current_bucket_size = node_size_stack[stackPtr];
         vec3 current_bucket_min = node_min_stack[stackPtr];
         if (stackPtr < 0) {
-            c = vec3(0,0,1);
+            c = vec3(0, 0, 1);
             return false;
         }
-        
+
         //check if there are surfels hit on the current layer 
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
         if (surfels_amount > 0) {
@@ -115,8 +115,8 @@ bool traverseHERO(Ray ray, out vec3 c) {
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 vec3 hit_location;
-                if (ray_surfel_intersection(s,ray, hit_location)) {
-                    has_hit =true; //remvoe
+                if (ray_surfel_intersection(s, ray, hit_location)) {
+                    has_hit =true;//remvoe
                     c = vec3(tries/1000.0f);
                     return true;
                     if (distance(hit_location, ray.origin) < closest_hit) {
@@ -133,33 +133,33 @@ bool traverseHERO(Ray ray, out vec3 c) {
         //if (are_all_child_octree_bits_empty(o.surfels_at_layer_amount) && has_hit)  {
         //    return true;
         //}
-        
-        
+
+
         //if there are no intersections 
-        
+
 
         int xDir = ray.direction.x >= 0.0 ? 0 : 1;
         int yDir = ray.direction.y >= 0.0 ? 0 : 1;
         int zDir = ray.direction.z >= 0.0 ? 0 : 1;
-        
-        
+
+
         float children_size = current_bucket_size * 0.5f;
-        
+
         for (int i = 0; i < 8; ++i) {
-            int morton = i; //^ (zDir | (yDir << 1) | (xDir << 2));
-            if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount,morton)) continue;
+            int morton = i;//^ (zDir | (yDir << 1) | (xDir << 2));
+            if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, morton)) continue;
             uint childIndex = o.next_layer_surfels_pointer[morton];
-            
+
             vec3 offset = vec3(
-            (morton & (1<<2) ) != 0 ? 1.0 : 0.0,
-            (morton & (1<<1) ) != 0 ? 1.0 : 0.0,
-            (morton & (1<<0) ) != 0 ? 1.0 : 0.0
+            (morton & (1<<2)) != 0 ? 1.0 : 0.0,
+            (morton & (1<<1)) != 0 ? 1.0 : 0.0,
+            (morton & (1<<0)) != 0 ? 1.0 : 0.0
             );
 
-          
+
             // Descend into child
             vec3 child_min = current_bucket_min + offset * children_size;
-            
+
             if (!intersect_AABB(child_min, child_min + vec3(children_size), ray)) continue;
 
 
@@ -172,7 +172,7 @@ bool traverseHERO(Ray ray, out vec3 c) {
             }
         }
     }
-    
+
     return false;
 }
 
@@ -187,11 +187,11 @@ vec4 approx_lighting_for_pos(vec3 pos, vec3 normal, vec4 color_sampled_old) {
     vec3 color_pre = color_sampled_old.rgb;
     float sampled_pre = color_sampled_old.a;
     const int iterations = 2;
-    for (int i = 0; i < iterations ; i++) {
+    for (int i = 0; i < iterations; i++) {
         vec3 d =sampleHemisphereUniform(pos.xy*pos.z + i + sampled_pre);
         vec3 tangent;
         vec3 bitangent;
-        
+
         getTangentBasis(normal, tangent, bitangent);
         vec3 s = normalize(normal * d.b + d.r * tangent + d.g * bitangent);
         s*= vec3(1.0);
@@ -199,38 +199,195 @@ vec4 approx_lighting_for_pos(vec3 pos, vec3 normal, vec4 color_sampled_old) {
         r.origin = pos;
         r.direction = s;
         r.inverse_direction = 1.0f/s;
-        
+
         vec3 c;
         if (!traverseHERO(r, c)) {
             color_out+=vec3(1.0);
         }
     }
-    return vec4( (color_out + color_pre * sampled_pre) / (iterations + sampled_pre)
-     , sampled_pre + iterations);
+    return vec4((color_out + color_pre * sampled_pre) / (iterations + sampled_pre)
+    , sampled_pre + iterations);
 }
 
 
-void main() {
-    OctreeElement o = octreeElements[gl_GlobalInvocationID.x];
-    uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
-    if (surfels_amount > 0) {
-        uint surfle_data_pointer = o.surfels_at_layer_pointer;
-        for (int i = 0; i < surfels_amount; i++) {
-            Surfel s = surfels[surfle_data_pointer + i];
-            Ray r;
-            r.origin = s.mean_r.xyz + s.normal.xyz * 0.1f;
-            r.direction = s.normal.xyz;
-            r.inverse_direction = 1/r.direction;
-            vec3 c;
-            bool intersected = traverseHERO(r, c);
-            surfels[surfle_data_pointer + i].color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
-            //surfels[surfle_data_pointer + i].color = vec4(c,1);
-            //if (intersected) {
-            //    surfels[surfle_data_pointer + i].color = vec4(c,1);
-            //}else {
-            //    surfels[surfle_data_pointer + i].color = vec4(1,0,0,1);
-            //}
-        }
+
+uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
+{
+    uint r = 0u;
+    if (pos.x >= center.x)
+    {
+        r |= (1u << 2);
     }
 
+    if (pos.y >= center.y)
+    {
+        r |= (1u << 1);
+    }
+
+    if (pos.z >= center.z)
+    {
+        r |= (1u << 0);
+    }
+    return r;
+}
+
+//returns the pointer to the surfels in octree node at pos x,y,z and level 
+bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, out vec3 metadata) {
+    uint current_element_index = 0;
+    uvec3 last_min = uvec3(0);
+    uint last_size = 1 << level;
+
+    for (int i = 0; i < level; i ++) {
+        OctreeElement o = octreeElements[current_element_index];
+        last_size = last_size >> 1;// integer divison by 2
+
+        uvec3 center = last_min + last_size;
+
+        uint index = get_pos_of_next_surfel_index_(center, pos);
+
+        if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, index)) {
+            return false;
+        }
+
+        current_element_index = o.next_layer_surfels_pointer[index];
+
+        uvec3 offset = uvec3(
+        (index & uint(1<<2)) != 0 ? 1 : 0,
+        (index & uint(1<<1)) != 0 ? 1 : 0,
+        (index & uint(1<<0)) != 0 ? 1 : 0
+        );
+        last_min += offset * last_size;
+    }
+
+    pointer = current_element_index;
+    return true;
+}
+
+bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
+    vec3 bb_max = bb_min + extension;
+    return
+    pos.x <= bb_max.x && pos.x >= bb_min.x &&
+    pos.y <= bb_max.y && pos.y >= bb_min.y &&
+    pos.z <= bb_max.z && pos.z >= bb_min.z;
+
+}
+
+void calculate_light_for_surfels_in_bucket(uint bucket_index, uint surfels_amount, vec3 bb_min, vec3 bb_extension) {
+
+    for (int i = 0; i < surfels_amount; i++) { 
+        Surfel s = surfels[bucket_index + i];
+        
+        if (is_ws_pos_contained_in_bb(s.mean_r.xyz, bb_min, bb_extension)) {
+            surfels[bucket_index + i].color = vec4(0,1,1,0);
+        }
+
+    }
+
+}
+
+const uvec3 pos_offset[27] = {
+
+uvec3(0, 0, 0),
+
+
+uvec3(0, 1, 1),
+uvec3(0, 1, 0),
+uvec3(0, 1, -1),
+uvec3(0, 0, 1),
+uvec3(0, 0, -1),
+uvec3(0, -1, 1),
+uvec3(0, -1, 0),
+uvec3(0, -1, -1),
+
+uvec3(1, 1, 1),
+uvec3(1, 1, 0),
+uvec3(1, 1, -1),
+uvec3(1, 0, 1),
+uvec3(1, 0, 0),
+uvec3(1, 0, -1),
+uvec3(1, -1, 1),
+uvec3(1, -1, 0),
+uvec3(1, -1, -1),
+
+uvec3(-1, 1, 1),
+uvec3(-1, 1, 0),
+uvec3(-1, 1, -1),
+uvec3(-1, 0, 1),
+uvec3(-1, 0, 0),
+uvec3(-1, 0, -1),
+uvec3(-1, -1, 1),
+uvec3(-1, -1, 0),
+uvec3(-1, -1, -1),
+};
+
+void main() {
+
+    uint p;
+    vec3 metadata = vec3(0.0);
+    
+    const uint level = 8;
+
+    float node_size_at_level = OCTREE_TOTOAL_EXTENSION / float(1<<level);
+
+    uvec3 center = gl_WorkGroupID * 3 + uvec3(2,2,0)+( uvec3(255,255,255) + uvec3(-28,-2,-30)) / uvec3(node_size_at_level);
+    vec3 bb_min = vec3(-OCTREE_TOTOAL_EXTENSION * 0.5f) + center * node_size_at_level;
+    vec3 bb_extension = vec3(node_size_at_level);
+
+    uvec3 offset_center = center + pos_offset[gl_LocalInvocationID.x];
+    if (get_surfe_pointer_at_octree_pos(level, offset_center, p, metadata)){
+        OctreeElement o = octreeElements[p];
+
+        uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
+        if (surfels_amount > 0) {
+            uint surfle_data_pointer = o.surfels_at_layer_pointer;
+            for (int i = 0; i < surfels_amount; i++) {
+                Surfel s = surfels[surfle_data_pointer + i];
+                vec3 surfel_pos = s.mean_r.xyz;
+                if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
+                    //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
+                    surfels[surfle_data_pointer + i].color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
+                }
+            }
+        }
+    }
+    
+    
+    //if (get_surfe_pointer_at_octree_pos(8, gl_GlobalInvocationID * 4, p, metadata)) {
+    //    OctreeElement o = octreeElements[p];
+    //    uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
+//
+    //    if (surfels_amount > 0) {
+    //        uint surfle_data_pointer = o.surfels_at_layer_pointer;
+    //        for (int i = 0; i < surfels_amount; i++) {
+    //            //surfels[surfle_data_pointer + i].color = vec4(gl_GlobalInvocationID * 4 * 0.01,1);
+    //            surfels[surfle_data_pointer + i].color = vec4(1, 0, 0, 1);
+    //        }
+    //    }
+    //}
+
+
+    //OctreeElement o = octreeElements[gl_GlobalInvocationID.x];
+    //uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
+    //if (surfels_amount > 0) {
+    //    uint surfle_data_pointer = o.surfels_at_layer_pointer;
+    //    for (int i = 0; i < surfels_amount; i++) {
+    //        Surfel s = surfels[surfle_data_pointer + i];
+    //        Ray r;
+    //        r.origin = s.mean_r.xyz + s.normal.xyz * 0.1f;
+    //        r.direction = s.normal.xyz;
+    //        r.inverse_direction = 1/r.direction;
+    //        vec3 c;
+    //        //bool intersected = traverseHERO(r, c);
+    //        //surfels[surfle_data_pointer + i].color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
+    //        //surfels[surfle_data_pointer + i].color = vec4(metadata);
+    //
+    //        surfels[surfle_data_pointer + i].color = vec4(0.5,0,1,1);
+    //        //if (intersected) {
+    //        //    surfels[surfle_data_pointer + i].color = vec4(c,1);
+    //        //}else {
+    //        //    surfels[surfle_data_pointer + i].color = vec4(1,0,0,1);
+    //        //}
+    //    }
+    //}
+//
 }
