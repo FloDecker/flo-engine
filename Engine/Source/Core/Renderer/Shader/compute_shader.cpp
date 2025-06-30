@@ -21,6 +21,13 @@ void compute_shader::loadFromFile(std::string pathOfMaterial)
 		mod_time_ = result.st_mtime;
 	}
 	
+	if (materialFileStream.peek() == 0xEF) {
+		// Skip UTF-8 BOM
+		char bom[3];
+		materialFileStream.read(bom, 3);
+	}
+	
+	
 	std::string line;
 	while (materialFileStream.good())
 	{
