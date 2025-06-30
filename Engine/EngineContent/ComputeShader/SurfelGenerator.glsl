@@ -1,6 +1,7 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
+
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -30,6 +31,8 @@ layout(std430, binding = 1) buffer OctreeBuffer {
 
 layout (local_size_x = 27, local_size_y = 1, local_size_z = 1) in;
 
+uniform int offset_id;
+
 uint bitmask_surfel_amount = 0x00FFFFFF;
 
 bool intersect_AABB(vec3 bb_min, vec3 bb_max, Ray ray) {
@@ -57,6 +60,7 @@ bool are_all_child_octree_bits_empty(uint i)
 }
 
 bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location) {
+    if (dot(s.normal.xyz, r.direction) > 0) return false;
     float d = -dot(s.normal.xyz, s.mean_r.xyz);
     float t = -((dot(s.normal.xyz, r.origin) + d) /
     dot(s.normal.xyz, r.direction));
@@ -188,7 +192,7 @@ vec4 approx_lighting_for_pos(vec3 pos, vec3 normal, vec4 color_sampled_old) {
     float sampled_pre = color_sampled_old.a;
     const int iterations = 2;
     for (int i = 0; i < iterations; i++) {
-        vec3 d =sampleHemisphereUniform(pos.xy*pos.z + i + sampled_pre);
+        vec3 d =sampleHemisphereUniform(pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y);
         vec3 tangent;
         vec3 bitangent;
 
@@ -285,7 +289,7 @@ void calculate_light_for_surfels_in_bucket(uint bucket_index, uint surfels_amoun
 
 }
 
-const uvec3 pos_offset[27] = {
+const uvec3 pos_offset_3x3[27] = {
 
 uvec3(0, 0, 0),
 
@@ -329,11 +333,11 @@ void main() {
 
     float node_size_at_level = OCTREE_TOTOAL_EXTENSION / float(1<<level);
 
-    uvec3 center = gl_WorkGroupID * 3 + uvec3(2,2,0)+( uvec3(255,255,255) + uvec3(-28,-2,-30)) / uvec3(node_size_at_level);
+    uvec3 center = gl_WorkGroupID * 3 + pos_offset_3x3[offset_id] +( uvec3(255,255,255) + uvec3(-50,-7,-50)) / uvec3(node_size_at_level);
     vec3 bb_min = vec3(-OCTREE_TOTOAL_EXTENSION * 0.5f) + center * node_size_at_level;
     vec3 bb_extension = vec3(node_size_at_level);
 
-    uvec3 offset_center = center + pos_offset[gl_LocalInvocationID.x];
+    uvec3 offset_center = center + pos_offset_3x3[gl_LocalInvocationID.x];
     if (get_surfe_pointer_at_octree_pos(level, offset_center, p, metadata)){
         OctreeElement o = octreeElements[p];
 

@@ -15,9 +15,14 @@ void gui_scene_tools::gui_tick()
 
 	if (ImGui::Button("Dispatch compute shader"))
 	{
-		scene_->test_compute_shader->use();
-		glDispatchCompute(16, 16, 16);
-		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		for (int i = 0; i < 27; i++)
+		{
+			scene_->test_compute_shader->use();
+			scene_->test_compute_shader->setUniformInt("offset_id", i);
+			glDispatchCompute(16, 16, 16);
+			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		}
+
 	}
 	
 	scene_->get_surfel_manager()->draw_ui();
