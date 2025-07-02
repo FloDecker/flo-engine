@@ -11,9 +11,9 @@ framebuffer_object::framebuffer_object()
 void framebuffer_object::render_to_framebuffer() const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-	if (has_color_attachment_)
+	if (!color_attachments_.empty())
 	{
-		glViewport(0, 0, color_texture_->width(), color_texture_->height());
+		glViewport(0, 0, color_attachments_.at(0)->width(), color_attachments_.at(0)->height());
 	}
 
 	if (has_depth_attachment_)
@@ -37,24 +37,36 @@ void framebuffer_object::attach_texture_as_depth_buffer(texture_2d* depth_textur
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void framebuffer_object::attach_texture_as_color_buffer(texture_2d* color_texture)
+void framebuffer_object::attach_texture_as_color_buffer(texture_2d* color_texture, unsigned int attachment_point)
 {
-	color_texture_ = color_texture;
-	has_color_attachment_ = true;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_texture->get_texture(), 0);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	check_attached_framebuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment_point, GL_TEXTURE_2D, color_texture->get_texture(), 0);
+	if (check_attached_framebuffer())
+	{
+		color_attachments_.push_back(color_texture);
+	}
+
+	std::vector<unsigned int> attachments;
+	for (int i = 0; i < color_attachments_.size(); i++)
+	{
+		attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+	}
+	
+	glDrawBuffers(attachments.size(), attachments.data());
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void framebuffer_object::resize_attach_textures(unsigned int width, unsigned int height) const
 {
-	if (has_color_attachment_)
+	if (!color_attachments_.empty())
 	{
-		color_texture_->resize(width, height);
+		for (auto texture : color_attachments_)
+		{
+			texture->resize(width, height);
+		}
 	}
+	
 	if (has_depth_attachment_)
 	{
 		depth_texture_->resize(width, height);

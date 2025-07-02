@@ -22,7 +22,7 @@ void texture_2d::initialize_from_data(unsigned char* data)
 
 	glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA8, width_, height_, 0,GL_RGBA,GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
-	type_ = IMAGE_TEXTURE;
+	texture_type_ = IMAGE_TEXTURE;
 	initialized_ = true;
 }
 
@@ -35,19 +35,23 @@ void texture_2d::initialize_as_depth_map_render_target(const unsigned int width,
 	width_ = width;
 	height_ = height;
 
+	internalformat_ = GL_DEPTH_COMPONENT;
+	format_ = GL_DEPTH_COMPONENT;
+	type_ = GL_FLOAT;
+	
 	glGenTextures(1, &texture_);
 	glBindTexture(GL_TEXTURE_2D, texture_);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-	             width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalformat_,
+	             width_, height_, 0, format_, type_, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	type_ = FRAME_BUFFER_DEPTH;
+	texture_type_ = FRAME_BUFFER_DEPTH;
 	initialized_ = true;
 }
 
-void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int height)
+void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int height, unsigned int internalformat, unsigned int format, unsigned int type)
 {
 	if (initialized_)
 	{
@@ -55,15 +59,18 @@ void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int hei
 	}
 	width_ = width;
 	height_ = height;
+	internalformat_ = internalformat;
+	format_ = format;
+	type_ = type;
 
 	glGenTextures(1, &texture_);
 	glBindTexture(GL_TEXTURE_2D, texture_);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width_, height_, 0, format, type, nullptr);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	type_ = FRAME_BUFFER_COLOR;
+	texture_type_ = FRAME_BUFFER_COLOR;
 
 	initialized_ = true;
 }
@@ -88,7 +95,7 @@ void texture_2d::loadFromDisk(std::string* path)
 
 void texture_2d::resize(unsigned int width, unsigned int height)
 {
-	switch (type_)
+	switch (texture_type_)
 	{
 	case FRAME_BUFFER_DEPTH:
 		width_ = width;
@@ -101,7 +108,7 @@ void texture_2d::resize(unsigned int width, unsigned int height)
 		width_ = width;
 		height_ = height;
 		glBindTexture(GL_TEXTURE_2D, texture_);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalformat_, width_, height_, 0, format_, type_, nullptr);
 		break;
 	case IMAGE_TEXTURE:
 		std::cerr << "Can't resize texture\n";

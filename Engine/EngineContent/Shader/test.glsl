@@ -1,27 +1,17 @@
-[vertex]
+#version 430 core
+#define FORWARD
+out vec4 FragColor;
 
-out vec3 posWS;
-out vec3 normal;
-out vec2 texCoord;
-void main() {
-    texCoord = aUV;
-    normal = aNormal;
-    posWS =(mMatrix * vec4(aPos, 1.0)).xyz;
-    vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
-    gl_Position = pMatrix * vertexCamSpace;
+#ifdef DEFAULT_VERTEX_SHADER
+in vec3 pos_ws;
+in vec3 normal_ws;
+void main(){
+    main_u();
 }
+#endif
 
-[fragment]
-in vec3 posWS;
-in vec3 normal;
-in vec2 texCoord;
-uniform sampler2D textureBase;
-uniform sampler2D textureNormal;
-
-void main() {
-    //FragColor = vec4(normal + abs(normal)*1.05, 1.0f);
-    //FragColor = vec4(texCoord,0.0f, 1.0f);
-    vec3 c0 = texture(textureNormal, texCoord).rgb;
-    vec3 c1 = texture(textureBase, texCoord).rgb;
-    FragColor = vec4(mix(c0, c1, 0.5), 1.0);
+#ifndef DEFAULT_VERTEX_SHADER
+void main(){
+    main_u();
 }
+#endif

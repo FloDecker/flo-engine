@@ -1,10 +1,5 @@
 [vertex]
-
-out vec3 pos_ws;
-void main() {
-    pos_ws = (mMatrix * vec4(aPos, 1.0)).xyz;
-    vec4 vertexCamSpace =vMatrix * mMatrix * vec4(aPos, 1.0);
-    gl_Position = pMatrix * vertexCamSpace;
+void main_u() {
 }
 
 [fragment]
@@ -50,14 +45,15 @@ float pos0, float pos1, float pos2) {
     return mix(startColor, endColor, t);
 }
 
-
-in vec3 pos_ws;
-void main() {
+void main_u() {
 
     float heigt = (pos_ws.y/(SKY_SPHERE_SCALE*2)+0.5);
     float f_0 = smoothstep(TRANSITION_0, TRANSITION_1, heigt);
     float f_1 = smoothstep(TRANSITION_2, TRANSITION_3, heigt);
     vec3 color_mix = sampleColorRange(heigt, u_ambient_light_colors[0], u_ambient_light_colors[1], u_ambient_light_colors[2],
     u_ambient_light_colors_sample_positions[0], u_ambient_light_colors_sample_positions[1], u_ambient_light_colors_sample_positions[2]);
-    FragColor = vec4(color_mix, 1.0);
+    //FragColor = vec4(color_mix, 1.0);
+    gPosition = pos_ws;
+    gNormal = normal_ws;
+    gAlbedoSpec = vec4(color_mix, 1.0);
 }

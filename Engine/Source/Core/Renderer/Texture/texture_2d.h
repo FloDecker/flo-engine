@@ -20,12 +20,16 @@ class texture_2d : public texture
 	int width_ = 0;
 	int height_ = 0;
 	int _channleAmount = 0;
+	
+	texture_type texture_type_;
 
-	texture_type type_;
+	unsigned int internalformat_;
+	unsigned int format_;
+	unsigned int type_;
 
 public:
 	void initialize_as_depth_map_render_target(unsigned int width, unsigned int height);
-	void initialize_as_frame_buffer(unsigned int width, unsigned int height);
+	void initialize_as_frame_buffer(unsigned int width, unsigned int height, unsigned int internalformat, unsigned int format, unsigned int type);
 	unsigned int get_texture() const;
 	void loadFromDisk(std::string* path);
 	void resize(unsigned int width, unsigned int height);

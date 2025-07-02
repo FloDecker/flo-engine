@@ -150,6 +150,7 @@ int main()
 
 	auto light_pass_shader = new ShaderProgram();
 	light_pass_shader->set_shader_header_include(DEFAULT_HEADERS, false);
+	light_pass_shader->render_method = NONE;
 	light_pass_shader->loadFromFile("EngineContent/Shader/DepthOnlyLightpassShader.glsl");
 	light_pass_shader->compileShader();
 	global_context.light_pass_depth_only_shader = light_pass_shader;
@@ -228,46 +229,17 @@ int main()
 	scene->test_compute_shader = new compute_shader();
 	scene->test_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelGenerator.glsl");
 	scene->test_compute_shader->compileShader();
-
-	auto* normal_debug_shader = new ShaderProgram();
-	normal_debug_shader->loadFromFile("EngineContent/Shader/NormalVisualizer.glsl");
-	normal_debug_shader->compileShader();
-
-
-	auto* textureMaterial = new ShaderProgram();
-	textureMaterial->loadFromFile("EngineContent/Shader/test.glsl");
-	textureMaterial->compileShader();
-	textureMaterial->addTexture(textureBase, "textureBase");
-	textureMaterial->addTexture(textureNormal, "textureNormal");
-
-	auto* posMaterial = new ShaderProgram();
-	posMaterial->loadFromFile("EngineContent/Shader/test2.glsl");
-	posMaterial->compileShader();
-
-	auto* triangle_visualizer_material = new ShaderProgram();
-	triangle_visualizer_material->loadFromFile("EngineContent/Shader/TriangleVisualizer.glsl");
-	triangle_visualizer_material->compileShader();
-
-	auto* lightTestMaterial = new ShaderProgram();
-	lightTestMaterial->loadFromFile("EngineContent/Shader/lightingTest.glsl");
-	lightTestMaterial->set_shader_header_include(DYNAMIC_DIRECTIONAL_LIGHT, true);
-	lightTestMaterial->set_shader_header_include(DYNAMIC_AMBIENT_LIGHT, true);
-	lightTestMaterial->compileShader();
-
-
-	auto* gaussian_gi_shader = new ShaderProgram();
-	gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
-	gaussian_gi_shader->compileShader();
+	
+	
+	//auto* gaussian_gi_shader = new ShaderProgram();
+	//gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
+	//gaussian_gi_shader->compileShader();
 
 
 	auto* worldPosMat = new ShaderProgram();
 	worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
 	worldPosMat->compileShader();
-
-
-	plane->materials.push_back(lightTestMaterial);
-	sphere->materials.push_back(lightTestMaterial);
-		
+	
 
 	/////ADD SCENE GEOMETRY:
 
@@ -294,7 +266,6 @@ int main()
 	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_1->name = "collision_test_cube_1";
 	collision_test_cube_1->set_position_global(0, -3, 0);
-	collision_test_cube_1->set_material(lightTestMaterial);
 	collision_test_cube_1->add_modifier(new box_collider(collision_test_cube_1));
 
 	auto rigid_body_test_cube_1 = new rigid_body(collision_test_cube_1);
@@ -304,7 +275,6 @@ int main()
 
 	auto collision_test_cube_2 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_2->name = "collision_test_cube_2";
-	collision_test_cube_2->set_material(lightTestMaterial);
 	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2));
 	collision_test_cube_2->add_modifier(new rigid_body(collision_test_cube_2));
 
@@ -312,7 +282,6 @@ int main()
 	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
 	mInertiaTest->name = "mInertiaTest";
 	mInertiaTest->set_position_global(20, 20, 20);
-	mInertiaTest->set_material(lightTestMaterial);
 
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
 	//auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
@@ -380,14 +349,14 @@ int main()
 	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
-	object_plane->set_material(gaussian_gi_shader);
+	//object_plane->set_material(gaussian_gi_shader);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50, 50, 1);
 
 	auto object_house = new Mesh3D(scene->get_root(), me_test_building);
 	object_house->name = "object_house";
-	object_house->set_material(gaussian_gi_shader);
+	//object_house->set_material(gaussian_gi_shader);
 	object_house->set_position_global(-12,-1.7,0);
 	object_house->setRotationLocal(-90,0,0);
 	new plane_3d(scene->get_root());
@@ -405,25 +374,40 @@ int main()
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
 
-	//INIT TEXTURES FOR RENDER
-	auto framebuffer_texture_color = new texture_2d();
-	framebuffer_texture_color->initialize_as_frame_buffer(windowSize.x, windowSize.y);
+	//INIT G buffer
+
+	//albedo
+    auto framebuffer_texture_albedo = new texture_2d();
+    framebuffer_texture_albedo->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+
+	//normal
+	auto framebuffer_texture_normal = new texture_2d();
+	framebuffer_texture_normal->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGB16F, GL_RGB, GL_FLOAT);
+
+	//pos
+	auto framebuffer_texture_ws = new texture_2d();
+	framebuffer_texture_ws->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGB16F, GL_RGB, GL_FLOAT);
 
 	auto framebuffer_texture_depth = new texture_2d();
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
 
-	auto color_render_target = framebuffer_object();
-	color_render_target.attach_texture_as_color_buffer(framebuffer_texture_color);
-	color_render_target.attach_texture_as_depth_buffer(framebuffer_texture_depth);
+	auto g_buffer = framebuffer_object();
+	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_ws, 0);
+	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_normal, 1);
+	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_albedo, 2);
+	g_buffer.attach_texture_as_depth_buffer(framebuffer_texture_depth);
 
 
-	editorRenderContext->camera->set_render_target(&color_render_target);
+	editorRenderContext->camera->set_render_target(&g_buffer);
 
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
 	pp_shader->set_shader_header_include(DEFAULT_HEADERS, false);
+	pp_shader->render_method = NONE;
 	pp_shader->compileShader();
-	pp_shader->addTexture(framebuffer_texture_color, "color_framebuffer");
+	pp_shader->addTexture(framebuffer_texture_ws, "gPos");
+	pp_shader->addTexture(framebuffer_texture_normal, "gNormal");
+	pp_shader->addTexture(framebuffer_texture_albedo, "gAlbedo");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
 	auto quad_screen = new quad_fill_screen();
@@ -482,9 +466,8 @@ int main()
 		scene->get_physics_engine()->evaluate_physics_step(editorRenderContext->deltaTime);
 
 		//TEST:
-		lightTestMaterial->recompile_if_changed();
 		pp_shader->recompile_if_changed();
-		gaussian_gi_shader->recompile_if_changed();
+		//gaussian_gi_shader->recompile_if_changed();
 
 		scene->test_compute_shader->recompile_if_changed();
 	

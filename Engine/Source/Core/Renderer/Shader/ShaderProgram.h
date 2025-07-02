@@ -12,6 +12,13 @@ enum shader_header_includes
 	GAUSSIAN_LIGHTING,
 };
 
+enum e_render_method
+{
+	FORWARD,
+	DEFERRED,
+	NONE
+};
+
 class ShaderProgram: public AbstractShaderProgram
 {
 	std::string vertexShader_;
@@ -24,6 +31,7 @@ class ShaderProgram: public AbstractShaderProgram
 	void createFragmentShaderInstruction(std::string* strPointer) const;
 
 
+	
 	//todo: may rework this
 	//flags
 	bool flag_include_default_header_ = true;
@@ -33,6 +41,7 @@ class ShaderProgram: public AbstractShaderProgram
 
 public:
 	enum shaderType { NONE, FRAGMENT, VERTEX };
+	e_render_method render_method = DEFERRED;
 
 	void loadFromFile(std::string pathOfMaterial) override;
 	int compileShader(bool recompile = false) override;

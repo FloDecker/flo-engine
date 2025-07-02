@@ -19,22 +19,49 @@ auto fragmentShaderTag = "[fragment]";
 
 void ShaderProgram::createVertexShaderInstruction(std::string* strPointer) const
 {
+	strPointer->append(VERSION_430);
+	strPointer->append("\n");
+
 	if (flag_include_default_header_)
 	{
 		strPointer->append(VERTEX_SHADER_HEADER_BASE);
 		strPointer->append("\n");
 	}
 	strPointer->append(this->vertexShader_);
+	
+	if (flag_include_default_header_)
+	{
+		strPointer->append(VERTEX_SHADER_FOOTER_BASE);
+		strPointer->append("\n");
+	}
+	
 }
 
 void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) const
 {
+	strPointer->append(VERSION_430);
+	strPointer->append("\n");
+
+	
 	if (flag_include_default_header_)
 	{
-		strPointer->append(FRAGMENT_SHADER_HEADER_BASE);
+		strPointer->append(FRAGMENT_SHADER_HEADER_DEFINE_DEFAULT_VERTEX_SHADER);
+		strPointer->append("\n");
+	}
+	
+	if (render_method == DEFERRED)
+	{
+		strPointer->append(FRAGMENT_SHADER_HEADER_DEFERRED_PASS);
+		strPointer->append("\n");
+	} else if (render_method == FORWARD)
+	{
+		strPointer->append(FRAGMENT_SHADER_HEADER_FORWARD);
 		strPointer->append("\n");
 	}
 
+
+
+	
 	if (flag_include_dynamic_directional_light_)
 	{
 		strPointer->append(FRAGMENT_SHADER_HEADER_DIRECT_LIGHT);
@@ -47,7 +74,19 @@ void ShaderProgram::createFragmentShaderInstruction(std::string* strPointer) con
 		strPointer->append("\n");
 	}
 
+	//user programs 
 	strPointer->append(this->fragmentShader_);
+
+	//add footer 
+	if (render_method == DEFERRED)
+	{
+		strPointer->append(FRAGMENT_SHADER_FOOTHER_DEFERRED_PASS);
+		strPointer->append("\n");
+	} else if (render_method == FORWARD)
+	{
+		strPointer->append(FRAGMENT_SHADER_FOOTER_FORWARD);
+		strPointer->append("\n");
+	}
 }
 
 void ShaderProgram::loadFromFile(std::string pathOfMaterial)
@@ -134,7 +173,8 @@ int ShaderProgram::compileShader(bool recompile)
 	if (!success)
 	{
 		glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-		std::cout << "Failed to compile vertex shader Log: " << infoLog << std::endl;
+		std::cout << "Failed to compile vertex shader Log: " << (material_path_.empty()? "" : "Source: " + material_path_) << "\n" << infoLog << std::endl;
+	
 		std::cout << "FAILED VERTEX SHADER:" << std::endl;
 		std::cout << pVertex << std::endl;
 		free(pVertex);
@@ -167,7 +207,7 @@ int ShaderProgram::compileShader(bool recompile)
 	if (!success)
 	{
 		glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-		std::cout << "Failed to compile fragment shader Log: " << infoLog << std::endl;
+		std::cout << "Failed to compile fragment shader Log: " << (material_path_.empty()? "" : "Source: " + material_path_) << "\n" << infoLog << std::endl;
 		std::cout << "FAILED FRAGMENT SHADER:" << std::endl;
 		std::cout << pFragment << std::endl;
 		free(pFragment);
