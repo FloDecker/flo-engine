@@ -329,7 +329,7 @@ void main() {
     uint p;
     vec3 metadata = vec3(0.0);
     
-    const uint level = 8;
+    const uint level = 2;
 
     float node_size_at_level = OCTREE_TOTOAL_EXTENSION / float(1<<level);
 

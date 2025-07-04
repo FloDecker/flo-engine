@@ -40,6 +40,11 @@ public:
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
 		void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, sizeof(T)*at, sizeof(T) * data_length,
 	                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+		if (ptr == nullptr)
+		{
+			std::cout << "ssbo map failed" << '\n';
+			return false;
+		}
 		memcpy(ptr, data, sizeof(T));
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		return true;

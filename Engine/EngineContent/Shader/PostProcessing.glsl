@@ -328,6 +328,7 @@ vec3 get_distance_blur(float distance) {
 //get shadows
 
 
+
 void main()
 {
     vec3 albedo = vec3(texture(gAlbedo, TexCoords));
@@ -337,7 +338,11 @@ void main()
     
     int amount_texture_fetches;
     vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches);
-
     vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
-    FragColor = vec4(vec3(d), 1.0);
+
+    if(TexCoords.x > 0.5) {
+        FragColor = vec4(vec3(heat_map_texture_fetches), 1.0);
+    } else {
+        FragColor = vec4(vec3(d), 1.0);
+    }
 }

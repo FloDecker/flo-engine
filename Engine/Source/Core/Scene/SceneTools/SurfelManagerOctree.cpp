@@ -5,6 +5,7 @@
 #include <utility>
 #include <gtx/string_cast.hpp>
 
+#include "../Camera3D.h"
 #include "../Scene.h"
 #include "../../../Util/BoundingBoxHelper.h"
 #include "../../../Util/math_util.h"
@@ -505,19 +506,35 @@ void SurfelManagerOctree::generate_surfels()
 	{
 		collider->scatter_points_on_surface(&points, points_per_square_meter);
 	}
-
+	
+	std::random_device rd; // Seed the random number generator
+	std::mt19937 gen(rd()); // Mersenne Twister PRNG
+	std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
+	
+	
 	for (auto point : points)
 	{
-		//TODO :remove me thats a test
-		//std::random_device rd; // Seed the random number generator
-		//std::mt19937 gen(rd()); // Mersenne Twister PRNG
-		//std::uniform_real_distribution<float> float_dist_0_1(1.0f / points_per_square_meter, 5.0f); 
+
+		float radius = starting_radius;
+		if (camera_ != nullptr)
+		{
+			auto distance_camera_p = glm::distance(camera_->getWorldPosition(), point.position) +0.001f;
+			distance_camera_p=log(distance_camera_p);
+			auto r = float_dist_0_1(gen);
+			if (r > (1/distance_camera_p))
+			{
+				continue;
+			}
+
+			radius = std::max(distance_camera_p * starting_radius, starting_radius);
+		}
+
 		surfels_.push_back(std::make_unique<surfel>(surfel
 			{
 			.mean = point.position,
 			.normal = point.normal,
 			.diffuse_irradiance = {1, 1, 1},
-			.radius = starting_radius
+			.radius = radius
 		}));
 	}
 }
@@ -852,6 +869,11 @@ bool SurfelManagerOctree::insert_surfel(const surfel& surfel_to_insert)
 	insert_surfel_into_octree(new_surfel_pointer.get());
 	surfels_.push_back(std::move(new_surfel_pointer));
 	return true;
+}
+
+void SurfelManagerOctree::register_camera(Camera3D* camera)
+{
+	camera_ = camera;
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

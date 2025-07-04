@@ -6,6 +6,8 @@
 #include "surfel.h"
 #include "../../Renderer/ssbo.h"
 
+class Camera3D;
+
 //this is mapped 1:1 to GPU memory 
 struct surfel_octree_element
 {
@@ -64,9 +66,11 @@ public:
 	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
 	                   max_gradient_difference);
 	bool insert_surfel(const surfel& surfel_to_insert);
+	void register_camera(Camera3D *camera);
 
 private:
 	Scene* scene_;
+	Camera3D *camera_ = nullptr; //camera object used to determine the center of view 
 	bool has_surfels_buffer_ = false;
 
 	//cpu representation of ocree:
@@ -78,7 +82,7 @@ private:
 	unsigned int SURFELS_BOTTOM_LEVEL_SIZE = 40000;
 	//actual size is SURFEL_BUCKET_SIZE_ON_GPU * SURFEL_BUCKET_SIZE_ON_GPU
 	unsigned int SURFEL_OCTREE_SIZE = 100000;
-	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 512; //space amount allocated for the surfels an octree element points to 
+	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 256; //space amount allocated for the surfels an octree element points to 
 	const uint32_t MAX_SURFEL_BUCKET_SIZE_ON_GPU = 1024;
 
 	unsigned int memory_limitation_count_bottom_size = 0;

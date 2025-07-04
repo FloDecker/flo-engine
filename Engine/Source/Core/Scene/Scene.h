@@ -15,6 +15,7 @@
 #include "../CommonDataStructures/surfel_irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
+class Camera3D;
 class compute_shader;
 class SurfelManagerOctree;
 class texture_buffer_object;
@@ -111,6 +112,7 @@ public:
 	static glm::vec3 uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float radius);
 
 	SurfelManagerOctree* get_surfel_manager() const;
+	void init_surfel_manager(Camera3D* camera_target);
 
 	//TODO: FOR TEST REMOVE
 	compute_shader* test_compute_shader;

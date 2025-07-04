@@ -792,7 +792,7 @@
     <ItemGroup>
         <Content Include="EngineContent\Arrow.fbx" />
         <Content Include="EngineContent\CanyonGroundRock_basecolor.png" />
-        <Content Include="EngineContent\ComputeShader\SurfelGenerator.glsl" />
+        <Content Include="EngineContent\ComputeShader\SurfelAoApproximator.glsl" />
         <Content Include="EngineContent\coordinates.fbx" />
         <Content Include="EngineContent\coordinates2.fbx" />
         <Content Include="EngineContent\Cube.fbx" />

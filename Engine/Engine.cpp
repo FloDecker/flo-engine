@@ -175,7 +175,7 @@ int main()
 		.light_pass_depth_only_shader = light_pass_shader,
 	};
 	editorRenderContext->pass = render_pass_main;
-
+	
 
 	//register interaction callbacks
 	glfwSetKeyCallback(window, key_callback);
@@ -187,7 +187,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	auto editor3DCamera = new Camera3D(scene->get_root(), editorRenderContext);
-
+	scene->init_surfel_manager(editor3DCamera);
 	double renderFrameStart;
 
 
@@ -216,6 +216,9 @@ int main()
 
 	auto me_test_building = loadModel("EngineContent/closedSpaceTest.fbx");
 	me_test_building->initializeVertexArrays();
+	
+	auto me_test_landscape = loadModel("EngineContent/Landscape.fbx");
+	me_test_landscape->initializeVertexArrays();
 
 	auto me_test_triangle = loadModel("EngineContent/Triangle.fbx");
 	me_test_triangle->initializeVertexArrays();
@@ -227,7 +230,7 @@ int main()
 
 	//compute shader
 	scene->test_compute_shader = new compute_shader();
-	scene->test_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelGenerator.glsl");
+	scene->test_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
 	scene->test_compute_shader->compileShader();
 	
 	
@@ -359,6 +362,13 @@ int main()
 	//object_house->set_material(gaussian_gi_shader);
 	object_house->set_position_global(-12,-1.7,0);
 	object_house->setRotationLocal(-90,0,0);
+	new plane_3d(scene->get_root());
+
+	auto object_landscape = new Mesh3D(scene->get_root(), me_test_landscape);
+	object_landscape->name = "object_landscape";
+	//object_house->set_material(gaussian_gi_shader);
+	object_landscape->set_position_global(-12,-1.7,0);
+	object_landscape->setRotationLocal(-90,0,0);
 	new plane_3d(scene->get_root());
 
 	//object_plane->setScale(20);

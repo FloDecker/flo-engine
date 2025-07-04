@@ -44,8 +44,6 @@ Scene::Scene(GlobalContext* global_context, const std::string& name)
 	light_pass_render_context_ = new RenderContext();
 	light_pass_render_context_->light_pass_depth_only_shader = global_context->light_pass_depth_only_shader;
 	light_pass_render_context_->pass = render_pass_lighting;
-
-	surfel_manager_ = new SurfelManagerOctree(this);
 }
 
 
@@ -248,6 +246,12 @@ glm::vec3 Scene::uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float rad
 	auto bitangent = glm::cross(normal, tangent);
 	auto pos_on_disc = uniformDiscSample(radius);
 	return pos + tangent * pos_on_disc.x + bitangent * pos_on_disc.y;
+}
+
+void Scene::init_surfel_manager(Camera3D* camera_target)
+{
+	surfel_manager_ = new SurfelManagerOctree(this);
+	surfel_manager_->register_camera(camera_target);
 }
 
 
