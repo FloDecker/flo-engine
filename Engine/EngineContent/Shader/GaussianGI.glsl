@@ -219,6 +219,7 @@ vec3 debug_bits(uint i) {
 
 vec3 get_color_from_octree(vec3 pos) {
     vec3 final_color = vec3(0.0);
+    vec3 debug_color  =vec3(0.0);
     uint index = 0;
 
     int amount_texture_fetches = 0;//amount of texture fetches
@@ -248,6 +249,7 @@ vec3 get_color_from_octree(vec3 pos) {
                 float d = distance(vertexPosWs, s.mean_r.xyz);
                 if (d < s.mean_r.w ) {
                     if (dot(s.normal.xyz, normalWS) > 0.1) {
+                        debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 2.0);
                         float attenuation = 1.0f - d / s.mean_r.w;
                         final_color+=s.color.rgb*attenuation;
                         amount_contribution++;
@@ -264,7 +266,8 @@ vec3 get_color_from_octree(vec3 pos) {
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            return final_color/feched_samples;
+            //return final_color/feched_samples;
+            return debug_color;
             //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }

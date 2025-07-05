@@ -115,7 +115,8 @@ public:
 	void init_surfel_manager(Camera3D* camera_target);
 
 	//TODO: FOR TEST REMOVE
-	compute_shader* test_compute_shader;
+	compute_shader* test_compute_shader_approxmiate_ao;
+	compute_shader* test_compute_shader_insert;
 
 private:
 	std::unordered_set<PointLight*> scenePointLights;

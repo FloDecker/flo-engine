@@ -9,6 +9,7 @@
 #include "../Scene.h"
 #include "../../../Util/BoundingBoxHelper.h"
 #include "../../../Util/math_util.h"
+#include "../../Renderer/Shader/compute_shader.h"
 #include "../Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "../../Renderer/Texture/texture_buffer_object.h"
 
@@ -16,9 +17,14 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 {
 	scene_ = scene;
 	surfel_ssbo_ = new ssbo<surfel_gpu>();
-	surfel_ssbo_->init_buffer_object(SURFELS_BOTTOM_LEVEL_SIZE * SURFEL_BUCKET_SIZE_ON_GPU, 0);
+	surfel_ssbo_->init_buffer_object(SURFELS_BUCKET_AMOUNT * SURFEL_BUCKET_SIZE_ON_GPU, 0);
 	surfels_octree = new ssbo<surfel_octree_element>();
 	surfels_octree->init_buffer_object(SURFEL_OCTREE_SIZE,1);
+
+
+	insert_surfel_compute_shader = new compute_shader();
+	insert_surfel_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelInserter.glsl");
+	insert_surfel_compute_shader->compileShader();
 }
 
 void SurfelManagerOctree::clear_samples()
@@ -52,6 +58,22 @@ void SurfelManagerOctree::draw_ui()
 		{
 			scene_->get_debug_tools()->draw_debug_point(sample.get()->mean);
 		}
+	}
+
+	if (ImGui::Button("Generate surfels vis compute shader"))
+	{
+		if (camera_ != nullptr)
+		{
+			auto t = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
+			if (t != nullptr)
+			{
+				insert_surfel_compute_shader->use();
+				glDispatchCompute(t->height(), t->width(), 1);
+				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			}
+		
+		}
+		
 	}
 
 	ImGui::DragFloat("points per square meter", &points_per_square_meter);
@@ -262,7 +284,7 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_
 		if (surfel_count <= 0)
 		{
 			//create new
-			create_space_for_new_surfel_data(surfel_bucket_pointer);
+			create_space_for_new_surfel_data(surfel_bucket_pointer, 1);
 			current_octree_element->surfels_at_layer_pointer = surfel_bucket_pointer;
 		}
 		else if (surfel_count >= SURFEL_BUCKET_SIZE_ON_GPU)
@@ -271,16 +293,7 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_
 			memory_limitation_bucket_size++;
 			return false;
 		}
-
-		//TODO: this shouldnt happen in the first place, surfel is tried to be inserted in bucket that already contains it 
-		//for (int i = 0; i < surfel_to_insert->octree_element_holding_surfel_surfel_index_in_bucket->size(); i++)
-		//{
-		//    if (std::cmp_equal(surfel_to_insert->octree_element_holding_surfel_surfel_index_in_bucket->at(i).first,
-		//                       current_octree_element_index))
-		//    {
-		//        return false;
-		//    }
-		//}
+		
 
 		//associate surfel with bucket and bucket with surfel 
 
@@ -398,14 +411,22 @@ bool SurfelManagerOctree::create_new_octree_element(uint32_t& index, uint32_t pa
 	return true;
 }
 
-bool SurfelManagerOctree::create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array)
+bool SurfelManagerOctree::create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array, uint32_t allocation_size)
 {
-	if (SURFELS_BOTTOM_LEVEL_SIZE <= surfel_stack_pointer / SURFEL_BUCKET_SIZE_ON_GPU)
+
+	
+	
+	if (SURFELS_BUCKET_AMOUNT <= surfel_stack_pointer / SURFEL_BUCKET_SIZE_ON_GPU)
 	{
 		//the surfel buffer on the gpu is already full
 		memory_limitation_count_bottom_size++;
 		return false;
 	}
+
+	//find free spot
+	
+
+	
 
 	pointer_ins_surfel_array = surfel_stack_pointer;
 	surfel_stack_pointer += SURFEL_BUCKET_SIZE_ON_GPU;
@@ -519,7 +540,7 @@ void SurfelManagerOctree::generate_surfels()
 		if (camera_ != nullptr)
 		{
 			auto distance_camera_p = glm::distance(camera_->getWorldPosition(), point.position) +0.001f;
-			distance_camera_p=log(distance_camera_p);
+			auto distance_camera_p_sqrt=sqrt(distance_camera_p);
 			auto r = float_dist_0_1(gen);
 			if (r > (1/distance_camera_p))
 			{
@@ -557,8 +578,8 @@ void SurfelManagerOctree::init_surfels_buffer()
 		                                                             float) * SURFEL_OCTREE_SIZE)
 	);
 	scene_->get_global_context()->logger->print_info(std::format("Surfel grid total memory : {}",
-	                                                             sizeof(unsigned int) * 2 * SURFELS_BOTTOM_LEVEL_SIZE *
-	                                                             SURFELS_BOTTOM_LEVEL_SIZE * SURFELS_BOTTOM_LEVEL_SIZE)
+	                                                             sizeof(unsigned int) * 2 * SURFELS_BUCKET_AMOUNT *
+	                                                             SURFELS_BUCKET_AMOUNT * SURFELS_BUCKET_AMOUNT)
 	);
 
 	has_surfels_buffer_ = true;
@@ -874,6 +895,11 @@ bool SurfelManagerOctree::insert_surfel(const surfel& surfel_to_insert)
 void SurfelManagerOctree::register_camera(Camera3D* camera)
 {
 	camera_ = camera;
+	auto t_pos  = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
+	auto t_normal  = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
+	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
+	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
+
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

@@ -22,6 +22,11 @@ void camera::set_render_target(framebuffer_object* target)
 	has_attached_render_target_ = true;
 }
 
+framebuffer_object* camera::get_render_target() const
+{
+	return camera_render_target_;
+}
+
 void camera::use() const
 {
 	if (has_attached_render_target_)

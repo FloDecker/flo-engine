@@ -5,6 +5,12 @@
 #include "../Scene.h"
 #include "surfel.h"
 #include "../../Renderer/ssbo.h"
+#include <bitset>
+
+constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 32; //amount of surfels a single bucket holds (also the increment)
+constexpr int SURFELS_BUCKET_AMOUNT = 40000; //total amount of surfel buckets that can be allocated
+constexpr int SURFEL_BUCKET_TOTAL_MEMORY = SURFEL_BUCKET_SIZE_ON_GPU * SURFELS_BUCKET_AMOUNT; //total memory allocated for surfels 
+
 
 class Camera3D;
 
@@ -28,6 +34,7 @@ struct surfel_gpu
 struct surfel_octree_metadata
 {
 	int parent;
+	int bucket_size = 0;
 	//represents the surfels associated with this bucket
 	//-> they are in the same order as on the GPU 
 	std::vector<surfel*>* surfels = new std::vector<surfel*>;
@@ -68,6 +75,9 @@ public:
 	bool insert_surfel(const surfel& surfel_to_insert);
 	void register_camera(Camera3D *camera);
 
+	//compute shader
+	compute_shader *insert_surfel_compute_shader;
+
 private:
 	Scene* scene_;
 	Camera3D *camera_ = nullptr; //camera object used to determine the center of view 
@@ -79,15 +89,16 @@ private:
 	//additional octree management data that isn't needed on the GPU
 	surfel_octree_metadata* octree_metadata_;
 
-	unsigned int SURFELS_BOTTOM_LEVEL_SIZE = 40000;
+
 	//actual size is SURFEL_BUCKET_SIZE_ON_GPU * SURFEL_BUCKET_SIZE_ON_GPU
 	unsigned int SURFEL_OCTREE_SIZE = 100000;
-	const uint32_t SURFEL_BUCKET_SIZE_ON_GPU = 256; //space amount allocated for the surfels an octree element points to 
-	const uint32_t MAX_SURFEL_BUCKET_SIZE_ON_GPU = 1024;
+
 
 	unsigned int memory_limitation_count_bottom_size = 0;
 	unsigned int memory_limitation_octree_size = 0;
 	unsigned int memory_limitation_bucket_size = 0;
+
+	std::bitset<SURFEL_BUCKET_TOTAL_MEMORY> allocation_bitmap;
 
 	ssbo<surfel_gpu>* surfel_ssbo_;
 	ssbo<surfel_octree_element>* surfels_octree;
@@ -131,7 +142,7 @@ private:
 	//TODO: reallocation of surfel buckets that exceed the bucket size 
 
 	uint32_t surfel_stack_pointer = 0;
-	bool create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array);
+	bool create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array, uint32_t allocation_size);
 
 	//uploads the surfel data to one specific location in GPU memory 
 	bool upload_surfel_data(surfel* surfel_to_insert, unsigned int insertion_index) const;

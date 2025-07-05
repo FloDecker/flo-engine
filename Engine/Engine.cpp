@@ -187,7 +187,6 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	auto editor3DCamera = new Camera3D(scene->get_root(), editorRenderContext);
-	scene->init_surfel_manager(editor3DCamera);
 	double renderFrameStart;
 
 
@@ -229,9 +228,9 @@ int main()
 	//init shaders
 
 	//compute shader
-	scene->test_compute_shader = new compute_shader();
-	scene->test_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
-	scene->test_compute_shader->compileShader();
+	scene->test_compute_shader_approxmiate_ao = new compute_shader();
+	scene->test_compute_shader_approxmiate_ao->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
+	scene->test_compute_shader_approxmiate_ao->compileShader();
 	
 	
 	//auto* gaussian_gi_shader = new ShaderProgram();
@@ -409,6 +408,7 @@ int main()
 
 
 	editorRenderContext->camera->set_render_target(&g_buffer);
+	scene->init_surfel_manager(editor3DCamera);
 
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
@@ -479,7 +479,7 @@ int main()
 		pp_shader->recompile_if_changed();
 		//gaussian_gi_shader->recompile_if_changed();
 
-		scene->test_compute_shader->recompile_if_changed();
+		scene->test_compute_shader_approxmiate_ao->recompile_if_changed();
 	
 
 		

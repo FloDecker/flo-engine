@@ -13,6 +13,7 @@ public:
 	glm::mat4* getView();
 	void setViewPortDimension(glm::i16vec2 dimentions);
 	void set_render_target(framebuffer_object* target);
+	framebuffer_object* get_render_target() const;
 	void use() const; //set this render target as active 
 	void setViewPortDimension(float width, float height);
 	void setFOV(float FOV);

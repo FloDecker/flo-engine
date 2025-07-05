@@ -10,6 +10,7 @@ public:
 	void attach_texture_as_depth_buffer(texture_2d* depth_texture);
 	void attach_texture_as_color_buffer(texture_2d* color_texture, unsigned int attachment_point);
 	void resize_attach_textures(unsigned int width, unsigned int height) const;
+	texture_2d* get_color_attachment_at_index(unsigned int index) const;
 
 private:
 	void generate_framebuffer();

@@ -41,11 +41,11 @@ void framebuffer_object::attach_texture_as_color_buffer(texture_2d* color_textur
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment_point, GL_TEXTURE_2D, color_texture->get_texture(), 0);
-	if (check_attached_framebuffer())
+	if (!check_attached_framebuffer())
 	{
-		color_attachments_.push_back(color_texture);
+		return;
 	}
-
+	color_attachments_.push_back(color_texture);
 	std::vector<unsigned int> attachments;
 	for (int i = 0; i < color_attachments_.size(); i++)
 	{
@@ -71,6 +71,17 @@ void framebuffer_object::resize_attach_textures(unsigned int width, unsigned int
 	{
 		depth_texture_->resize(width, height);
 	}
+}
+
+texture_2d* framebuffer_object::get_color_attachment_at_index(unsigned int index) const
+{
+	if (color_attachments_.size() <= index)
+	{
+		return nullptr;
+	}
+
+	return color_attachments_.at(index);
+	
 }
 
 

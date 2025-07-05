@@ -13,16 +13,19 @@ void gui_scene_tools::gui_tick()
 		scene_->recalculate_from_root();
 	}
 
-	if (ImGui::Button("Dispatch compute shader"))
+	if (ImGui::Button("Dispatch light approx compute shader"))
 	{
-		for (int i = 0; i < 27; i++)
+		for (int j = 0; j < 10; j++)
 		{
-			scene_->test_compute_shader->use();
-			scene_->test_compute_shader->setUniformInt("offset_id", i);
-			glDispatchCompute(16, 16, 16);
-			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			for (int i = 0; i < 27; i++)
+			{
+				scene_->test_compute_shader_approxmiate_ao->use();
+				scene_->test_compute_shader_approxmiate_ao->setUniformInt("offset_id", i);
+				scene_->test_compute_shader_approxmiate_ao->setUniformInt("calculation_level", i);
+				glDispatchCompute(16, 16, 16);
+				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			}
 		}
-
 	}
 	
 	scene_->get_surfel_manager()->draw_ui();
