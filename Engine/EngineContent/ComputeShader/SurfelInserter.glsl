@@ -1,6 +1,8 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
+#define OCTREE_HALF_TOTOAL_EXTENSION 256
+#define BUCKET_SIZE 32
 
 struct Surfel {
     vec4 mean_r;
@@ -15,6 +17,11 @@ struct OctreeElement
     uint next_layer_surfels_pointer[8];
 };
 
+struct AllocationMetadata{
+    uint surfel_bucket_pointer;
+    uint surfel_octree_pointer;
+};
+
 struct Ray {
     vec3 origin;
     vec3 direction;
@@ -27,6 +34,10 @@ layout(std430, binding = 0) buffer SurfelBuffer {
 
 layout(std430, binding = 1) buffer OctreeBuffer {
     OctreeElement octreeElements[];
+};
+
+layout(std430, binding = 2) buffer AllocationMetadataBuffer {
+    AllocationMetadata allocationMetadata[];
 };
 
 layout (local_size_x = 27, local_size_y = 1, local_size_z = 1) in;
@@ -237,6 +248,7 @@ uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
     return r;
 }
 
+
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
 bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, out vec3 metadata) {
     uint current_element_index = 0;
@@ -269,6 +281,28 @@ bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, ou
     return true;
 }
 
+uvec3 get_surfel_pos_from_ws(vec3 ws, uint level) {
+    uint buckets = 1 << level;
+    ws+=vec3(OCTREE_HALF_TOTOAL_EXTENSION);
+    return uvec3(ws / (vec3(OCTREE_HALF_TOTOAL_EXTENSION) / buckets));
+}
+
+bool create_new_surfel_node(out uint pointer) {
+    //TODO: check if out of ssbo bounds
+    pointer = atomicAdd(allocationMetadata[0].surfel_octree_pointer, 1);
+    return true;
+}
+
+bool create_new_bucket(out uint pointer) {
+    //TODO: check if out of ssbo bounds
+    pointer = atomicAdd(allocationMetadata[0].surfel_bucket_pointer, BUCKET_SIZE);
+    return true;
+}
+
+uint set_child_octree_bit_at(uint amount_field, uint pos)
+{
+    return amount_field |= (1u << (31u - pos));
+}
 
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
 bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
@@ -276,17 +310,25 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
     uvec3 last_min = uvec3(0);
     uint last_size = 1 << level;
 
+
     for (int i = 0; i < level; i ++) {
         OctreeElement o = octreeElements[current_element_index];
         last_size = last_size >> 1;// integer divison by 2
-
         uvec3 center = last_min + last_size;
 
         uint index = get_pos_of_next_surfel_index_(center, pos);
-
+        //TODO: not threadsafe
         if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, index)) {
             //create index
-            return false;
+            uint p;
+            if (create_new_surfel_node(p)) {
+                //set child octree bit
+                octreeElements[current_element_index].surfels_at_layer_amount = set_child_octree_bit_at(o.surfels_at_layer_amount, index);
+                //set pointer to next node
+                octreeElements[current_element_index].next_layer_surfels_pointer[index] = p;
+            } else {
+                return false;
+            }
         }
 
         current_element_index = o.next_layer_surfels_pointer[index];
@@ -298,11 +340,28 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         );
         last_min += offset * last_size;
     }
+    
+    //insert if reached target level
+    
+    //check if a bucket exists
+    OctreeElement o = octreeElements[current_element_index];
+    if (get_surfel_amount(o.surfels_at_layer_amount) == 0) {
+        //create bucket
+        uint bucket_pointer;
+        if (!create_new_bucket(bucket_pointer)) {
+            return false;
+        }
+        octreeElements[current_element_index].surfels_at_layer_pointer = bucket_pointer;
+    }
 
-    pointer = current_element_index;
+    o = octreeElements[current_element_index];
+    if (get_surfel_amount(o.surfels_at_layer_amount) < BUCKET_SIZE){
+        uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
+        uint insert_at_global = o.surfels_at_layer_pointer + insert_at_local;
+        surfels[insert_at_global] = s;
+    }
     return true;
 }
-
 
 bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
     vec3 bb_max = bb_min + extension;
@@ -314,5 +373,13 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 void main() {
+    uint level = 7;
+    vec3 pos_ws = vec3(10,-2,0);
+    Surfel s;
+    s.mean_r = vec4(pos_ws, 1.0);
+    s.color = vec4(1.0);
+    s.normal = vec4(0,1,0,0);
+    uvec3 pos = get_surfel_pos_from_ws(pos_ws, level);
+    insert_surfel_at_octree_pos(s, level, pos);
     
 }

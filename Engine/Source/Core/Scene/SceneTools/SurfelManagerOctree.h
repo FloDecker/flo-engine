@@ -30,6 +30,13 @@ struct surfel_gpu
 	glm::vec4 normal = {};
 	glm::vec4 color = {};
 };
+
+struct surfel_allocation_metadata
+{
+	uint32_t surfel_bucket_pointer = 0; 
+	uint32_t surfel_octree_pointer = 0; 
+};
+
 //this holds additional metadata information of the buckets that is only needed on the CPU
 struct surfel_octree_metadata
 {
@@ -102,6 +109,7 @@ private:
 
 	ssbo<surfel_gpu>* surfel_ssbo_;
 	ssbo<surfel_octree_element>* surfels_octree;
+	ssbo<surfel_allocation_metadata>* surfel_allocation_metadata;
 
 	//a vector that holds all surfels currently used
 	std::vector<std::unique_ptr<surfel>> surfels_ = std::vector<std::unique_ptr<surfel>>();

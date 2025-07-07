@@ -18,9 +18,12 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	scene_ = scene;
 	surfel_ssbo_ = new ssbo<surfel_gpu>();
 	surfel_ssbo_->init_buffer_object(SURFELS_BUCKET_AMOUNT * SURFEL_BUCKET_SIZE_ON_GPU, 0);
+	
 	surfels_octree = new ssbo<surfel_octree_element>();
 	surfels_octree->init_buffer_object(SURFEL_OCTREE_SIZE,1);
 
+	surfel_allocation_metadata = new ssbo<::surfel_allocation_metadata>();
+	surfel_allocation_metadata->init_buffer_object(1,2);
 
 	insert_surfel_compute_shader = new compute_shader();
 	insert_surfel_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelInserter.glsl");
@@ -68,7 +71,7 @@ void SurfelManagerOctree::draw_ui()
 			if (t != nullptr)
 			{
 				insert_surfel_compute_shader->use();
-				glDispatchCompute(t->height(), t->width(), 1);
+				glDispatchCompute(1, 1, 1);
 				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
 		

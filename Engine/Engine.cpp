@@ -477,10 +477,11 @@ int main()
 
 		//TEST:
 		pp_shader->recompile_if_changed();
+		
 		//gaussian_gi_shader->recompile_if_changed();
 
 		scene->test_compute_shader_approxmiate_ao->recompile_if_changed();
-	
+		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
 
 		
 		editor3DCamera->calculateView();

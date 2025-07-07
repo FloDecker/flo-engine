@@ -346,6 +346,9 @@ void main()
     if(TexCoords.x > 0.5) {
         FragColor = vec4(vec3(heat_map_texture_fetches), 1.0);
     } else {
-        FragColor = vec4(vec3(d), 1.0);
+        OctreeElement f;
+        uint x = octreeElements[0].surfels_at_layer_amount;
+        vec3 debug_bits(x, TexCoords    )
+        FragColor = vec4(vec3(x), 1.0);
     }
 }
