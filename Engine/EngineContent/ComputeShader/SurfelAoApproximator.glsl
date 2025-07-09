@@ -241,7 +241,7 @@ uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
 bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, out vec3 metadata) {
     uint current_element_index = 0;
     uvec3 last_min = uvec3(0);
-    uint last_size = 1 << level;//todo: may rework
+    uint last_size = 1 << level;
 
     for (int i = 0; i < level; i ++) {
         OctreeElement o = octreeElements[current_element_index];

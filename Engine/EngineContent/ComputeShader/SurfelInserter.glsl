@@ -48,6 +48,7 @@ uniform int calculation_level;
 
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
+uniform vec3 camera_position;
 
 const uint LOCK_SENTINAL = 0xFFFFFFFFu;
 
@@ -231,8 +232,6 @@ vec4 approx_lighting_for_pos(vec3 pos, vec3 normal, vec4 color_sampled_old) {
     , sampled_pre + iterations);
 }
 
-
-
 uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
 {
     uint r = 0u;
@@ -395,14 +394,29 @@ uvec3(0, 0, 0),
 };
 
 void main() {
-    float radius = 0.2;
     
-    vec2 TexCoords = vec2(gl_WorkGroupID.xy) / vec2(64);
+    
+    uvec2 sizeTex = textureSize(gNormal, 0);
+    vec2 TexCoords = vec2(gl_WorkGroupID.xy) / sizeTex;
+
+    
+
+
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
     
+    float d_camera_pos = distance(camera_position,pos_ws);
+
+    
+    float target_distance = 100;
+
+    if(mod(gl_WorkGroupID.xy, 32) != uvec2(0) ) {
+        return;
+    };
     
     
+    float radius = 1.0;
+
     uint level = get_octree_level_for_surfel(radius);
     
     //calculate overlap

@@ -76,7 +76,9 @@ void SurfelManagerOctree::draw_ui()
 			if (t != nullptr)
 			{
 				insert_surfel_compute_shader->use();
-				glDispatchCompute(64, 64, 1);
+				insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",glm::value_ptr(camera_->getWorldPosition()));
+
+				glDispatchCompute(t->width(), t->height(), 1);
 				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
 		}
