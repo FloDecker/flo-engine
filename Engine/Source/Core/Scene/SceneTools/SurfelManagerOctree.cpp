@@ -76,7 +76,7 @@ void SurfelManagerOctree::draw_ui()
 			if (t != nullptr)
 			{
 				insert_surfel_compute_shader->use();
-				glDispatchCompute(16, 16, 1);
+				glDispatchCompute(64, 64, 1);
 				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
 		}

@@ -253,39 +253,6 @@ uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
     return r;
 }
 
-
-//returns the pointer to the surfels in octree node at pos x,y,z and level 
-bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, out vec3 metadata) {
-    uint current_element_index = 0;
-    uvec3 last_min = uvec3(0);
-    uint last_size = OCTREE_TOTOAL_EXTENSION;
-
-    for (int i = 0; i < level; i ++) {
-        OctreeElement o = octreeElements[current_element_index];
-        last_size = last_size >> 1;// integer divison by 2
-
-        uvec3 center = last_min + last_size;
-
-        uint index = get_pos_of_next_surfel_index_(center, pos);
-
-        if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, index)) {
-            return false;
-        }
-
-        current_element_index = o.next_layer_surfels_pointer[index];
-
-        uvec3 offset = uvec3(
-        (index & uint(1<<2)) != 0 ? 1 : 0,
-        (index & uint(1<<1)) != 0 ? 1 : 0,
-        (index & uint(1<<0)) != 0 ? 1 : 0
-        );
-        last_min += offset * last_size;
-    }
-
-    pointer = current_element_index;
-    return true;
-}
-
 uvec3 get_cell_size_at_level(uint level) {
     uint buckets = 1 << level;
     return uvec3(vec3(OCTREE_TOTOAL_EXTENSION) / buckets);
@@ -322,7 +289,6 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
 
 
     for (int i = 0; i < level; i ++) {
-        OctreeElement o = octreeElements[current_element_index];
         last_size = last_size >> 1;// integer divison by 2
         uvec3 center = last_min + last_size;
 
@@ -350,16 +316,13 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
             } else {
                 //TODO: implement this case
             }
-        } else {
-            //wait for the lock creation
-            cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index],0u,0u);
         }
-
-        while (cur == LOCK_SENTINAL) {
-            // you could also do a small back-off here
+        
+        // wait if needed
+        do {
             cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index],0u,0u);
-        }
-
+        } while (cur == LOCK_SENTINAL || cur == 0u);
+        
         current_element_index = octreeElements[current_element_index].next_layer_surfels_pointer[index];
 
         
@@ -374,8 +337,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
     //insert if reached target level
     
     //check if a bucket exists
-    OctreeElement o = octreeElements[current_element_index];
-    if (get_surfel_amount(o.surfels_at_layer_amount) == 0) {
+    if (get_surfel_amount(octreeElements[current_element_index].surfels_at_layer_amount) == 0) {
         uint prev = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, LOCK_SENTINAL);
         //create bucket
         if (prev == 0u) {
@@ -394,10 +356,10 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         
     }
 
-    o = octreeElements[current_element_index];
-    if (get_surfel_amount(o.surfels_at_layer_amount) < BUCKET_SIZE){
+    if (get_surfel_amount(octreeElements[current_element_index].surfels_at_layer_amount) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
-        uint insert_at_global = o.surfels_at_layer_pointer + insert_at_local;
+        uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + insert_at_local;
+        memoryBarrierBuffer();
         surfels[insert_at_global] = s;
     }
     return true;
@@ -433,9 +395,9 @@ uvec3(0, 0, 0),
 };
 
 void main() {
-    float radius = 1.0;
+    float radius = 0.2;
     
-    vec2 TexCoords = vec2(gl_WorkGroupID.xy) / vec2(16);
+    vec2 TexCoords = vec2(gl_WorkGroupID.xy) / vec2(64);
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
     

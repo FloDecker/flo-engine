@@ -45,7 +45,7 @@ public:
 			std::cout << "ssbo map failed" << '\n';
 			return false;
 		}
-		memcpy(ptr, data, sizeof(T));
+		memcpy(ptr, data, sizeof(T) * data_length);
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		return true;
 	}

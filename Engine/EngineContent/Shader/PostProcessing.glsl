@@ -260,12 +260,15 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
         //bucket contains surfels 
         uint surfels_amount = get_surfel_amount(bucket_info);
         //TODO: sample surfels
-
+        
         //sample surfles from bucket:
         uint surfle_data_pointer;
         if (surfels_amount > 0) {
             surfle_data_pointer = o.surfels_at_layer_pointer;
             amount_texture_fetches++;
+            //return (vec3 (float(surfels_amount));
+            //return (vec3 (float(current_layer == 0)));
+            //return vec3(float(o.surfels_at_layer_pointer < 1550));
             //sample all of the surfels in bucket
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
