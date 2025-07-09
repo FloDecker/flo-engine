@@ -58,12 +58,22 @@ struct OctreeElement
     uint next_layer_surfels_pointer[8];
 };
 
+
+struct AllocationMetadata{
+    uint surfel_bucket_pointer;
+    uint surfel_octree_pointer;
+};
 layout(std430, binding = 0) buffer SurfelBuffer {
     Surfel surfels[];
 };
 
 layout(std430, binding = 1) buffer OctreeBuffer {
     OctreeElement octreeElements[];
+};
+
+
+layout(std430, binding = 2) buffer AllocationMetadataBuffer {
+    AllocationMetadata allocationMetadata[];
 };
 
 
@@ -231,7 +241,7 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 
-vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches) {
+vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches) {
     if (!is_ws_pos_contained_in_bb(pos, vec3(- total_extension * 0.5f), vec3(total_extension))) {
         return vec3(0.0);
     }
@@ -257,20 +267,22 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
             surfle_data_pointer = o.surfels_at_layer_pointer;
             amount_texture_fetches++;
             //sample all of the surfels in bucket
-
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 amount_texture_fetches++;
 
                 float d = distance(pos, s.mean_r.xyz);
-                if (d < s.mean_r.w ) {
+                //return vec3(1.0);
+                if (d < s.mean_r.w) {
                     if (dot(s.normal.xyz, normalWS) > 0.1) {
-                        debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f ; 
+                        debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f;
                         float attenuation = 1.0f - d / s.mean_r.w;
                         final_color+=s.color.rgb*attenuation;
                         amount_contribution++;
                         feched_samples+=attenuation;
                     }
+                } else {
+                    amount_innceseary_fetches++;
                 }
             }
         }
@@ -282,8 +294,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-           return debug_color;
-           return final_color/feched_samples;
+            return final_color/feched_samples;
             //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
@@ -338,17 +349,22 @@ void main()
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
     float depth = texture(dpeth_framebuffer, TexCoords).x;
-    
+
     int amount_texture_fetches;
-    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches);
+    int amount_innceseary_fetches;
+    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches);
     vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
 
-    if(TexCoords.x > 0.5) {
+    if (TexCoords.x > 0.5) {
         FragColor = vec4(vec3(heat_map_texture_fetches), 1.0);
     } else {
         OctreeElement f;
         uint x = octreeElements[0].surfels_at_layer_amount;
-        vec3 debug_bits(x, TexCoords    )
-        FragColor = vec4(vec3(x), 1.0);
+        vec3 x_v = surfels[0].mean_r.xyz;
+        //uint x = octreeElements[7].surfels_at_layer_pointer;
+        x = allocationMetadata[0].surfel_bucket_pointer;
+        vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
+        FragColor = vec4(clamp(d, 0, 1)+albedo, 1.0);
+        //FragColor = vec4(bit_debug, 1.0);
     }
 }

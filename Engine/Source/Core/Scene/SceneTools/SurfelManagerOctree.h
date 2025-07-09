@@ -164,6 +164,8 @@ private:
 	void remove_surfel_from_bucket_on_gpu(unsigned int bucket_start, unsigned int index,
 	                                      unsigned int last_bucket_element);
 
+	void clear_surfels_on_gpu_() const;
+
 	glm::vec2 get_surfel_illumination_gradient(surfel* s);
 	void create_packed_circles(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color);
 };

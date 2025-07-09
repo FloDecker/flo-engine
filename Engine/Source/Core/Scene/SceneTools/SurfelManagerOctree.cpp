@@ -18,12 +18,13 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	scene_ = scene;
 	surfel_ssbo_ = new ssbo<surfel_gpu>();
 	surfel_ssbo_->init_buffer_object(SURFELS_BUCKET_AMOUNT * SURFEL_BUCKET_SIZE_ON_GPU, 0);
-	
+
 	surfels_octree = new ssbo<surfel_octree_element>();
-	surfels_octree->init_buffer_object(SURFEL_OCTREE_SIZE,1);
+	surfels_octree->init_buffer_object(SURFEL_OCTREE_SIZE, 1);
 
 	surfel_allocation_metadata = new ssbo<::surfel_allocation_metadata>();
-	surfel_allocation_metadata->init_buffer_object(1,2);
+	surfel_allocation_metadata->init_buffer_object(1, 2);
+	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(0, 1), 0);
 
 	insert_surfel_compute_shader = new compute_shader();
 	insert_surfel_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelInserter.glsl");
@@ -63,6 +64,10 @@ void SurfelManagerOctree::draw_ui()
 		}
 	}
 
+	if (ImGui::Button("Clear Surfels on GPU"))
+	{
+		clear_surfels_on_gpu_();
+	}
 	if (ImGui::Button("Generate surfels vis compute shader"))
 	{
 		if (camera_ != nullptr)
@@ -71,12 +76,10 @@ void SurfelManagerOctree::draw_ui()
 			if (t != nullptr)
 			{
 				insert_surfel_compute_shader->use();
-				glDispatchCompute(1, 1, 1);
+				glDispatchCompute(16, 16, 1);
 				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
-		
 		}
-		
 	}
 
 	ImGui::DragFloat("points per square meter", &points_per_square_meter);
@@ -87,8 +90,6 @@ void SurfelManagerOctree::draw_ui()
 	ImGui::DragFloat("Max illuminance derivative to split", &illumination_derivative_threshold);
 
 	ImGui::Checkbox("Update Surfels", &update_surfels_next_tick);
-	
-	
 }
 
 
@@ -167,7 +168,8 @@ bool SurfelManagerOctree::remove_surfel(const surfel* surfel)
 	return true;
 }
 
-void SurfelManagerOctree::get_overlapping_octree_elements(glm::vec3 center, float radius, int layer, std::vector<glm::vec3>& result) const
+void SurfelManagerOctree::get_overlapping_octree_elements(glm::vec3 center, float radius, int layer,
+                                                          std::vector<glm::vec3>& result) const
 {
 	auto surfel_bucket_center = get_surfel_bucket_center(center, layer);
 
@@ -191,16 +193,14 @@ void SurfelManagerOctree::get_overlapping_octree_elements(glm::vec3 center, floa
 	auto quarter_size = glm::vec3(0.5) * half_size;
 	for (int i = 0; i < 8; i++)
 	{
-		auto center_neighbour = surfel_bucket_center + component_multiplier[i]*quarter_size;
+		auto center_neighbour = surfel_bucket_center + component_multiplier[i] * quarter_size;
 		bb.min = center_neighbour - quarter_size;
 		bb.max = center_neighbour + quarter_size;
 		if (BoundingBoxHelper::are_overlapping(&bb, &b))
 		{
 			result.push_back(center_neighbour);
 		}
-
 	}
-	
 }
 
 bool SurfelManagerOctree::insert_surfel_in_surrounding_buckets(surfel* surfel,
@@ -259,7 +259,8 @@ glm::vec3 SurfelManagerOctree::get_surfel_bucket_center(glm::vec3 ws_pos, int le
 }
 
 
-glm::vec3 SurfelManagerOctree::get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center, glm::vec<3, float> pos_relative) const
+glm::vec3 SurfelManagerOctree::get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center,
+                                                              glm::vec<3, float> pos_relative) const
 {
 	return current_center + glm::vec3(
 		pos_relative.x >= 0 ? 1.0 : -1.0,
@@ -296,7 +297,7 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_
 			memory_limitation_bucket_size++;
 			return false;
 		}
-		
+
 
 		//associate surfel with bucket and bucket with surfel 
 
@@ -348,7 +349,6 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_
 		}
 	}
 	glm::vec3 next_center = get_center_of_sub_octree_level(current_layer, current_center, pos_relative);
-	
 
 
 	return insert_surfel_into_octree_recursive(surfel_to_insert, ++current_layer, next_center, target_layer,
@@ -356,9 +356,9 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_
 }
 
 
-
 void SurfelManagerOctree::get_surfels_in_radius_recursive(glm::vec3 ws_pos, float radius, int current_layer,
-                                                          glm::vec3 current_center, int current_octree_element_index, std::set<surfel*> *found_surfels)
+                                                          glm::vec3 current_center, int current_octree_element_index,
+                                                          std::set<surfel*>* found_surfels)
 {
 	auto o = &octree_[current_octree_element_index];
 	auto o_meta = &octree_metadata_[current_octree_element_index];
@@ -368,7 +368,7 @@ void SurfelManagerOctree::get_surfels_in_radius_recursive(glm::vec3 ws_pos, floa
 	for (int i = 0; i < surfel_amount; i++)
 	{
 		auto s = o_meta->surfels->at(i);
-		if (radius+0.01f > s->radius + glm::distance(s->mean, ws_pos))
+		if (radius + 0.01f > s->radius + glm::distance(s->mean, ws_pos))
 		{
 			//surfel is inside radius
 			found_surfels->insert(s);
@@ -380,7 +380,7 @@ void SurfelManagerOctree::get_surfels_in_radius_recursive(glm::vec3 ws_pos, floa
 	glm::vec3 next_center = get_center_of_sub_octree_level(current_layer, current_center, pos_relative);
 
 	std::vector<glm::vec3> centers_to_check = std::vector<glm::vec3>();
-	get_overlapping_octree_elements(ws_pos, radius, current_layer,centers_to_check);
+	get_overlapping_octree_elements(ws_pos, radius, current_layer, centers_to_check);
 
 	for (auto to_check : centers_to_check)
 	{
@@ -391,7 +391,6 @@ void SurfelManagerOctree::get_surfels_in_radius_recursive(glm::vec3 ws_pos, floa
 			get_surfels_in_radius_recursive(ws_pos, radius, current_layer + 1, to_check, next_surfel, found_surfels);
 		}
 	}
-
 }
 
 
@@ -416,9 +415,6 @@ bool SurfelManagerOctree::create_new_octree_element(uint32_t& index, uint32_t pa
 
 bool SurfelManagerOctree::create_space_for_new_surfel_data(uint32_t& pointer_ins_surfel_array, uint32_t allocation_size)
 {
-
-	
-	
 	if (SURFELS_BUCKET_AMOUNT <= surfel_stack_pointer / SURFEL_BUCKET_SIZE_ON_GPU)
 	{
 		//the surfel buffer on the gpu is already full
@@ -427,9 +423,7 @@ bool SurfelManagerOctree::create_space_for_new_surfel_data(uint32_t& pointer_ins
 	}
 
 	//find free spot
-	
 
-	
 
 	pointer_ins_surfel_array = surfel_stack_pointer;
 	surfel_stack_pointer += SURFEL_BUCKET_SIZE_ON_GPU;
@@ -499,7 +493,6 @@ void SurfelManagerOctree::dump_surfel_octree_to_gpu_memory()
 
 void SurfelManagerOctree::update_octree_data_on_gpu(unsigned int octree_index)
 {
-	
 	surfels_octree->insert_data(&octree_[octree_index], octree_index, 1);
 }
 
@@ -514,7 +507,14 @@ void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_s
 	auto to = bucket_start + index;
 	auto length = last_bucket_element - index - 1;
 	// ReSharper disable once CppExpressionWithoutSideEffects
-	surfel_ssbo_->move_data(from, to,length);
+	surfel_ssbo_->move_data(from, to, length);
+}
+
+void SurfelManagerOctree::clear_surfels_on_gpu_() const
+{
+	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(0, 1), 0);
+	surfel_ssbo_->clear_data();
+	surfels_octree->clear_data();
 }
 
 
@@ -524,42 +524,41 @@ void SurfelManagerOctree::generate_surfels()
 	//StructBoundingBox boundingbox = {lower_left, upper_right};
 	//auto colliders_in_bb = std::vector<collider_modifier*>();
 	auto colliders = scene_->get_colliders(VISIBILITY);
-	
+
 	auto points = std::vector<vertex>();
 	for (collider_modifier* collider : colliders)
 	{
 		collider->scatter_points_on_surface(&points, points_per_square_meter);
 	}
-	
+
 	std::random_device rd; // Seed the random number generator
 	std::mt19937 gen(rd()); // Mersenne Twister PRNG
 	std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
-	
-	
+
+
 	for (auto point : points)
 	{
-
 		float radius = starting_radius;
 		if (camera_ != nullptr)
-		{
-			auto distance_camera_p = glm::distance(camera_->getWorldPosition(), point.position) +0.001f;
-			auto distance_camera_p_sqrt=sqrt(distance_camera_p);
-			auto r = float_dist_0_1(gen);
-			if (r > (1/distance_camera_p))
-			{
-				continue;
-			}
+			//{
+			//	auto distance_camera_p = glm::distance(camera_->getWorldPosition(), point.position) +0.001f;
+			//	auto distance_camera_p_sqrt=sqrt(distance_camera_p);
+			//	auto r = float_dist_0_1(gen);
+			//	if (r > (1/distance_camera_p))
+			//	{
+			//		continue;
+			//	}
+			//
+			//	radius = std::max(distance_camera_p * starting_radius, starting_radius);
+			//}
 
-			radius = std::max(distance_camera_p * starting_radius, starting_radius);
-		}
-
-		surfels_.push_back(std::make_unique<surfel>(surfel
-			{
-			.mean = point.position,
-			.normal = point.normal,
-			.diffuse_irradiance = {1, 1, 1},
-			.radius = radius
-		}));
+			surfels_.push_back(std::make_unique<surfel>(surfel
+				{
+					.mean = point.position,
+					.normal = point.normal,
+					.diffuse_irradiance = {1, 1, 1},
+					.radius = radius
+				}));
 	}
 }
 
@@ -574,7 +573,7 @@ void SurfelManagerOctree::init_surfels_buffer()
 
 	scene_->get_global_context()->logger->print_info("Initializing surfel buffer...");
 	scene_->get_global_context()->logger->print_info(std::format("Surfel buffer size : {}", SURFEL_OCTREE_SIZE));
-	
+
 
 	scene_->get_global_context()->logger->print_info(std::format("Surfel buffer total memory : {}",
 	                                                             sizeof(glm::vec3) * SURFEL_OCTREE_SIZE * 3 + sizeof(
@@ -609,7 +608,7 @@ void SurfelManagerOctree::recalculate_surfels()
 		init_surfels_buffer();
 	}
 	reset_surfels_buffer();
-	
+
 
 	memory_limitation_octree_size = 0;
 	memory_limitation_count_bottom_size = 0;
@@ -639,15 +638,15 @@ void SurfelManagerOctree::create_packed_circles(glm::vec3 center, glm::vec3 norm
 	//center
 	auto tangent_bi_tangent = math_util::get_tangent_and_bi_tangent(normal);
 
-	glm::vec3 centers[7] ={};
+	glm::vec3 centers[7] = {};
 	centers[0] = center;
 	auto radius_new = radius / 3.0f;
-	 for (int i = 1; i < 7; i++)
-	 {
-		 auto angle = ((glm::pi<float>() * 2.0f) / 6.0f) * i;
-		 centers[i] = center + (tangent_bi_tangent.first * sin(angle) + tangent_bi_tangent.second * cos(angle)) *
-			 radius_new * 2.0f;
-	 }
+	for (int i = 1; i < 7; i++)
+	{
+		auto angle = ((glm::pi<float>() * 2.0f) / 6.0f) * i;
+		centers[i] = center + (tangent_bi_tangent.first * sin(angle) + tangent_bi_tangent.second * cos(angle)) *
+			radius_new * 2.0f;
+	}
 
 	for (int i = 0; i < 7; i++)
 	{
@@ -662,9 +661,7 @@ void SurfelManagerOctree::create_packed_circles(glm::vec3 center, glm::vec3 norm
 		new_surfel.diffuse_irradiance_samples[2] = color;
 		new_surfel.diffuse_irradiance_samples[3] = color;
 		insert_surfel(new_surfel);
-		
 	}
-	
 }
 
 void SurfelManagerOctree::update_surfels()
@@ -681,29 +678,32 @@ void SurfelManagerOctree::update_surfels()
 		auto tangent_bi_tangent = math_util::get_tangent_and_bi_tangent(s->normal);
 		glm::vec3 irradiance_center_sum = glm::vec3(0);
 		int wall_hits = 0;
-		for (int sample_index = 0; sample_index < 4; sample_index ++)
+		for (int sample_index = 0; sample_index < 4; sample_index++)
 		{
 			auto offset_2d = surfel_sample_offsets[sample_index];
 			auto offset_3d = tangent_bi_tangent.first * offset_2d.x + tangent_bi_tangent.second * offset_2d.y;
-			offset_3d*=s->radius;
-			
+			offset_3d *= s->radius;
+
 			auto irradiance_info = scene_->get_irradiance_information(s->mean + offset_3d, s->normal, gi_primary_rays);
 
 			if (irradiance_info.inside_wall)
 			{
 				wall_hits++;
-				s->diffuse_irradiance_samples[sample_index] = {0,0,0};
-			} else
+				s->diffuse_irradiance_samples[sample_index] = {0, 0, 0};
+			}
+			else
 			{
 				s->diffuse_irradiance_samples[sample_index] = s->diffuse_irradiance_samples[sample_index]
-                		* static_cast<float>(s->samples) + irradiance_info.color * static_cast<float>(gi_primary_rays);
-                	s->diffuse_irradiance_samples[sample_index] /= static_cast<float>(s->samples + gi_primary_rays);
-                	irradiance_center_sum+=s->diffuse_irradiance_samples[sample_index];
+					* static_cast<float>(s->samples) + irradiance_info.color * static_cast<float>(gi_primary_rays);
+				s->diffuse_irradiance_samples[sample_index] /= static_cast<float>(s->samples + gi_primary_rays);
+				irradiance_center_sum += s->diffuse_irradiance_samples[sample_index];
 			}
 		}
-		
+
 		s->samples += gi_primary_rays;
-		s->diffuse_irradiance = (wall_hits >= 4) ? glm::vec3(0.0) : irradiance_center_sum / static_cast<float>(4 - wall_hits);
+		s->diffuse_irradiance = (wall_hits >= 4)
+			                        ? glm::vec3(0.0)
+			                        : irradiance_center_sum / static_cast<float>(4 - wall_hits);
 		bool update = true;
 
 		auto illumination_d = get_surfel_illumination_gradient(s);
@@ -717,13 +717,14 @@ void SurfelManagerOctree::update_surfels()
 		}
 		//check if surfel has a neighbour with similar illumination
 		//check if surfel can be merged with neighbour
-				
+
 		auto neighbour_surfel = get_closest_neighbour_on_level(s);
 		if (neighbour_surfel != nullptr && update)
 		{
 			auto gradient = abs(length(get_illumination_gradient(s, neighbour_surfel)));
-			auto gradient_adjusted = gradient * (s->radius + neighbour_surfel->radius );
-			if (gradient_adjusted < 0.2 && glm::distance(neighbour_surfel->mean, s->mean) < neighbour_surfel->radius + s->
+			auto gradient_adjusted = gradient * (s->radius + neighbour_surfel->radius);
+			if (gradient_adjusted < 0.2 && glm::distance(neighbour_surfel->mean, s->mean) < neighbour_surfel->radius + s
+				->
 				radius)
 			{
 				auto combined_surfel = get_combining_surfel(s, neighbour_surfel);
@@ -734,14 +735,13 @@ void SurfelManagerOctree::update_surfels()
 				if (merge_surfels(s, neighbour_surfel, combined_surfel, overlaps, 0.2))
 				{
 					//surfels were merged
-					scene_->get_debug_tools()->draw_debug_point(combined_surfel.mean, 0.2, {1.0,0.0,0.0}, combined_surfel.radius);
+					scene_->get_debug_tools()->draw_debug_point(combined_surfel.mean, 0.2, {1.0, 0.0, 0.0},
+					                                            combined_surfel.radius);
 					update = false;
 				}
-				
-		
 			}
 		}
-		
+
 
 		if (update)
 		{
@@ -788,20 +788,21 @@ glm::vec2 SurfelManagerOctree::get_surfel_illumination_gradient(surfel* s)
 {
 	//central difference x:
 	auto d_x =
-		math_util::component_average(s->diffuse_irradiance_samples[0] - s->diffuse_irradiance_samples[1]);// /
-			//(s->radius * 2.0f);
+		math_util::component_average(s->diffuse_irradiance_samples[0] - s->diffuse_irradiance_samples[1]); // /
+	//(s->radius * 2.0f);
 	auto d_y =
-	math_util::component_average(s->diffuse_irradiance_samples[2] - s->diffuse_irradiance_samples[3]);// /
-		//(s->radius * 2.0f);
-	return {d_x,d_y};
+		math_util::component_average(s->diffuse_irradiance_samples[2] - s->diffuse_irradiance_samples[3]); // /
+	//(s->radius * 2.0f);
+	return {d_x, d_y};
 }
 
 
 surfel SurfelManagerOctree::get_combining_surfel(const surfel* s_1, const surfel* s_2)
 {
 	auto new_normal = (s_1->normal + s_2->normal) * 0.5f;
-	auto new_irradiance = math_util::get_weighted_average(s_1->diffuse_irradiance, s_2->diffuse_irradiance, s_1->samples, s_2->samples);
-	
+	auto new_irradiance = math_util::get_weighted_average(s_1->diffuse_irradiance, s_2->diffuse_irradiance,
+	                                                      s_1->samples, s_2->samples);
+
 	auto distance = glm::distance(s_1->mean, s_2->mean);
 	auto new_radius = 0.0f;
 	glm::vec3 new_center;
@@ -829,7 +830,7 @@ surfel SurfelManagerOctree::get_combining_surfel(const surfel* s_1, const surfel
 
 
 	auto new_samples = s_1->samples + s_2->samples;
-	
+
 	auto new_surfel = surfel{
 		.mean = new_center, // new center 
 		.normal = new_normal, // new normal
@@ -838,18 +839,22 @@ surfel SurfelManagerOctree::get_combining_surfel(const surfel* s_1, const surfel
 		.in_surfel_buckets = {},
 		.samples = new_samples,
 		.diffuse_irradiance_samples = {
-			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[0], s_2->diffuse_irradiance_samples[0], s_1->samples, s_2->samples),
-			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[1], s_2->diffuse_irradiance_samples[1], s_1->samples, s_2->samples),
-			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[2], s_2->diffuse_irradiance_samples[2], s_1->samples, s_2->samples),
-			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[3], s_2->diffuse_irradiance_samples[3], s_1->samples, s_2->samples)
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[0], s_2->diffuse_irradiance_samples[0],
+			                                s_1->samples, s_2->samples),
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[1], s_2->diffuse_irradiance_samples[1],
+			                                s_1->samples, s_2->samples),
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[2], s_2->diffuse_irradiance_samples[2],
+			                                s_1->samples, s_2->samples),
+			math_util::get_weighted_average(s_1->diffuse_irradiance_samples[3], s_2->diffuse_irradiance_samples[3],
+			                                s_1->samples, s_2->samples)
 		}
 	};
 
 	return new_surfel;
-
 }
 
-bool SurfelManagerOctree::merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
+bool SurfelManagerOctree::merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel,
+                                        std::set<surfel*>& additional_overlaps, float
                                         max_gradient_difference)
 {
 	if (additional_overlaps.size() > 2)
@@ -867,11 +872,11 @@ bool SurfelManagerOctree::merge_surfels(const surfel* s_1, const surfel* s_2, co
 			}
 		}
 	}
-	
-	
+
+
 	remove_surfel(s_1);
 	remove_surfel(s_2);
-	
+
 	if (additional_overlaps.size() > 2)
 	{
 		//there are more overlaps to check
@@ -898,11 +903,10 @@ bool SurfelManagerOctree::insert_surfel(const surfel& surfel_to_insert)
 void SurfelManagerOctree::register_camera(Camera3D* camera)
 {
 	camera_ = camera;
-	auto t_pos  = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
-	auto t_normal  = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
+	auto t_pos = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
+	auto t_normal = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
-
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

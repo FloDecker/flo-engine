@@ -66,6 +66,12 @@ public:
 		return true;
 	}
 
+	void clear_data()
+	{
+		std::vector<T> data(size_, {});
+		insert_data(data.data(),0,size_);
+	}
+
 private:
 	unsigned int size_ = 0;
 	unsigned int ssbo_id_ = 0;
