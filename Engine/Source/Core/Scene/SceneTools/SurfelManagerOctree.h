@@ -8,8 +8,9 @@
 #include <bitset>
 
 constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 32; //amount of surfels a single bucket holds (also the increment)
-constexpr int SURFELS_BUCKET_AMOUNT = 40000; //total amount of surfel buckets that can be allocated
+constexpr int SURFELS_BUCKET_AMOUNT = 80000; //total amount of surfel buckets that can be allocated
 constexpr int SURFEL_BUCKET_TOTAL_MEMORY = SURFEL_BUCKET_SIZE_ON_GPU * SURFELS_BUCKET_AMOUNT; //total memory allocated for surfels 
+constexpr int SURFEL_OCTREE_SIZE = 100000;
 
 
 class Camera3D;
@@ -34,7 +35,8 @@ struct surfel_gpu
 struct surfel_allocation_metadata
 {
 	uint32_t surfel_bucket_pointer = 0; 
-	uint32_t surfel_octree_pointer = 0; 
+	uint32_t surfel_octree_pointer = 0;
+	uint32_t debug_int_32 = 0;
 };
 
 //this holds additional metadata information of the buckets that is only needed on the CPU
@@ -98,7 +100,6 @@ private:
 
 
 	//actual size is SURFEL_BUCKET_SIZE_ON_GPU * SURFEL_BUCKET_SIZE_ON_GPU
-	unsigned int SURFEL_OCTREE_SIZE = 100000;
 
 
 	unsigned int memory_limitation_count_bottom_size = 0;

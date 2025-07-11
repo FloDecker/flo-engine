@@ -62,7 +62,10 @@ struct OctreeElement
 struct AllocationMetadata{
     uint surfel_bucket_pointer;
     uint surfel_octree_pointer;
+    uint debug_int_32;
+
 };
+
 layout(std430, binding = 0) buffer SurfelBuffer {
     Surfel surfels[];
 };
@@ -365,7 +368,7 @@ void main()
         uint x = octreeElements[0].surfels_at_layer_amount;
         vec3 x_v = surfels[0].mean_r.xyz;
         //uint x = octreeElements[7].surfels_at_layer_pointer;
-        x = allocationMetadata[0].surfel_bucket_pointer;
+        x = allocationMetadata[0].debug_int_32;
         vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
         FragColor = vec4(clamp(d, 0, 1)+albedo, 1.0);
         //FragColor = vec4(bit_debug, 1.0);

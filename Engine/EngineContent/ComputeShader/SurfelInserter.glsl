@@ -3,7 +3,10 @@
 #define OCTREE_TOTOAL_EXTENSION 512
 #define OCTREE_HALF_TOTOAL_EXTENSION 256
 #define BUCKET_SIZE 32
+#define SURFELS_BUCKET_AMOUNT 80000
+#define SURFEL_OCTREE_SIZE 100000
 #define MAX_OCTREE_LEVEL 9
+#define FOV 90
 
 struct Surfel {
     vec4 mean_r;
@@ -21,6 +24,7 @@ struct OctreeElement
 struct AllocationMetadata{
     uint surfel_bucket_pointer;
     uint surfel_octree_pointer;
+    uint debug_int_32;
 };
 
 struct Ray {
@@ -264,21 +268,15 @@ uvec3 get_surfel_cell_index_from_ws(vec3 ws, uint level) {
 }
 
 bool create_new_surfel_node(out uint pointer) {
-    //TODO: check if out of ssbo bounds
     pointer = atomicAdd(allocationMetadata[0].surfel_octree_pointer, 1);
-    return true;
+    return (pointer < SURFEL_OCTREE_SIZE);
 }
 
 bool create_new_bucket(out uint pointer) {
-    //TODO: check if out of ssbo bounds
     pointer = atomicAdd(allocationMetadata[0].surfel_bucket_pointer, BUCKET_SIZE);
-    return true;
+    return pointer < BUCKET_SIZE * SURFELS_BUCKET_AMOUNT;
 }
 
-uint set_child_octree_bit_at(uint amount_field, uint pos)
-{
-    return atomicOr(amount_field, (1u << (31u - pos)));
-}
 
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
 bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
@@ -305,15 +303,16 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
                 if (create_new_surfel_node(p)) {
                     
                     memoryBarrierBuffer();
-                    barrier();
-                    
                     //set child octree bit
                     atomicOr(octreeElements[current_element_index].surfels_at_layer_amount, (1u << (31u - index)));
                     //set pointer to next node
                     atomicExchange(octreeElements[current_element_index].next_layer_surfels_pointer[index], p);
+                } else {
+                    return false;
                 }
             } else {
                 //TODO: implement this case
+                
             }
         }
         
@@ -322,7 +321,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
             cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index],0u,0u);
         } while (cur == LOCK_SENTINAL || cur == 0u);
         
-        current_element_index = octreeElements[current_element_index].next_layer_surfels_pointer[index];
+        current_element_index = cur;
 
         
         uvec3 offset = uvec3(
@@ -336,26 +335,41 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
     //insert if reached target level
     
     //check if a bucket exists
-    if (get_surfel_amount(octreeElements[current_element_index].surfels_at_layer_amount) == 0) {
+    uint cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
+    if (cur == 0u) {
         uint prev = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, LOCK_SENTINAL);
         //create bucket
         if (prev == 0u) {
             uint bucket_pointer;
             if (!create_new_bucket(bucket_pointer)) {
-                //    return false;
+                //atomicAdd(allocationMetadata[0].debug_int_32,1);
             }
+            
+            if (bucket_pointer == 0u || bucket_pointer == LOCK_SENTINAL) {
+               // atomicAdd(allocationMetadata[0].debug_int_32,1);
+            }
+            
             memoryBarrierBuffer();
-            barrier();
             atomicExchange(octreeElements[current_element_index].surfels_at_layer_pointer, bucket_pointer);
         } else {
-            while (prev == LOCK_SENTINAL) {
-                prev = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
-            }
+            
         }
-        
     }
 
-    if (get_surfel_amount(octreeElements[current_element_index].surfels_at_layer_amount) < BUCKET_SIZE){
+    uint tries = 0;
+    do {
+        tries++;
+        cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
+
+        if (tries > 10000){
+            atomicAdd(allocationMetadata[0].debug_int_32,1);
+            return false;
+        }
+    } while (cur == LOCK_SENTINAL || cur == 0u);
+    
+    
+
+    if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
         uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + insert_at_local;
         memoryBarrierBuffer();
@@ -406,16 +420,21 @@ void main() {
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
     
     float d_camera_pos = distance(camera_position,pos_ws);
-
     
-    float target_distance = 100;
+    float size_in_pixels = 16;
+    
+    vec2 real_world_size = 2.0 * d_camera_pos * tan(FOV*0.5f) * (size_in_pixels/sizeTex.xy);
+    
+    
+    float target_distance = 30.0;
+    float target_radius = real_world_size.x;
 
-    if(mod(gl_WorkGroupID.xy, 32) != uvec2(0) ) {
+    if(mod(gl_WorkGroupID.xy, 16) != uvec2(0) ) {
         return;
     };
     
     
-    float radius = 1.0;
+    float radius = target_radius * 0.5;
 
     uint level = get_octree_level_for_surfel(radius);
     
@@ -440,6 +459,11 @@ void main() {
     
     //octreeElements[0].surfels_at_layer_amount = get_pos_of_next_surfel_index_(uvec3(256,256,256), pos);
     
-    
-    insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x]);
+    uint tires = 0;
+    for (int i = 0; i < 1;i++) {
+        if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x])){
+            return;
+        }
+    }
+
 }

@@ -24,7 +24,7 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 
 	surfel_allocation_metadata = new ssbo<::surfel_allocation_metadata>();
 	surfel_allocation_metadata->init_buffer_object(1, 2);
-	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(0, 1), 0);
+	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(1, 1), 0);
 
 	insert_surfel_compute_shader = new compute_shader();
 	insert_surfel_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelInserter.glsl");
@@ -514,7 +514,7 @@ void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_s
 
 void SurfelManagerOctree::clear_surfels_on_gpu_() const
 {
-	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(0, 1), 0);
+	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(1, 1), 0);
 	surfel_ssbo_->clear_data();
 	surfels_octree->clear_data();
 }
