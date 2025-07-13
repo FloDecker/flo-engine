@@ -811,6 +811,7 @@
         <Content Include="EngineContent\Shader\lightingTest.glsl" />
         <Content Include="EngineContent\Shader\NormalVisualizer.glsl" />
         <Content Include="EngineContent\Shader\SkySphere.glsl" />
+        <Content Include="EngineContent\Shader\SurfelPass.glsl" />
         <Content Include="EngineContent\Shader\test.glsl" />
         <Content Include="EngineContent\Shader\test2.glsl" />
         <Content Include="EngineContent\Shader\testVisualizeDepthMap.glsl" />

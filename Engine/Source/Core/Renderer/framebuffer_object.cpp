@@ -20,9 +20,13 @@ void framebuffer_object::render_to_framebuffer() const
 	{
 		glViewport(0, 0, depth_texture_->width(), depth_texture_->height());
 	}
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
+	if (clear_before_rendering)
+	{
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
+	}
+
 }
 
 void framebuffer_object::attach_texture_as_depth_buffer(texture_2d* depth_texture)
@@ -84,6 +88,14 @@ texture_2d* framebuffer_object::get_color_attachment_at_index(unsigned int index
 	
 }
 
+
+void framebuffer_object::add_size_change_listener(eventpp::CallbackList<void(glm::ivec2)>* texture_change_dispatcher) const
+{
+	texture_change_dispatcher->append([this](glm::ivec2 i)
+	{
+		resize_attach_textures(i.x, i.y);
+	});
+}
 
 void framebuffer_object::generate_framebuffer()
 {

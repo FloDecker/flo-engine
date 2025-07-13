@@ -46,6 +46,7 @@ void camera::setViewPortDimension(float width, float height)
 	{
 		camera_render_target_->resize_attach_textures(static_cast<unsigned int>(width),
 		                                              static_cast<unsigned int>(height));
+		
 	}
 }
 

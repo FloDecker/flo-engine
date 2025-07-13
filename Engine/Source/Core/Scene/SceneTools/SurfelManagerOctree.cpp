@@ -70,18 +70,7 @@ void SurfelManagerOctree::draw_ui()
 	}
 	if (ImGui::Button("Generate surfels vis compute shader"))
 	{
-		if (camera_ != nullptr)
-		{
-			auto t = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
-			if (t != nullptr)
-			{
-				insert_surfel_compute_shader->use();
-				insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",glm::value_ptr(camera_->getWorldPosition()));
-
-				glDispatchCompute(t->width(), t->height(), 1);
-				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-			}
-		}
+		generate_surfels_via_compute_shader();
 	}
 
 	ImGui::DragFloat("points per square meter", &points_per_square_meter);
@@ -132,6 +121,22 @@ bool SurfelManagerOctree::insert_surfel_into_octree(surfel* surfel)
 {
 	auto target_level = get_octree_level_for_surfel(surfel);
 	return insert_surfel_into_octree_recursive(surfel, 0, {0, 0, 0}, target_level, 0, true, surfel->mean);
+}
+
+void SurfelManagerOctree::generate_surfels_via_compute_shader() const
+{
+	if (camera_ != nullptr)
+	{
+		auto t = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
+		if (t != nullptr)
+		{
+			insert_surfel_compute_shader->use();
+			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",glm::value_ptr(camera_->getWorldPosition()));
+
+			glDispatchCompute(t->width(), t->height(), 1);
+			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		}
+	}
 }
 
 bool SurfelManagerOctree::remove_surfel(const surfel* surfel)
@@ -902,13 +907,14 @@ bool SurfelManagerOctree::insert_surfel(const surfel& surfel_to_insert)
 	return true;
 }
 
-void SurfelManagerOctree::register_camera(Camera3D* camera)
+void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surfel_framebuffer_texture)
 {
 	camera_ = camera;
 	auto t_pos = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
 	auto t_normal = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
+	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

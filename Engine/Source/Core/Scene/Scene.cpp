@@ -248,10 +248,10 @@ glm::vec3 Scene::uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float rad
 	return pos + tangent * pos_on_disc.x + bitangent * pos_on_disc.y;
 }
 
-void Scene::init_surfel_manager(Camera3D* camera_target)
+void Scene::init_surfel_manager(Camera3D* camera_target,  texture_2d* surfel_framebuffer_texture)
 {
 	surfel_manager_ = new SurfelManagerOctree(this);
-	surfel_manager_->register_camera(camera_target);
+	surfel_manager_->register_scene_data(camera_target, surfel_framebuffer_texture);
 }
 
 

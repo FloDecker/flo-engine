@@ -11,16 +11,12 @@ void main()
 }
 
 [fragment]
-out vec4 FragColor;
 
+layout (location = 0) out vec4 gSurfel;
 in vec2 TexCoords;
 
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
-uniform sampler2D gAlbedo;
-uniform sampler2D dpeth_framebuffer;
-uniform sampler2D light_map;
-uniform sampler2D gSurfels;
 
 
 //surfels
@@ -245,7 +241,8 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 
-vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches) {
+vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches, out bool hit_surfel) {
+    hit_surfel = false;
     if (!is_ws_pos_contained_in_bb(pos, vec3(- total_extension * 0.5f), vec3(total_extension))) {
         return vec3(0.0);
     }
@@ -287,6 +284,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
                         final_color+=s.color.rgb*attenuation;
                         amount_contribution++;
                         feched_samples+=attenuation;
+                        hit_surfel = true;
                     }
                 } else {
                     amount_innceseary_fetches++;
@@ -309,70 +307,24 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
     return vec3(1, 0, 0);
 }
 
-//post processing
-
-float kernel[9] = float[](
-1.0 / 16, 2.0 / 16, 1.0 / 16,
-2.0 / 16, 4.0 / 16, 2.0 / 16,
-1.0 / 16, 2.0 / 16, 1.0 / 16
-);
-
-vec3 get_distance_blur(float distance) {
-
-
-    float offset = 1.0 / distance;
-
-    vec2 offsets[9] = vec2[](
-    vec2(-offset, offset),
-    vec2(0.0f, offset),
-    vec2(offset, offset),
-    vec2(-offset, 0.0f),
-    vec2(0.0f, 0.0f),
-    vec2(offset, 0.0f),
-    vec2(-offset, -offset),
-    vec2(0.0f, -offset),
-    vec2(offset, -offset)
-    );
-
-    vec3 sampleTex[9];
-    for (int i = 0; i < 9; i++)
-    {
-        sampleTex[i] = vec3(texture(gAlbedo, TexCoords.st + offsets[i]));
-    }
-    vec3 col = vec3(0.0);
-    for (int i = 0; i < 9; i++) {
-        col += sampleTex[i] * kernel[i];
-    }
-    return col;
-}
-
-//get shadows
-
-
-
 void main()
 {
-    vec3 albedo = vec3(texture(gAlbedo, TexCoords));
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
-    vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
-    float depth = texture(dpeth_framebuffer, TexCoords).x;
 
     int amount_texture_fetches;
     int amount_innceseary_fetches;
-   // vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches);
+    bool hit_surfel = false;
+    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,hit_surfel);
     vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
 
 
-    uint x = allocationMetadata[0].debug_int_32;
-    vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
-    
-    if(TexCoords.y < 0.1f) {
-        FragColor = vec4(bit_debug, 1.0);
-        return;
-    }
-
     OctreeElement f;
     vec3 x_v = surfels[0].mean_r.xyz;
-    FragColor = vec4(surfel_buffer.aaa, 1.0);
+    //uint x = octreeElements[7].surfels_at_layer_pointer;
+
+    gSurfel = vec4(d, float(hit_surfel));
+    
+    
+    
 }

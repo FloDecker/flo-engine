@@ -112,7 +112,7 @@ public:
 	static glm::vec3 uniformDiscSample_ws(glm::vec3 pos, glm::vec3 normal, float radius);
 
 	SurfelManagerOctree* get_surfel_manager() const;
-	void init_surfel_manager(Camera3D* camera_target);
+	void init_surfel_manager(Camera3D* camera_target, texture_2d* surfel_framebuffer_texture);
 
 	//TODO: FOR TEST REMOVE
 	compute_shader* test_compute_shader_approxmiate_ao;

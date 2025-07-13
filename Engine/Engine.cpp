@@ -382,7 +382,8 @@ int main()
 
 	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
 
-
+	
+	
 	//INIT G buffer
 
 	//albedo
@@ -407,8 +408,29 @@ int main()
 	g_buffer.attach_texture_as_depth_buffer(framebuffer_texture_depth);
 
 
+	//INIT surfel pass buffer
+	auto framebuffer_surfel_pass_color = new texture_2d();
+	//stores r,g,b surfel color a = 0 no surfel a = 1 surfel 
+	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
+
+
+	auto surfel_buffer = framebuffer_object();
+	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_color, 0);
+	surfel_buffer.clear_before_rendering = false;
+	surfel_buffer.add_size_change_listener(&change_window_size_dispatcher);
+
+	auto surfel_buffer_shader = new ShaderProgram();
+	surfel_buffer_shader->loadFromFile("EngineContent/Shader/SurfelPass.glsl");
+	surfel_buffer_shader->set_shader_header_include(DEFAULT_HEADERS, false);
+	surfel_buffer_shader->render_method = NONE;
+	surfel_buffer_shader->compileShader();
+	surfel_buffer_shader->addTexture(framebuffer_texture_ws, "gPos");
+	surfel_buffer_shader->addTexture(framebuffer_texture_normal, "gNormal");
+
+
+
 	editorRenderContext->camera->set_render_target(&g_buffer);
-	scene->init_surfel_manager(editor3DCamera);
+	scene->init_surfel_manager(editor3DCamera, framebuffer_surfel_pass_color);
 
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
@@ -419,7 +441,9 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_normal, "gNormal");
 	pp_shader->addTexture(framebuffer_texture_albedo, "gAlbedo");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
+	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
 	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
+	
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
 
@@ -477,22 +501,37 @@ int main()
 
 		//TEST:
 		pp_shader->recompile_if_changed();
-		
-		//gaussian_gi_shader->recompile_if_changed();
-
+		surfel_buffer_shader->recompile_if_changed();
 		scene->test_compute_shader_approxmiate_ao->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
 
-		
+		//MAIN PASS:
+		editorRenderContext->camera->set_render_target(&g_buffer);
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();
-
+		
 		//draw debug elements
 		scene->draw_debug_tools(editorRenderContext);
+		
 		//draw scene elements
 		scene->draw_scene(editorRenderContext);
 
 
+		//SURFEL PASS
+		surfel_buffer.render_to_framebuffer();		
+		surfel_buffer_shader->use();
+		quad_screen->draw();
+
+
+		if (scene->get_surfel_manager()->update_surfels_next_tick)
+		{
+			scene->get_surfel_manager()->generate_surfels_via_compute_shader();
+		}
+
+		
+
+
+		//G-BUFFER PASS AND POST PROCESSING
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 		glViewport(0, 0, windowSize.x, windowSize.y);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

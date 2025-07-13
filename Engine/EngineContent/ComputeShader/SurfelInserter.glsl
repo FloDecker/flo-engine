@@ -2,7 +2,7 @@
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
 #define OCTREE_HALF_TOTOAL_EXTENSION 256
-#define BUCKET_SIZE 32
+#define BUCKET_SIZE 128
 #define SURFELS_BUCKET_AMOUNT 80000
 #define SURFEL_OCTREE_SIZE 100000
 #define MAX_OCTREE_LEVEL 9
@@ -52,6 +52,8 @@ uniform int calculation_level;
 
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
+uniform sampler2D gSurfels;
+
 uniform vec3 camera_position;
 
 const uint LOCK_SENTINAL = 0xFFFFFFFFu;
@@ -291,7 +293,6 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
 
         uint index = get_pos_of_next_surfel_index_(center, pos);
         
-        //read the current value of surfels_at_layer_amount
         //atomic read -> if mem != 0u dont exchange, if mem == 0u its replaced by 0u -> idempotent
         uint cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, 0u);
         if (cur == 0u) {
@@ -342,11 +343,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         if (prev == 0u) {
             uint bucket_pointer;
             if (!create_new_bucket(bucket_pointer)) {
-                //atomicAdd(allocationMetadata[0].debug_int_32,1);
-            }
-            
-            if (bucket_pointer == 0u || bucket_pointer == LOCK_SENTINAL) {
-               // atomicAdd(allocationMetadata[0].debug_int_32,1);
+                return false;
             }
             
             memoryBarrierBuffer();
@@ -362,7 +359,6 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
 
         if (tries > 10000){
-            atomicAdd(allocationMetadata[0].debug_int_32,1);
             return false;
         }
     } while (cur == LOCK_SENTINAL || cur == 0u);
@@ -371,9 +367,11 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
 
     if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
-        uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + insert_at_local;
+        uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + get_surfel_amount(insert_at_local);
         memoryBarrierBuffer();
         surfels[insert_at_global] = s;
+    } else {
+        return false;
     }
     return true;
 }
@@ -385,6 +383,10 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
     pos.y <= bb_max.y && pos.y >= bb_min.y &&
     pos.z <= bb_max.z && pos.z >= bb_min.z;
 
+}
+
+vec3 project_normal_onto_plane(vec3 v, vec3 plane_normal){
+    return v- dot(v,plane_normal)* plane_normal;
 }
 
 
@@ -418,23 +420,45 @@ void main() {
 
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
-    
-    float d_camera_pos = distance(camera_position,pos_ws);
-    
-    float size_in_pixels = 16;
-    
-    vec2 real_world_size = 2.0 * d_camera_pos * tan(FOV*0.5f) * (size_in_pixels/sizeTex.xy);
-    
-    
-    float target_distance = 30.0;
-    float target_radius = real_world_size.x;
+    vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
-    if(mod(gl_WorkGroupID.xy, 16) != uvec2(0) ) {
+    
+
+
+    float d_camera_pos = distance(camera_position,pos_ws);
+    vec3 view_direction = normalize(pos_ws - camera_position);
+
+
+    float target_distance = 5.0;
+    float target_radius_pixels = 128.0;//real_world_size.x;
+    float fov_rad = FOV * PI / 180.0;
+    
+
+    
+    float ws_radius_min = 1.0f;
+    
+
+    //TODO: could be replaced by the projection matrix
+    
+    vec2 real_world_size = 2.0 * d_camera_pos * tan(fov_rad*0.5f) * (target_radius_pixels/sizeTex.xy);
+
+    real_world_size = max(vec2(ws_radius_min), real_world_size);
+    
+    target_radius_pixels = ((real_world_size * sizeTex.xy) / (2.0 * d_camera_pos * tan(fov_rad*0.5f))).x;
+    
+    
+    uvec2 required_pixel_interval = uvec2(target_radius_pixels );
+
+    if (surfel_buffer.a > 0.5) {
+        return;
+    }
+
+    if(mod(gl_WorkGroupID.xy, required_pixel_interval) != uvec2(0) ) {
         return;
     };
     
     
-    float radius = target_radius * 0.5;
+    float radius = real_world_size.x;
 
     uint level = get_octree_level_for_surfel(radius);
     
@@ -458,12 +482,11 @@ void main() {
     s.normal = vec4(normal_ws,0);
     
     //octreeElements[0].surfels_at_layer_amount = get_pos_of_next_surfel_index_(uvec3(256,256,256), pos);
-    
-    uint tires = 0;
-    for (int i = 0; i < 1;i++) {
-        if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x])){
-            return;
-        }
+
+    if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x])){
+        atomicAdd(allocationMetadata[0].debug_int_32,1);
+        return;
     }
+    
 
 }

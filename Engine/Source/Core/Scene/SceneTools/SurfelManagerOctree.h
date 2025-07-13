@@ -7,7 +7,7 @@
 #include "../../Renderer/ssbo.h"
 #include <bitset>
 
-constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 32; //amount of surfels a single bucket holds (also the increment)
+constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 128; //amount of surfels a single bucket holds (also the increment)
 constexpr int SURFELS_BUCKET_AMOUNT = 80000; //total amount of surfel buckets that can be allocated
 constexpr int SURFEL_BUCKET_TOTAL_MEMORY = SURFEL_BUCKET_SIZE_ON_GPU * SURFELS_BUCKET_AMOUNT; //total memory allocated for surfels 
 constexpr int SURFEL_OCTREE_SIZE = 100000;
@@ -62,13 +62,14 @@ public:
 	int gi_primary_rays = 10;
 	float illumination_derivative_threshold = 0.1f;
 	float minimal_surfel_radius = 1.0f;
-	bool update_surfels_next_tick = true;
+	bool update_surfels_next_tick = false;
 
 	float total_extension = 512.0;
 	int octree_levels = 9;
 
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(surfel* surfel);
+	void generate_surfels_via_compute_shader() const;
 	bool remove_surfel(const surfel* surfel);
 
 
@@ -82,7 +83,8 @@ public:
 	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
 	                   max_gradient_difference);
 	bool insert_surfel(const surfel& surfel_to_insert);
-	void register_camera(Camera3D *camera);
+	void register_scene_data(Camera3D *camera, texture_2d* surfel_framebuffer_texture);
+	
 
 	//compute shader
 	compute_shader *insert_surfel_compute_shader;
