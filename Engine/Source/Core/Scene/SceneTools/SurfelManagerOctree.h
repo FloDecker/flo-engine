@@ -64,7 +64,7 @@ public:
 	float minimal_surfel_radius = 1.0f;
 	bool update_surfels_next_tick = false;
 
-	float total_extension = 512.0;
+	float octree_total_extension = 512.0;
 	int octree_levels = 9;
 
 	int get_octree_level_for_surfel(const surfel* surfel);
@@ -145,6 +145,8 @@ private:
 	bool insert_surfel_in_surrounding_buckets(surfel* surfel, int target_layer);
 	glm::vec3 get_surfel_bucket_center(glm::vec3 ws_pos, int level) const;
 	glm::vec3 get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center, glm::vec<3, float> pos_relative) const;
+	glm::vec3 get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const;
+	float node_size_at_level(unsigned int level) const;
 	bool insert_surfel_into_octree_recursive(surfel* surfel_to_insert, int current_layer, glm::vec3 current_center,
 	                                         int target_layer, int
 	                                         current_octree_element_index, bool insert_into_surroundings,
@@ -168,7 +170,6 @@ private:
 	bool upload_surfel_data(surfel* surfel_to_insert, unsigned int insertion_index) const;
 
 	bool update_surfel_data(surfel* surfel_to_insert) const;
-	void update_surfel_thread();
 	int get_surfel_pos_in_bucket(unsigned int bucket_index, const surfel* surfel_to_find) const;
 
 	void dump_surfel_octree_to_gpu_memory();

@@ -305,7 +305,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
             //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
         }
     }
-    return vec3(1, 0, 0);
+    return vec3(0, 0, 0);
 }
 
 void main()

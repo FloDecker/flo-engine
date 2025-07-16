@@ -21,7 +21,7 @@ in vec3 normalWS;
 
 //static for testing
 //vec3 _lightPos = vec3(0.0, 0.5, -4.0);
-float _diffuseMaterialConstant = 0.6;
+float _diffuseMaterialConstant = 1;
 float _specularMaterialConstant = 0.2;
 float _ambientMaterialConstant = 0.2;
 

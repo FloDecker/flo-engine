@@ -419,19 +419,21 @@ void main() {
     uvec2 sizeTex = textureSize(gNormal, 0);
     vec2 TexCoords = vec2(gl_WorkGroupID.xy) / sizeTex;
     
-    if(TexCoords.x < 0.01) {
+    const float edge_distance = 0.05;
+    
+    if(TexCoords.x < edge_distance) {
         return;
     }
 
-    if(TexCoords.y < 0.01) {
+    if(TexCoords.y < edge_distance) {
         return;
     }
 
-    if(TexCoords.x > 0.99) {
+    if(TexCoords.x > 1-edge_distance) {
         return;
     }
 
-    if(TexCoords.y > 0.99) {
+    if(TexCoords.y > 1-edge_distance) {
         return;
     }
 
@@ -442,7 +444,9 @@ void main() {
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
-    
+    if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION))) {
+        return;
+    }
 
 
     float d_camera_pos = distance(camera_position,pos_ws);
@@ -469,7 +473,7 @@ void main() {
     
     uvec2 required_pixel_interval = uvec2(target_radius_pixels );
 
-    if (surfel_buffer.r >= -10000.0) {
+    if (surfel_buffer.a > 0.5) {
         return;
     }
 

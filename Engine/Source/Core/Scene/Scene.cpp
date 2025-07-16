@@ -149,6 +149,15 @@ ray_cast_result Scene::ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, 
 	return result;
 }
 
+ray_cast_result Scene::proximity_check_in_scene(glm::vec3 origin, float max_distance, collision_channel collision_channel)
+{
+	ray_cast_result result;
+	result.distance_from_origin = std::numeric_limits<double>::max();
+	auto bb_tree = scene_bb[collision_channel];
+	bb_tree->scene_geometry_proximity_check(origin, max_distance, &result);
+	return result;
+}
+
 surfel_irradiance_information Scene::get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
                                                                 float disc_radius)
 {

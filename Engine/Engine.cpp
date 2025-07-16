@@ -236,6 +236,10 @@ int main()
 	worldPosMat->loadFromFile("EngineContent/Shader/WorldPosition.glsl");
 	worldPosMat->compileShader();
 	
+	auto* grey_shader = new ShaderProgram();
+	grey_shader->loadFromFile("EngineContent/Shader/BasicGrey.glsl");
+	grey_shader->compileShader();
+	
 
 	/////ADD SCENE GEOMETRY:
 
@@ -352,7 +356,7 @@ int main()
 
 	auto object_house = new Mesh3D(scene->get_root(), me_test_building);
 	object_house->name = "object_house";
-	//object_house->set_material(gaussian_gi_shader);
+	object_house->set_material(grey_shader);
 	object_house->set_position_global(-12,-1.7,0);
 	object_house->setRotationLocal(-90,0,0);
 	new plane_3d(scene->get_root());
@@ -443,7 +447,7 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
 	pp_shader->addTexture(framebuffer_surfel_pass_debug, "gSurfelsDebug");
-	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
+	pp_shader->addTexture(direct_scene_light->light_map(), "direct_light_map_texture");
 	
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
@@ -502,6 +506,7 @@ int main()
 
 		//TEST:
 		pp_shader->recompile_if_changed();
+		pp_shader->set_uniform_vec3_f("cameraPosWs", value_ptr(*scene_cam->getWorldPosition()));
 		surfel_buffer_shader->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_approxmiate_ao->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
@@ -621,7 +626,7 @@ void window_changed_callback(GLFWwindow* window, int width, int height)
 	change_window_size_dispatcher(glm::ivec2(width, height));
 }
 
-#define CAMERA_SPEED 10 //TODO: make runtime changeable
+#define CAMERA_SPEED 40 //TODO: make runtime changeable
 #define CAMERA_ROTATION_SPEED 0.05
 
 //TODO: generalize this especially mouse capture

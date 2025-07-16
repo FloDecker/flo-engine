@@ -15,6 +15,8 @@
 #include "../CommonDataStructures/surfel_irradiance_information.h"
 #include "DebugPrimitives/visual_debug_tools.h"
 
+
+
 class Camera3D;
 class compute_shader;
 class SurfelManagerOctree;
@@ -104,6 +106,9 @@ public:
 	                                              collision_channel collision_channel);
 	ray_cast_result ray_cast_in_scene(glm::vec3 origin, glm::vec3 direction, float max_distance,
 	                                  collision_channel collision_channel, Object3D* ignore = nullptr, bool ignore_back_face = true);
+
+	ray_cast_result proximity_check_in_scene(glm::vec3 origin, float max_distance,
+	                                         collision_channel collision_channel = VISIBILITY);
 
 	surfel_irradiance_information get_irradiance_information(glm::vec3 pos_ws, glm::vec3 normal_ws, int primary_rays,
 	                                                         float disc_radius = 0.0f);

@@ -6,12 +6,15 @@
 #include <gtx/string_cast.hpp>
 
 #include "../Camera3D.h"
+#include "../RayCast.h"
 #include "../Scene.h"
 #include "../../../Util/BoundingBoxHelper.h"
 #include "../../../Util/math_util.h"
 #include "../../Renderer/Shader/compute_shader.h"
 #include "../Modifiers/Implementations/Colliders/collider_modifier.h"
 #include "../../Renderer/Texture/texture_buffer_object.h"
+
+class RayCast;
 
 SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 {
@@ -107,7 +110,7 @@ int SurfelManagerOctree::get_octree_level_for_surfel(const surfel* surfel)
 {
 	auto d = surfel->radius * 2.0f;
 	int level_surfel = ceil(log2(d));
-	int level_bounds = ceil(log2(total_extension));
+	int level_bounds = ceil(log2(octree_total_extension));
 	return std::min(level_bounds - level_surfel, octree_levels);
 }
 
@@ -213,7 +216,7 @@ void SurfelManagerOctree::get_overlapping_octree_elements(glm::vec3 center, floa
 {
 	auto surfel_bucket_center = get_surfel_bucket_center(center, layer);
 
-	float bucket_size = total_extension / pow(2, layer);
+	float bucket_size = octree_total_extension / pow(2, layer);
 
 
 	StructBoundingSphere b = {center, radius};
@@ -254,7 +257,7 @@ bool SurfelManagerOctree::insert_surfel_in_surrounding_buckets(surfel* surfel,
 	center_pos_v.z = center_pos_v.z > 0 ? 1.0f : -1.0f;
 	center_pos_v = normalize(center_pos_v);
 
-	float bucket_size = total_extension / pow(2, target_layer);
+	float bucket_size = octree_total_extension / pow(2, target_layer);
 
 
 	StructBoundingSphere b = {surfel->mean, surfel->radius};
@@ -291,12 +294,13 @@ glm::vec3 SurfelManagerOctree::get_surfel_bucket_center(glm::vec3 ws_pos, int le
 {
 	if (level == 0) return glm::vec3(0, 0, 0);
 	float bucket_amount_at_level = pow(2, level);
-	auto bucket_extension_ws = total_extension / bucket_amount_at_level;
-	ws_pos /= total_extension * 0.5;
+	auto bucket_extension_ws = octree_total_extension / bucket_amount_at_level;
+	ws_pos /= octree_total_extension * 0.5;
 	ws_pos *= bucket_amount_at_level * 0.5f;
 	ws_pos = glm::floor(ws_pos) + 0.5f;
 	return ws_pos * bucket_extension_ws;
 }
+
 
 
 glm::vec3 SurfelManagerOctree::get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center,
@@ -306,7 +310,17 @@ glm::vec3 SurfelManagerOctree::get_center_of_sub_octree_level(int current_layer,
 		pos_relative.x >= 0 ? 1.0 : -1.0,
 		pos_relative.y >= 0 ? 1.0 : -1.0,
 		pos_relative.z >= 0 ? 1.0 : -1.0
-	) * 0.5f * (total_extension / powf(2.0f, 1 + current_layer));
+	) * 0.5f * (octree_total_extension / powf(2.0f, 1 + current_layer));
+}
+
+glm::vec3 SurfelManagerOctree::get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const
+{
+	return glm::vec3(-octree_total_extension * 0.5f) + glm::vec3(octree_index) * node_size_at_level(layer);
+}
+
+float SurfelManagerOctree::node_size_at_level(unsigned int level) const
+{
+	return octree_total_extension / static_cast<float>(1 << level);
 }
 
 bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_insert, int current_layer,
@@ -501,14 +515,6 @@ bool SurfelManagerOctree::update_surfel_data(surfel* surfel_to_insert) const
 	}
 
 	return s;
-}
-
-void SurfelManagerOctree::update_surfel_thread()
-{
-	while (true)
-	{
-		update_surfels();
-	}
 }
 
 int SurfelManagerOctree::get_surfel_pos_in_bucket(unsigned int bucket_index, const surfel* surfel_to_find) const
@@ -954,45 +960,67 @@ void SurfelManagerOctree::tick()
 {
 	if (!update_surfels_next_tick)
 	{
- 		return;
+		return;
 	}
 
-	
+
 	//generate new surfels 
 	generate_surfels_via_compute_shader();
 
 
 	constexpr GLuint segmented_calculation_min_level = 4;
-	
-	if (light_update_current_level_ <= segmented_calculation_min_level)
+	ray_cast_result r;
+	StructBoundingBox b;
+	auto level_to_update = 0;
+	auto pos_in_octree_to_update = glm::uvec3();
+	auto size_to_update = glm::uvec3();
+	do
 	{
-		compute_shader_ao_approximation(light_update_current_level_, glm::uvec3(), glm::uvec3(1<<light_update_current_level_));
-		light_update_current_level_++;
-	} else
-	{
-		auto l = 1<<(light_update_current_level_ - segmented_calculation_min_level );
-		GLuint z = light_update_current_pos_ % l;
-		GLuint y = (light_update_current_pos_ / l) % l;
-		GLuint x = light_update_current_pos_ / (l * l);
-		
-		compute_shader_ao_approximation(light_update_current_level_, glm::uvec3(x,y,z) * 1u<<segmented_calculation_min_level, glm::uvec3(1<<segmented_calculation_min_level));
-
-		
-		light_update_current_pos_++;
-		if (light_update_current_pos_ >= l*l*l)
+		if (light_update_current_level_ <= segmented_calculation_min_level)
 		{
-			light_update_current_pos_ = 0;
+			level_to_update = light_update_current_level_;
+			pos_in_octree_to_update = glm::uvec3();
+			size_to_update = glm::uvec3(1 << light_update_current_level_);
 			light_update_current_level_++;
 		}
-
-		if (light_update_current_level_ >= octree_levels)
+		else
 		{
-			light_update_current_level_ = 0;
-			light_update_current_pos_ = 0;
-		}
-	}
+			auto l = 1 << (light_update_current_level_ - segmented_calculation_min_level);
+			GLuint z = light_update_current_pos_ % l;
+			GLuint y = (light_update_current_pos_ / l) % l;
+			GLuint x = light_update_current_pos_ / (l * l);
 
-	
+			level_to_update = light_update_current_level_;
+			pos_in_octree_to_update = glm::uvec3(x, y, z) * 1u << segmented_calculation_min_level;
+			size_to_update = glm::uvec3(1 << segmented_calculation_min_level);
+
+
+			light_update_current_pos_++;
+			if (light_update_current_pos_ >= l * l * l)
+			{
+				light_update_current_pos_ = 0;
+				light_update_current_level_++;
+			}
+
+			if (light_update_current_level_ >= octree_levels)
+			{
+				light_update_current_level_ = 0;
+				light_update_current_pos_ = 0;
+			}
+		}
+
+		auto size = size_to_update.x * node_size_at_level(level_to_update);
+		b = StructBoundingBox(get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update),
+		                      get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update) +
+		                      glm::vec3(size_to_update) * node_size_at_level(level_to_update));
+		r = scene_->proximity_check_in_scene(BoundingBoxHelper::get_center_of_bb(&b), size);
+	}
+	while (r.hit == false);
+
+	scene_->get_debug_tools()->draw_debug_cube(&b);
+	compute_shader_ao_approximation(level_to_update, pos_in_octree_to_update, size_to_update);
+
+
 	tick_amount_++;
 }
 
