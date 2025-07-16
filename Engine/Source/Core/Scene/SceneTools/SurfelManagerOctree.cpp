@@ -29,6 +29,10 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	insert_surfel_compute_shader = new compute_shader();
 	insert_surfel_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelInserter.glsl");
 	insert_surfel_compute_shader->compileShader();
+
+	compute_shader_approxmiate_ao = new compute_shader();
+	compute_shader_approxmiate_ao->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
+	compute_shader_approxmiate_ao->compileShader();
 }
 
 void SurfelManagerOctree::clear_samples()
@@ -38,29 +42,44 @@ void SurfelManagerOctree::clear_samples()
 
 void SurfelManagerOctree::draw_ui()
 {
-	if (ImGui::Button("Generate surfels"))
-	{
-		generate_surfels();
-		recalculate_surfels();
-		/*if (!has_surfels_buffer_)
-		{
-			init_surfels_buffer();
-		}
-		reset_surfels_buffer();
-		auto s = surfel();
-		s.mean = glm::vec3(-255.5, -255.5, -255.5);
-		s.normal = glm::vec3(0, 1, 0);
-		s.radius = 1;
-		insert_surfel(s);*/
-	}
+	//if (ImGui::Button("Generate surfels"))
+	//{
+	//	generate_surfels();
+	//	recalculate_surfels();
+	//	/*if (!has_surfels_buffer_)
+	//	{
+	//		init_surfels_buffer();
+	//	}
+	//	reset_surfels_buffer();
+	//	auto s = surfel();
+	//	s.mean = glm::vec3(-255.5, -255.5, -255.5);
+	//	s.normal = glm::vec3(0, 1, 0);
+	//	s.radius = 1;
+	//	insert_surfel(s);*/
+	//}
 
-	ImGui::Checkbox("Draw debug tools", &draw_debug_tools_);
+	//ImGui::Checkbox("Draw debug tools", &draw_debug_tools_);
 
-	if (draw_debug_tools_)
+	//if (draw_debug_tools_)
+	//{
+	//	for (const auto& sample : surfels_)
+	//	{
+	//		scene_->get_debug_tools()->draw_debug_point(sample.get()->mean);
+	//	}
+	//}
+
+	if (ImGui::Button("Dispatch light approx compute shader"))
 	{
-		for (const auto& sample : surfels_)
+		for (int j = 0; j < 10; j++)
 		{
-			scene_->get_debug_tools()->draw_debug_point(sample.get()->mean);
+			for (int i = 0; i < 27; i++)
+			{
+				compute_shader_approxmiate_ao->use();
+				compute_shader_approxmiate_ao->setUniformInt("offset_id", i);
+				compute_shader_approxmiate_ao->setUniformInt("calculation_level", j);
+				glDispatchCompute(16, 16, 16);
+				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			}
 		}
 	}
 
@@ -73,12 +92,12 @@ void SurfelManagerOctree::draw_ui()
 		generate_surfels_via_compute_shader();
 	}
 
-	ImGui::DragFloat("points per square meter", &points_per_square_meter);
-	ImGui::DragFloat("default radius", &starting_radius);
-	ImGui::DragInt("surfel primary rays", &gi_primary_rays);
-	ImGui::DragInt("surfel updates per tick", &update_surfels_per_tick);
-	ImGui::DragFloat("Surfel minimal radius", &minimal_surfel_radius);
-	ImGui::DragFloat("Max illuminance derivative to split", &illumination_derivative_threshold);
+	//ImGui::DragFloat("points per square meter", &points_per_square_meter);
+	//ImGui::DragFloat("default radius", &starting_radius);
+	//ImGui::DragInt("surfel primary rays", &gi_primary_rays);
+	//ImGui::DragInt("surfel updates per tick", &update_surfels_per_tick);
+	//ImGui::DragFloat("Surfel minimal radius", &minimal_surfel_radius);
+	//ImGui::DragFloat("Max illuminance derivative to split", &illumination_derivative_threshold);
 
 	ImGui::Checkbox("Update Surfels", &update_surfels_next_tick);
 }
@@ -136,6 +155,20 @@ void SurfelManagerOctree::generate_surfels_via_compute_shader() const
 			glDispatchCompute(t->width(), t->height(), 1);
 			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		}
+	}
+}
+
+void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree,
+                                                          glm::uvec3 size) const
+{
+	for (int i = 0; i < 27; i++)
+	{
+		compute_shader_approxmiate_ao->use();
+		compute_shader_approxmiate_ao->setUniformInt("offset_id", i);
+		compute_shader_approxmiate_ao->setUniformInt("calculation_level", level);
+		compute_shader_approxmiate_ao->set_uniform_vec3_u("pos_ws_start", value_ptr(pos_in_octree));
+		glDispatchCompute(size.x, size.y, size.z);
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 }
 
@@ -915,6 +948,52 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surf
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
+}
+
+void SurfelManagerOctree::tick()
+{
+	if (!update_surfels_next_tick)
+	{
+ 		return;
+	}
+
+	
+	//generate new surfels 
+	generate_surfels_via_compute_shader();
+
+
+	constexpr GLuint segmented_calculation_min_level = 4;
+	
+	if (light_update_current_level_ <= segmented_calculation_min_level)
+	{
+		compute_shader_ao_approximation(light_update_current_level_, glm::uvec3(), glm::uvec3(1<<light_update_current_level_));
+		light_update_current_level_++;
+	} else
+	{
+		auto l = 1<<(light_update_current_level_ - segmented_calculation_min_level );
+		GLuint z = light_update_current_pos_ % l;
+		GLuint y = (light_update_current_pos_ / l) % l;
+		GLuint x = light_update_current_pos_ / (l * l);
+		
+		compute_shader_ao_approximation(light_update_current_level_, glm::uvec3(x,y,z) * 1u<<segmented_calculation_min_level, glm::uvec3(1<<segmented_calculation_min_level));
+
+		
+		light_update_current_pos_++;
+		if (light_update_current_pos_ >= l*l*l)
+		{
+			light_update_current_pos_ = 0;
+			light_update_current_level_++;
+		}
+
+		if (light_update_current_level_ >= octree_levels)
+		{
+			light_update_current_level_ = 0;
+			light_update_current_pos_ = 0;
+		}
+	}
+
+	
+	tick_amount_++;
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

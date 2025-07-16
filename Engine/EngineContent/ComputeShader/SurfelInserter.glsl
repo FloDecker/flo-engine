@@ -343,6 +343,8 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         if (prev == 0u) {
             uint bucket_pointer;
             if (!create_new_bucket(bucket_pointer)) {
+                atomicAdd(allocationMetadata[0].debug_int_32,1);
+
                 return false;
             }
             
@@ -359,6 +361,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
 
         if (tries > 10000){
+
             return false;
         }
     } while (cur == LOCK_SENTINAL || cur == 0u);
@@ -371,6 +374,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
         memoryBarrierBuffer();
         surfels[insert_at_global] = s;
     } else {
+
         return false;
     }
     return true;
@@ -414,8 +418,24 @@ void main() {
     
     uvec2 sizeTex = textureSize(gNormal, 0);
     vec2 TexCoords = vec2(gl_WorkGroupID.xy) / sizeTex;
-
     
+    if(TexCoords.x < 0.01) {
+        return;
+    }
+
+    if(TexCoords.y < 0.01) {
+        return;
+    }
+
+    if(TexCoords.x > 0.99) {
+        return;
+    }
+
+    if(TexCoords.y > 0.99) {
+        return;
+    }
+
+
 
 
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
@@ -449,7 +469,7 @@ void main() {
     
     uvec2 required_pixel_interval = uvec2(target_radius_pixels );
 
-    if (surfel_buffer.a > 0.5) {
+    if (surfel_buffer.r >= -10000.0) {
         return;
     }
 

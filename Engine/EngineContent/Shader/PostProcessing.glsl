@@ -21,6 +21,7 @@ uniform sampler2D gAlbedo;
 uniform sampler2D dpeth_framebuffer;
 uniform sampler2D light_map;
 uniform sampler2D gSurfels;
+uniform sampler2D gSurfelsDebug;
 
 
 //surfels
@@ -352,12 +353,17 @@ vec3 get_distance_blur(float distance) {
 
 void main()
 {
-    vec3 albedo = vec3(texture(gAlbedo, TexCoords));
-    vec3 normal_ws = vec3(texture(gNormal, TexCoords));
-    vec3 pos_ws = vec3(texture(gPos, TexCoords));
-    vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
-    float depth = texture(dpeth_framebuffer, TexCoords).x;
 
+    vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
+    
+    vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
+    vec3 normal_ws = vec3(texture(gNormal, TexCoords_scaled));
+    vec3 pos_ws = vec3(texture(gPos, TexCoords_scaled));
+    vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
+    vec4 surfel_buffer_debug = vec4(texture(gSurfelsDebug, TexCoords_scaled));
+    float depth = texture(dpeth_framebuffer, TexCoords_scaled).x;
+
+    
     int amount_texture_fetches;
     int amount_innceseary_fetches;
    // vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches);
@@ -372,7 +378,24 @@ void main()
         return;
     }
 
-    OctreeElement f;
-    vec3 x_v = surfels[0].mean_r.xyz;
-    FragColor = vec4(surfel_buffer.aaa, 1.0);
+    if (TexCoords_scaled.x < 1.0) {
+        if (TexCoords_scaled.y > 1.0) {
+
+            FragColor = vec4(clamp(surfel_buffer.rgb, vec3(0),vec3(1)) , 1.0);
+        } else {
+            FragColor = vec4(normal_ws, 1.0);
+
+        }
+    } else {
+        if (TexCoords_scaled.y > 1.0) {
+            vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - surfel_buffer_debug.r * 0.01);
+
+            FragColor = vec4(heat_map_texture_fetches, 1.0);
+
+        } else {
+            FragColor = vec4(albedo, 1.0);
+
+        }
+    }
+
 }

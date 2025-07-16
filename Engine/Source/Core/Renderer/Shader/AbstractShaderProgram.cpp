@@ -144,3 +144,13 @@ void AbstractShaderProgram::setUniformInt(const GLchar* name, GLint value)
 	GLint location = glGetUniformLocation(shaderProgram_, name);
 	glUniform1i(location, value);
 }
+
+void AbstractShaderProgram::set_uniform_vec3_u(const GLchar* name, const GLuint value[3])
+{
+	if (!compiled)
+	{
+		std::cerr << "shader needs to be compiled before assigning uniforms" << std::endl;
+	}
+	GLint location = glGetUniformLocation(shaderProgram_, name);
+	glUniform3uiv(location, 1, value);
+}

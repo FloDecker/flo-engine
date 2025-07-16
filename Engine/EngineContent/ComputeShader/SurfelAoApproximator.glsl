@@ -33,6 +33,7 @@ layout (local_size_x = 27, local_size_y = 1, local_size_z = 1) in;
 
 uniform int offset_id;
 uniform int calculation_level;
+uniform uvec3 pos_ws_start;
 
 
 uint bitmask_surfel_amount = 0x00FFFFFF;
@@ -335,7 +336,7 @@ void main() {
 
     float node_size_at_level = OCTREE_TOTOAL_EXTENSION / float(1<<level);
 
-    uvec3 center = gl_WorkGroupID * 3 + pos_offset_3x3[offset_id] +( uvec3(255,255,255) + uvec3(-50,-7,-50)) / uvec3(node_size_at_level);
+    uvec3 center = gl_WorkGroupID * 3 + pos_offset_3x3[offset_id] + pos_ws_start;
     vec3 bb_min = vec3(-OCTREE_TOTOAL_EXTENSION * 0.5f) + center * node_size_at_level;
     vec3 bb_extension = vec3(node_size_at_level);
 
@@ -356,44 +357,4 @@ void main() {
             }
         }
     }
-    
-    
-    //if (get_surfe_pointer_at_octree_pos(8, gl_GlobalInvocationID * 4, p, metadata)) {
-    //    OctreeElement o = octreeElements[p];
-    //    uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
-//
-    //    if (surfels_amount > 0) {
-    //        uint surfle_data_pointer = o.surfels_at_layer_pointer;
-    //        for (int i = 0; i < surfels_amount; i++) {
-    //            //surfels[surfle_data_pointer + i].color = vec4(gl_GlobalInvocationID * 4 * 0.01,1);
-    //            surfels[surfle_data_pointer + i].color = vec4(1, 0, 0, 1);
-    //        }
-    //    }
-    //}
-
-
-    //OctreeElement o = octreeElements[gl_GlobalInvocationID.x];
-    //uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
-    //if (surfels_amount > 0) {
-    //    uint surfle_data_pointer = o.surfels_at_layer_pointer;
-    //    for (int i = 0; i < surfels_amount; i++) {
-    //        Surfel s = surfels[surfle_data_pointer + i];
-    //        Ray r;
-    //        r.origin = s.mean_r.xyz + s.normal.xyz * 0.1f;
-    //        r.direction = s.normal.xyz;
-    //        r.inverse_direction = 1/r.direction;
-    //        vec3 c;
-    //        //bool intersected = traverseHERO(r, c);
-    //        //surfels[surfle_data_pointer + i].color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
-    //        //surfels[surfle_data_pointer + i].color = vec4(metadata);
-    //
-    //        surfels[surfle_data_pointer + i].color = vec4(0.5,0,1,1);
-    //        //if (intersected) {
-    //        //    surfels[surfle_data_pointer + i].color = vec4(c,1);
-    //        //}else {
-    //        //    surfels[surfle_data_pointer + i].color = vec4(1,0,0,1);
-    //        //}
-    //    }
-    //}
-//
 }

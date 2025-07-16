@@ -70,6 +70,7 @@ public:
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(surfel* surfel);
 	void generate_surfels_via_compute_shader() const;
+	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree, glm::uvec3 size) const;
 	bool remove_surfel(const surfel* surfel);
 
 
@@ -88,11 +89,19 @@ public:
 
 	//compute shader
 	compute_shader *insert_surfel_compute_shader;
+	compute_shader* compute_shader_approxmiate_ao;
+
+	void tick();
 
 private:
 	Scene* scene_;
 	Camera3D *camera_ = nullptr; //camera object used to determine the center of view 
 	bool has_surfels_buffer_ = false;
+	uint64_t tick_amount_ = 0;
+
+	uint64_t light_update_current_level_ = 0;
+	uint64_t light_update_current_size_ = 0;
+	uint64_t light_update_current_pos_ = 0;
 
 	//cpu representation of ocree:
 	surfel_octree_element* octree_;

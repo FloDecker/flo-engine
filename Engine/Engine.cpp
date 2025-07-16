@@ -227,12 +227,6 @@ int main()
 
 	//init shaders
 
-	//compute shader
-	scene->test_compute_shader_approxmiate_ao = new compute_shader();
-	scene->test_compute_shader_approxmiate_ao->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
-	scene->test_compute_shader_approxmiate_ao->compileShader();
-	
-	
 	//auto* gaussian_gi_shader = new ShaderProgram();
 	//gaussian_gi_shader->loadFromFile("EngineContent/Shader/GaussianGI.glsl");
 	//gaussian_gi_shader->compileShader();
@@ -409,13 +403,19 @@ int main()
 
 
 	//INIT surfel pass buffer
-	auto framebuffer_surfel_pass_color = new texture_2d();
+	
 	//stores r,g,b surfel color a = 0 no surfel a = 1 surfel 
+	auto framebuffer_surfel_pass_color = new texture_2d();
 	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
+
+	//stores r,g,b surfel color a = 0 no surfel a = 1 surfel 
+	auto framebuffer_surfel_pass_debug = new texture_2d();
+	framebuffer_surfel_pass_debug->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
 
 	auto surfel_buffer = framebuffer_object();
 	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_color, 0);
+	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_debug, 1);
 	surfel_buffer.clear_before_rendering = false;
 	surfel_buffer.add_size_change_listener(&change_window_size_dispatcher);
 
@@ -442,6 +442,7 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_albedo, "gAlbedo");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
+	pp_shader->addTexture(framebuffer_surfel_pass_debug, "gSurfelsDebug");
 	pp_shader->addTexture(direct_scene_light->light_map(), "light_map");
 	
 	auto quad_screen = new quad_fill_screen();
@@ -502,7 +503,7 @@ int main()
 		//TEST:
 		pp_shader->recompile_if_changed();
 		surfel_buffer_shader->recompile_if_changed();
-		scene->test_compute_shader_approxmiate_ao->recompile_if_changed();
+		scene->get_surfel_manager()->compute_shader_approxmiate_ao->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
 
 		//MAIN PASS:
@@ -523,10 +524,9 @@ int main()
 		quad_screen->draw();
 
 
-		if (scene->get_surfel_manager()->update_surfels_next_tick)
-		{
-			scene->get_surfel_manager()->generate_surfels_via_compute_shader();
-		}
+	
+		scene->get_surfel_manager()->tick();
+		
 
 		
 

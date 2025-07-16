@@ -13,6 +13,7 @@ void main()
 [fragment]
 
 layout (location = 0) out vec4 gSurfel;
+layout (location = 1) out vec4 gSurfelDebug;
 in vec2 TexCoords;
 
 uniform sampler2D gPos;
@@ -316,7 +317,6 @@ void main()
     int amount_innceseary_fetches;
     bool hit_surfel = false;
     vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,hit_surfel);
-    vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
 
 
     OctreeElement f;
@@ -324,7 +324,7 @@ void main()
     //uint x = octreeElements[7].surfels_at_layer_pointer;
 
     gSurfel = vec4(d, float(hit_surfel));
-    
+    gSurfelDebug = vec4(amount_texture_fetches,0,0,1);
     
     
 }

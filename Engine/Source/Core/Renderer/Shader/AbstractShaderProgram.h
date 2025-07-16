@@ -38,6 +38,8 @@ public:
 	void addTexture(texture* texture, const GLchar* samplerName);
 	void addVoxelField(texture_3d* texture, const GLchar* samplerName);
 	void setUniformInt(const GLchar* name, GLint value);
+	void set_uniform_vec3_u(const GLchar* name, const GLuint value[3]);
+
 
 	//returns true if recompiles
 	bool recompile_if_changed();
