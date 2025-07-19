@@ -56,4 +56,5 @@ void main_u() {
     gPosition = pos_ws;
     gNormal = normal_ws;
     gAlbedoSpec = vec4(color_mix, 1.0);
+    gRenderFlags = 1u;
 }

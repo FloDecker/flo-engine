@@ -22,6 +22,7 @@ uniform sampler2D dpeth_framebuffer;
 uniform sampler2D light_map;
 uniform sampler2D gSurfels;
 uniform sampler2D gSurfelsDebug;
+uniform usampler2D gRenderFlags;
 
 
 uniform sampler2D direct_light_map_texture;
@@ -48,10 +49,10 @@ uint bitmask_surfel_amount = 0x00FFFFFF;
 float total_extension = 512.0;
 
 float _diffuseMaterialConstant = 0.8;
-float _specularMaterialConstant = 0.2;
-float _ambientMaterialConstant = 0.4;
+float _specularMaterialConstant = 0.5;
+float _ambientMaterialConstant = 0.5;
 
-float _specularExponent = 2;
+float _specularExponent = 4;
 
 float _ambientLightIntensity = 1;
 
@@ -214,7 +215,7 @@ float sample_box(float currentDepth, vec2 coords, int kernel_widht_height, float
         }
     }
 
-    shadow /= float(kernel_widht_height * kernel_widht_height);
+    shadow /= float((kernel_widht_height - 1)  * (kernel_widht_height - 1));
     return shadow;
 }
 
@@ -273,22 +274,24 @@ vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer){
 
 
     //diffuse
-    float in_light = float(dot(normalWS, lightDir) > 0) * clamp(1.-in_light_map_shadow(vertexPosWs), 0.0, 1.0);
+    
+    float in_light = float(dot(normalWS, lightDir) > 0)
+    * (is_inside_shadow_map_frustum(vertexPosWs)? clamp(1.-in_light_map_shadow(vertexPosWs), 0.0, 1.0) : 1.0); 
+    
 
     float _light_diffuse_intensity = _diffuseMaterialConstant * max(dot(normalWS, lightDir), 0.0) * direct_light_intensity;
-
+    
     //specular
     vec3 halfDir = normalize(lightDir + viewDir);
     float specAngle = max(dot(halfDir, normalWS), 0.0);
 
     float diffEase = 1 - pow(1 - _light_diffuse_intensity, 3);
-    float specIntensity  = clamp(pow(specAngle, _specularExponent)*diffEase,1,0);
-
-
+    float specIntensity = clamp(pow(specAngle, _specularExponent)*diffEase,0,1);
+    
     return vec3(
-    _light_diffuse_intensity * in_light * albedo * direct_light_color
-    + specIntensity * in_light * direct_light_color * direct_light_intensity
-    + _ambientLightIntensity * _ambientMaterialConstant * get_ao_color() * surfel_buffer);
+    _light_diffuse_intensity * in_light * albedo * direct_light_color +
+    specIntensity * in_light * direct_light_color * direct_light_intensity +
+     _ambientLightIntensity * _ambientMaterialConstant * get_ao_color() * surfel_buffer);
 
 }
 
@@ -307,6 +310,7 @@ void main()
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
     vec4 surfel_buffer_debug = vec4(texture(gSurfelsDebug, TexCoords_scaled));
     float depth = texture(dpeth_framebuffer, TexCoords_scaled).x;
+    uint flags = texture(gRenderFlags, TexCoords_scaled).r;
     vec3 lightmap = texture(direct_light_map_texture, TexCoords_scaled).rgb;
 
     
@@ -318,8 +322,12 @@ void main()
 
     uint x = allocationMetadata[0].debug_int_32;
     vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
-    
-    vec3 final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb);//0.8 * albedo + 0.7 * clamp(surfel_buffer.xyz, vec3(0) , vec3(1)) * vec3(80.0/255.0,156.0/255.0,250.0/255.0);
+    vec3 final_color = vec3(0.0);
+    if (flags == 0) {
+        final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb);
+    } else {
+        final_color = albedo;
+    }
     
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);

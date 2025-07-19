@@ -9,7 +9,7 @@
 direct_light::direct_light(Object3D* parent, unsigned int light_map_width, unsigned int light_map_height): light(parent)
 {
 	scene_->register_global_light(this);
-	set_light_settings(10, 0.1, 100);
+	set_light_settings(10, 0.1, 100, 10);
 	light_map_ = new texture_2d();
 	light_map_->initialize_as_depth_map_render_target(light_map_width, light_map_height);
 	light_map_fbo_ = new framebuffer_object();
@@ -19,11 +19,12 @@ direct_light::direct_light(Object3D* parent, unsigned int light_map_width, unsig
 	this->name = "direct_light";
 }
 
-void direct_light::set_light_settings(float size, float near_plane, float far_plane)
+void direct_light::set_light_settings(float size, float near_plane, float far_plane, float light_camera_distance)
 {
 	size_ = size;
 	near_plane_ = near_plane;
 	far_plane_ = far_plane;
+	light_height_ = light_camera_distance;
 	on_light_changed();
 }
 
@@ -35,8 +36,16 @@ void direct_light::render_to_light_map()
 void direct_light::draw_object_specific_ui()
 {
 	light::draw_object_specific_ui();
-	ImGui::DragFloat("Size", &size_);
-	ImGui::DragFloat("Light to camera distance", &light_height_);
+	bool c = false;
+	c|= ImGui::DragFloat("Size", &size_);
+	c|= ImGui::DragFloat("Light to camera distance", &light_height_);
+	c|= ImGui::DragFloat("near plane", &near_plane_);
+	c|= ImGui::DragFloat("far plane", &far_plane_);
+
+	if (c)
+	{
+		on_light_changed();
+	}
 }
 
 glm::vec3 direct_light::get_light_direction()

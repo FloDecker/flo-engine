@@ -817,6 +817,7 @@
         <Content Include="EngineContent\Shader\test2.glsl" />
         <Content Include="EngineContent\Shader\testVisualizeDepthMap.glsl" />
         <Content Include="EngineContent\Shader\TriangleVisualizer.glsl" />
+        <Content Include="EngineContent\Shader\TriplanarMapping.glsl" />
         <Content Include="EngineContent\Shader\VoxelGI.glsl" />
         <Content Include="EngineContent\Shader\VoxelVisualizer.glsl" />
         <Content Include="EngineContent\Shader\WorldPosition.glsl" />

@@ -338,8 +338,9 @@ int main()
 
 	//ADD DIRECT LIGHT
 	auto direct_scene_light = new direct_light(scene->get_root(), 1024, 1024);
-	direct_scene_light->setRotationLocal(-90, 0, 0);
+	direct_scene_light->setRotationLocal(-44, -9, 0);
 	direct_scene_light->intensity = 1;
+	direct_scene_light->set_light_settings(150,0.01,100,60);
 
 
 	//depth map visualizer
@@ -396,6 +397,10 @@ int main()
 	auto framebuffer_texture_ws = new texture_2d();
 	framebuffer_texture_ws->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGB16F, GL_RGB, GL_FLOAT);
 
+	//g-buffer-flags
+	auto framebuffer_render_flags = new texture_2d();
+	framebuffer_render_flags->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_R16UI, GL_RED_INTEGER,  GL_UNSIGNED_SHORT);
+
 	auto framebuffer_texture_depth = new texture_2d();
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
 
@@ -403,6 +408,7 @@ int main()
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_ws, 0);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_normal, 1);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_albedo, 2);
+	g_buffer.attach_texture_as_color_buffer(framebuffer_render_flags, 3);
 	g_buffer.attach_texture_as_depth_buffer(framebuffer_texture_depth);
 
 
@@ -447,6 +453,7 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
 	pp_shader->addTexture(framebuffer_surfel_pass_debug, "gSurfelsDebug");
+	pp_shader->addTexture(framebuffer_render_flags, "gRenderFlags");
 	pp_shader->addTexture(direct_scene_light->light_map(), "direct_light_map_texture");
 	
 	auto quad_screen = new quad_fill_screen();
@@ -506,7 +513,6 @@ int main()
 
 		//TEST:
 		pp_shader->recompile_if_changed();
-		pp_shader->set_uniform_vec3_f("cameraPosWs", value_ptr(*scene_cam->getWorldPosition()));
 		surfel_buffer_shader->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_approxmiate_ao->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
@@ -545,6 +551,7 @@ int main()
 		//post-processing
 
 		pp_shader->use();
+		pp_shader->set_uniform_vec3_f("cameraPosWs", value_ptr(*editorRenderContext->camera->getWorldPosition()));
 		quad_screen->draw();
 		glEnable(GL_DEPTH_TEST);
 
