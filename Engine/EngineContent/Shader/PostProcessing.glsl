@@ -61,7 +61,8 @@ float bias = 0.01;
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
-    vec4 color;
+    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
 };
 
 struct OctreeElement

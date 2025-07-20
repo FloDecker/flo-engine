@@ -29,7 +29,8 @@ struct surfel_gpu
 {
 	glm::vec4 position_r = {};
 	glm::vec4 normal = {};
-	glm::vec4 color = {};
+	glm::vec4 radiance_ambient = {};
+	glm::vec4 radiance_direct_and_surface = {};
 };
 
 struct surfel_allocation_metadata

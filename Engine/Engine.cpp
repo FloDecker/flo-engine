@@ -408,14 +408,15 @@ int main()
 
 	//INIT surfel pass buffer
 	
-	//stores r,g,b surfel color a = 0 no surfel a = 1 surfel 
+	//stores r,g,b surfel radiance_ambient a = 0 no surfel a = 1 surfel 
 	auto framebuffer_surfel_pass_color = new texture_2d();
 	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
-	//stores r,g,b surfel color a = 0 no surfel a = 1 surfel 
+	//stores r,g,b surfel radiance_ambient a = 0 no surfel a = 1 surfel 
 	auto framebuffer_surfel_pass_debug = new texture_2d();
 	framebuffer_surfel_pass_debug->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
+	
 
 	auto surfel_buffer = framebuffer_object();
 	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_color, 0);
@@ -431,6 +432,7 @@ int main()
 	surfel_buffer_shader->addTexture(framebuffer_texture_ws, "gPos");
 	surfel_buffer_shader->addTexture(framebuffer_texture_normal, "gNormal");
 
+	
 
 
 	editorRenderContext->camera->set_render_target(&g_buffer);
@@ -474,7 +476,7 @@ int main()
 		guiManager->tickGUI();
 
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear radiance_ambient buffer
 
 
 		//PHYSICS
