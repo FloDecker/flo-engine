@@ -398,6 +398,7 @@
         <ClCompile Include="Source\Core\Renderer\Shader\compute_shader.cpp" />
         <ClCompile Include="Source\Core\Renderer\Shader\ShaderProgram.cpp" />
         <ClCompile Include="Source\Core\Renderer\ssbo.cpp" />
+        <ClCompile Include="Source\Core\Renderer\ssbo_double_buffer.cpp" />
         <ClCompile Include="Source\Core\Renderer\Texture\tbo\tbo_float.cpp" />
         <ClCompile Include="Source\Core\Renderer\Texture\tbo\tbo_vec3.cpp">
             <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
@@ -711,6 +712,7 @@
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderHeaders.h" />
         <ClInclude Include="Source\Core\Renderer\Shader\ShaderProgram.h" />
         <ClInclude Include="Source\Core\Renderer\ssbo.h" />
+        <ClInclude Include="Source\Core\Renderer\ssbo_double_buffer.h" />
         <ClInclude Include="Source\Core\Renderer\Texture\tbo\tbo_float.h" />
         <ClInclude Include="Source\Core\Renderer\Texture\tbo\tbo_vec3.h" />
         <ClInclude Include="Source\Core\Renderer\Texture\texture.h" />

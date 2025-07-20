@@ -65,27 +65,12 @@ struct Surfel {
     vec4 color;
 };
 
-struct OctreeElement
-{
-    uint surfels_at_layer_amount;
-    uint surfels_at_layer_pointer;
-    uint next_layer_surfels_pointer[8];
-};
-
 
 struct AllocationMetadata{
     uint surfel_bucket_pointer;
     uint surfel_octree_pointer;
     uint debug_int_32;
 
-};
-
-layout(std430, binding = 0) buffer SurfelBuffer {
-    Surfel surfels[];
-};
-
-layout(std430, binding = 1) buffer OctreeBuffer {
-    OctreeElement octreeElements[];
 };
 
 

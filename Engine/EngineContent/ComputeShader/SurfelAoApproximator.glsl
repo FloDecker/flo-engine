@@ -352,7 +352,8 @@ void main() {
                 vec3 surfel_pos = s.mean_r.xyz;
                 if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
                     //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
-                    surfels[surfle_data_pointer + i].color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
+                    vec4 c = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
+                    surfels[surfle_data_pointer + i].color = c;
                 }
             }
         }

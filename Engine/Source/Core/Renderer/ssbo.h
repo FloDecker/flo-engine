@@ -18,7 +18,7 @@ public:
 		glGenBuffers(1, &ssbo_id_);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
 		std::vector<T> data(size_, {});
-		glBufferData(GL_SHADER_STORAGE_BUFFER, size_ * sizeof(T), data.data(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, size_ * sizeof(T), data.data(), GL_DYNAMIC_COPY);
 		initialized_ = true;
 		bind_to_base(binding);
 		return true;
@@ -63,6 +63,17 @@ public:
 		glCopyNamedBufferSubData(tempBuffer, ssbo_id_, 0, to * sizeof(T), length * sizeof(T));
 
 		glDeleteBuffers(1, &tempBuffer);
+		return true;
+	}
+
+	bool copy_buffer_data(const ssbo<T>& other)
+	{
+		if (!initialized_)
+		{
+			std::cout << "ssbo not initialized" << '\n';
+			return false;
+		}
+		glCopyNamedBufferSubData(ssbo_id_, other.ssbo_id_, 0, 0, size_ * sizeof(T));
 		return true;
 	}
 

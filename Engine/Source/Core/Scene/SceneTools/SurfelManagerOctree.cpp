@@ -19,11 +19,22 @@ class RayCast;
 SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 {
 	scene_ = scene;
-	surfel_ssbo_ = new ssbo<surfel_gpu>();
-	surfel_ssbo_->init_buffer_object(SURFELS_BUCKET_AMOUNT * SURFEL_BUCKET_SIZE_ON_GPU, 0);
+	surfel_ssbo_producer_ = new ssbo<surfel_gpu>();
+	surfel_ssbo_producer_->init_buffer_object(SURFELS_BUCKET_AMOUNT * SURFEL_BUCKET_SIZE_ON_GPU, 0);
 
-	surfels_octree = new ssbo<surfel_octree_element>();
-	surfels_octree->init_buffer_object(SURFEL_OCTREE_SIZE, 1);
+	surfel_ssbo_consumer_ = new ssbo_double_buffer<surfel_gpu>();
+	surfel_ssbo_consumer_->init(SURFELS_BUCKET_AMOUNT * SURFEL_BUCKET_SIZE_ON_GPU, 3, 4);
+	surfel_ssbo_consumer_->bind_back(3);
+	surfel_ssbo_consumer_->bind_front(4);
+
+
+	surfels_octree_producer_ = new ssbo<surfel_octree_element>();
+	surfels_octree_producer_->init_buffer_object(SURFEL_OCTREE_SIZE, 1);
+
+	surfels_octree_consumer_ = new ssbo_double_buffer<surfel_octree_element>();
+	surfels_octree_consumer_->init(SURFEL_OCTREE_SIZE, 5, 6);
+	surfels_octree_consumer_->bind_back(5);
+	surfels_octree_consumer_->bind_front(6);
 
 	surfel_allocation_metadata = new ssbo<::surfel_allocation_metadata>();
 	surfel_allocation_metadata->init_buffer_object(1, 2);
@@ -153,12 +164,69 @@ void SurfelManagerOctree::generate_surfels_via_compute_shader() const
 		if (t != nullptr)
 		{
 			insert_surfel_compute_shader->use();
-			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",glm::value_ptr(camera_->getWorldPosition()));
+			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",
+			                                                 glm::value_ptr(camera_->getWorldPosition()));
 
 			glDispatchCompute(t->width(), t->height(), 1);
-			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		}
 	}
+}
+
+void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
+{
+
+	constexpr GLuint segmented_calculation_min_level = 3;
+	ray_cast_result r;
+	StructBoundingBox b;
+	auto level_to_update = 0;
+	auto pos_in_octree_to_update = glm::uvec3();
+	auto size_to_update = glm::uvec3();
+	do
+	{
+		if (light_update_current_level_ <= segmented_calculation_min_level)
+		{
+			level_to_update = light_update_current_level_;
+			pos_in_octree_to_update = glm::uvec3();
+			size_to_update = glm::uvec3(1 << light_update_current_level_);
+			light_update_current_level_++;
+		}
+		else
+		{
+			auto l = 1 << (light_update_current_level_ - segmented_calculation_min_level);
+			GLuint z = light_update_current_pos_ % l;
+			GLuint y = (light_update_current_pos_ / l) % l;
+			GLuint x = light_update_current_pos_ / (l * l);
+
+			level_to_update = light_update_current_level_;
+			pos_in_octree_to_update = glm::uvec3(x, y, z) * 1u << segmented_calculation_min_level;
+			size_to_update = glm::uvec3(1 << segmented_calculation_min_level);
+
+
+			light_update_current_pos_++;
+			if (light_update_current_pos_ >= l * l * l)
+			{
+				light_update_current_pos_ = 0;
+				light_update_current_level_++;
+			}
+
+			if (light_update_current_level_ >= octree_levels)
+			{
+				light_update_current_level_ = 0;
+				light_update_current_pos_ = 0;
+			}
+		}
+
+		auto size = size_to_update.x * node_size_at_level(level_to_update);
+		b = StructBoundingBox(get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update),
+							  get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update) +
+							  glm::vec3(size_to_update) * node_size_at_level(level_to_update));
+		r = scene_->proximity_check_in_scene(BoundingBoxHelper::get_center_of_bb(&b), size);
+	}
+	while (r.hit == false);
+
+	scene_->get_debug_tools()->draw_debug_cube(&b);
+	compute_shader_ao_approximation(level_to_update, pos_in_octree_to_update, size_to_update);
 }
 
 void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree,
@@ -300,7 +368,6 @@ glm::vec3 SurfelManagerOctree::get_surfel_bucket_center(glm::vec3 ws_pos, int le
 	ws_pos = glm::floor(ws_pos) + 0.5f;
 	return ws_pos * bucket_extension_ws;
 }
-
 
 
 glm::vec3 SurfelManagerOctree::get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center,
@@ -490,7 +557,7 @@ bool SurfelManagerOctree::upload_surfel_data(surfel* surfel_to_insert, unsigned 
 	const auto temp_surfel = surfel_gpu(
 		{surfel_to_insert->mean, surfel_to_insert->radius}, {surfel_to_insert->normal, 0.0f},
 		{surfel_to_insert->diffuse_irradiance, 1.0f});
-	return surfel_ssbo_->insert_data(&temp_surfel, insertion_index);
+	return surfel_ssbo_producer_->insert_data(&temp_surfel, insertion_index);
 }
 
 bool SurfelManagerOctree::update_surfel_data(surfel* surfel_to_insert) const
@@ -534,12 +601,12 @@ int SurfelManagerOctree::get_surfel_pos_in_bucket(unsigned int bucket_index, con
 
 void SurfelManagerOctree::dump_surfel_octree_to_gpu_memory()
 {
-	surfels_octree->insert_data(&octree_[0], 0, next_free_spot_in_octree_);
+	surfels_octree_producer_->insert_data(&octree_[0], 0, next_free_spot_in_octree_);
 }
 
 void SurfelManagerOctree::update_octree_data_on_gpu(unsigned int octree_index)
 {
-	surfels_octree->insert_data(&octree_[octree_index], octree_index, 1);
+	surfels_octree_producer_->insert_data(&octree_[octree_index], octree_index, 1);
 }
 
 void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_start, unsigned int index,
@@ -553,14 +620,14 @@ void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_s
 	auto to = bucket_start + index;
 	auto length = last_bucket_element - index - 1;
 	// ReSharper disable once CppExpressionWithoutSideEffects
-	surfel_ssbo_->move_data(from, to, length);
+	surfel_ssbo_producer_->move_data(from, to, length);
 }
 
 void SurfelManagerOctree::clear_surfels_on_gpu_() const
 {
 	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(1, 1), 0);
-	surfel_ssbo_->clear_data();
-	surfels_octree->clear_data();
+	surfel_ssbo_producer_->clear_data();
+	surfels_octree_producer_->clear_data();
 }
 
 
@@ -964,64 +1031,72 @@ void SurfelManagerOctree::tick()
 	}
 
 
-	//generate new surfels 
-	generate_surfels_via_compute_shader();
-
-
-	constexpr GLuint segmented_calculation_min_level = 4;
-	ray_cast_result r;
-	StructBoundingBox b;
-	auto level_to_update = 0;
-	auto pos_in_octree_to_update = glm::uvec3();
-	auto size_to_update = glm::uvec3();
-	do
+	tick_amount_++;
+	
+	if (compute_fence_)
 	{
-		if (light_update_current_level_ <= segmented_calculation_min_level)
+		GLenum result = glClientWaitSync(compute_fence_, 0, 0); // non-blocking poll
+
+		if (result == GL_ALREADY_SIGNALED || result == GL_CONDITION_SATISFIED)
 		{
-			level_to_update = light_update_current_level_;
-			pos_in_octree_to_update = glm::uvec3();
-			size_to_update = glm::uvec3(1 << light_update_current_level_);
-			light_update_current_level_++;
+			// Compute finished — safe to dispatch the next one
+			glDeleteSync(compute_fence_);
+			compute_fence_ = nullptr;
 		}
 		else
 		{
-			auto l = 1 << (light_update_current_level_ - segmented_calculation_min_level);
-			GLuint z = light_update_current_pos_ % l;
-			GLuint y = (light_update_current_pos_ / l) % l;
-			GLuint x = light_update_current_pos_ / (l * l);
-
-			level_to_update = light_update_current_level_;
-			pos_in_octree_to_update = glm::uvec3(x, y, z) * 1u << segmented_calculation_min_level;
-			size_to_update = glm::uvec3(1 << segmented_calculation_min_level);
-
-
-			light_update_current_pos_++;
-			if (light_update_current_pos_ >= l * l * l)
-			{
-				light_update_current_pos_ = 0;
-				light_update_current_level_++;
-			}
-
-			if (light_update_current_level_ >= octree_levels)
-			{
-				light_update_current_level_ = 0;
-				light_update_current_pos_ = 0;
-			}
+			return;
 		}
-
-		auto size = size_to_update.x * node_size_at_level(level_to_update);
-		b = StructBoundingBox(get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update),
-		                      get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update) +
-		                      glm::vec3(size_to_update) * node_size_at_level(level_to_update));
-		r = scene_->proximity_check_in_scene(BoundingBoxHelper::get_center_of_bb(&b), size);
 	}
-	while (r.hit == false);
+	manager_state_++;
+	
+	switch (manager_state_)
+	{
 
-	scene_->get_debug_tools()->draw_debug_cube(&b);
-	compute_shader_ao_approximation(level_to_update, pos_in_octree_to_update, size_to_update);
+	case 0: //insert surfels
+		generate_surfels_via_compute_shader();
+		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		break;
+	case 1: //compute ao
+		update_surfel_ao_via_compute_shader();
+		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		break;
+	case 2: //copying from compute buffer to backbuffer
+		copy_data_from_compute_to_back_buffer();
+		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		break;
+	case 3: //swap front and backbuffer
+		swap_surfel_buffers();
+		manager_state_ = -1;
+		break;
+	default:
+		manager_state_ = -1;
+	}
+	
+	//generate new surfels
+	if (tick_amount_ % 2 == 0)
+	{
+		
+		return;
+	}
 
 
-	tick_amount_++;
+
+
+	
+	compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+}
+
+void SurfelManagerOctree::copy_data_from_compute_to_back_buffer() const
+{
+	surfel_ssbo_producer_->copy_buffer_data(surfel_ssbo_consumer_->back());
+	surfels_octree_producer_->copy_buffer_data(surfels_octree_consumer_->back());
+}
+
+void SurfelManagerOctree::swap_surfel_buffers() const
+{
+	surfel_ssbo_consumer_->swap();
+	surfels_octree_consumer_->swap();
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

@@ -7,8 +7,10 @@
 #include "../../Renderer/ssbo.h"
 #include <bitset>
 
+#include "../../Renderer/ssbo_double_buffer.h"
+
 constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 128; //amount of surfels a single bucket holds (also the increment)
-constexpr int SURFELS_BUCKET_AMOUNT = 80000; //total amount of surfel buckets that can be allocated
+constexpr int SURFELS_BUCKET_AMOUNT = 40000; //total amount of surfel buckets that can be allocated
 constexpr int SURFEL_BUCKET_TOTAL_MEMORY = SURFEL_BUCKET_SIZE_ON_GPU * SURFELS_BUCKET_AMOUNT; //total memory allocated for surfels 
 constexpr int SURFEL_OCTREE_SIZE = 100000;
 
@@ -70,6 +72,7 @@ public:
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(surfel* surfel);
 	void generate_surfels_via_compute_shader() const;
+	void update_surfel_ao_via_compute_shader();
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree, glm::uvec3 size) const;
 	bool remove_surfel(const surfel* surfel);
 
@@ -92,6 +95,10 @@ public:
 	compute_shader* compute_shader_approxmiate_ao;
 
 	void tick();
+
+	//copy the new data from the surfel compute buffer to the backbuffer of the consumer ssbo
+	void copy_data_from_compute_to_back_buffer() const;
+	void swap_surfel_buffers() const;
 
 private:
 	Scene* scene_;
@@ -119,8 +126,14 @@ private:
 
 	std::bitset<SURFEL_BUCKET_TOTAL_MEMORY> allocation_bitmap;
 
-	ssbo<surfel_gpu>* surfel_ssbo_;
-	ssbo<surfel_octree_element>* surfels_octree;
+	ssbo<surfel_gpu>* surfel_ssbo_producer_;
+	ssbo<surfel_octree_element>* surfels_octree_producer_;
+
+	ssbo_double_buffer<surfel_gpu>* surfel_ssbo_consumer_;
+	ssbo_double_buffer<surfel_octree_element>* surfels_octree_consumer_;
+
+	GLsync compute_fence_;
+	
 	ssbo<surfel_allocation_metadata>* surfel_allocation_metadata;
 
 	//a vector that holds all surfels currently used
@@ -181,4 +194,13 @@ private:
 
 	glm::vec2 get_surfel_illumination_gradient(surfel* s);
 	void create_packed_circles(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color);
+
+	/*current state
+	//states:
+	0 -> inserting surfels
+	1 -> computing AO
+	2 -> copying from compute buffer to backbuffer
+
+	*/
+	int manager_state_ = -1;
 };

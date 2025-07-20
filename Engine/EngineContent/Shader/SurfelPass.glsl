@@ -57,24 +57,13 @@ struct OctreeElement
 };
 
 
-struct AllocationMetadata{
-    uint surfel_bucket_pointer;
-    uint surfel_octree_pointer;
-    uint debug_int_32;
-
-};
-
-layout(std430, binding = 0) buffer SurfelBuffer {
+//front buffers
+layout(std430, binding = 4) buffer SurfelBuffer {
     Surfel surfels[];
 };
 
-layout(std430, binding = 1) buffer OctreeBuffer {
+layout(std430, binding = 6) buffer OctreeBuffer {
     OctreeElement octreeElements[];
-};
-
-
-layout(std430, binding = 2) buffer AllocationMetadataBuffer {
-    AllocationMetadata allocationMetadata[];
 };
 
 

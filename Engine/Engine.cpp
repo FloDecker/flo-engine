@@ -535,7 +535,7 @@ int main()
 		quad_screen->draw();
 
 
-	
+
 		scene->get_surfel_manager()->tick();
 		
 
