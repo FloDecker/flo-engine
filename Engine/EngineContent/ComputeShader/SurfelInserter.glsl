@@ -11,8 +11,10 @@
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
-    vec4 color;
+    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
 };
+
 
 struct OctreeElement
 {
@@ -45,7 +47,19 @@ layout(std430, binding = 2) buffer AllocationMetadataBuffer {
     AllocationMetadata allocationMetadata[];
 };
 
+float bias = 0.01;
+layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
+{
+    vec3 direct_light_direction;
+    float direct_light_intensity;
+    vec3 direct_light_color;
+    float direct_light_light_angle;
+    mat4 direct_light_light_space_matrix;
+};
+
+
 layout (local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
+uniform sampler2D direct_light_map_texture;
 
 uniform int offset_id;
 uniform int calculation_level;
@@ -280,6 +294,36 @@ bool create_new_bucket(out uint pointer) {
 }
 
 
+//LIGTMAPPING
+
+float light_map_at(vec2 coords) {
+    float a = texture(direct_light_map_texture, coords.xy).r;
+    return a;
+}
+
+bool is_inside_shadow_map_frustum(vec3 vertexPosWs) {
+    vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
+    vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    return (projCoords.x > 0 && projCoords.y > 0 && projCoords.x < 1 && projCoords.y < 1);
+}
+
+
+float in_light_map_shadow(vec3 vertexPosWs) {
+    vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
+    vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float currentDepth = projCoords.z;
+    float lm_depth = light_map_at(projCoords.xy);
+    if (currentDepth - bias > lm_depth) {
+        return 0;
+    }
+    return 1;
+}
+
+
+
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
 bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
     uint current_element_index = 0;
@@ -502,8 +546,11 @@ void main() {
     
     Surfel s;
     s.mean_r = vec4(pos_ws, radius);
-    s.color = vec4(1.0);
+    s.radiance_ambient = vec4(1.0);
+    s.radiance_direct_and_surface = vec4(in_light_map_shadow(pos_ws));
     s.normal = vec4(normal_ws,0);
+    
+    
     
     //octreeElements[0].surfels_at_layer_amount = get_pos_of_next_surfel_index_(uvec3(256,256,256), pos);
 

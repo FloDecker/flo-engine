@@ -82,7 +82,7 @@ public:
 	Object3D* get_selected_object() const;
 	bool has_selected_object() const;
 
-	//returns an approximation of the ao color at a given position in world space
+	//returns an approximation of the ao radiance_ambient at a given position in world space
 	StructColorRange* get_ao_color_at(int samples, glm::vec3 ws_pos) const;
 
 

@@ -1021,6 +1021,8 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surf
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
+	insert_surfel_compute_shader->addTexture(camera->get_scene()->get_scene_direct_light()->light_map(), "direct_light_map_texture");
+	
 }
 
 void SurfelManagerOctree::tick()

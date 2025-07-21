@@ -46,7 +46,8 @@ float bias = 0.01;
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
-    vec4 color;
+    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
 };
 
 struct OctreeElement
@@ -271,7 +272,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
                     if (dot(s.normal.xyz, normalWS) > 0.1) {
                         debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f;
                         float attenuation = 1.0f - d / s.mean_r.w;
-                        final_color+=s.color.rgb*attenuation;
+                        final_color+=s.radiance_ambient.rgb*attenuation;
                         amount_contribution++;
                         feched_samples+=attenuation;
                         hit_surfel = true;

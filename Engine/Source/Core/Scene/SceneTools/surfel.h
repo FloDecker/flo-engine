@@ -22,7 +22,7 @@ struct surfel
 	//vector of pointers to buckets that contain this surfel
 	std::vector<unsigned int> in_surfel_buckets = std::vector<unsigned int>();
 
-	//how often this surfel was sampled to obtain the current color 
+	//how often this surfel was sampled to obtain the current radiance_ambient 
 	int samples = 0;
 
 	

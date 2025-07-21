@@ -5,8 +5,10 @@
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
-    vec4 color;
+    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
 };
+
 
 struct OctreeElement
 {
@@ -80,6 +82,30 @@ vec2 rand2(vec2 co) {
     return vec2(rand(co), rand(co + 1.23));// co + offset to get independent value
 }
 
+vec2 sample_disk(vec2 u) {
+    // Map uniform random point u from [0,1]^2 to [-1,1]^2
+    float sx = 2.0 * u.x - 1.0;
+    float sy = 2.0 * u.y - 1.0;
+
+    // Handle the degeneracy at the origin
+    if (sx == 0.0 && sy == 0.0) {
+        return vec2(0.0);
+    }
+
+    float r, theta;
+
+    // Concentric mapping (Shirley-Chiu 1997)
+    if (abs(sx) > abs(sy)) {
+        r = sx;
+        theta = (PI / 4.0) * (sy / sx);
+    } else {
+        r = sy;
+        theta = (PI / 2.0) - (PI / 4.0) * (sx / sy);
+    }
+
+    return r * vec2(cos(theta), sin(theta));
+}
+
 vec3 sampleHemisphereUniform(vec2 uv) {
     uv = rand2(uv);
     float theta = acos(1 - uv.x);
@@ -111,7 +137,7 @@ bool traverseHERO(Ray ray, out vec3 c) {
         float current_bucket_size = node_size_stack[stackPtr];
         vec3 current_bucket_min = node_min_stack[stackPtr];
         if (stackPtr < 0) {
-            c = vec3(0, 0, 1);
+            c = vec3(0, 0, 0);
             return false;
         }
 
@@ -124,7 +150,7 @@ bool traverseHERO(Ray ray, out vec3 c) {
                 vec3 hit_location;
                 if (ray_surfel_intersection(s, ray, hit_location)) {
                     has_hit =true;//remvoe
-                    c = vec3(tries/1000.0f);
+                    c = s.radiance_direct_and_surface.xyz;
                     return true;
                     if (distance(hit_location, ray.origin) < closest_hit) {
                         closest_hit = distance(hit_location, ray.origin);
@@ -189,27 +215,33 @@ void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
     bitangent = cross(normal, tangent);
 }
 
-vec4 approx_lighting_for_pos(vec3 pos, vec3 normal, vec4 color_sampled_old) {
+vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sampled_old) {
     vec3 color_out = vec3(0.0f);
     vec3 color_pre = color_sampled_old.rgb;
     float sampled_pre = color_sampled_old.a;
     const int iterations = 2;
     for (int i = 0; i < iterations; i++) {
-        vec3 d =sampleHemisphereUniform(pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y);
+        vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y;
+        vec3 d =sampleHemisphereUniform(random_seed);
         vec3 tangent;
         vec3 bitangent;
 
+        
         getTangentBasis(normal, tangent, bitangent);
+
+        vec2 offset = sample_disk(rand2(random_seed)) * radius;
         vec3 s = normalize(normal * d.b + d.r * tangent + d.g * bitangent);
         s*= vec3(1.0);
         Ray r;
-        r.origin = pos;
+        r.origin = pos; //+ offset.x * tangent + offset.y * bitangent;
         r.direction = s;
         r.inverse_direction = 1.0f/s;
 
         vec3 c;
         if (!traverseHERO(r, c)) {
             color_out+=vec3(1.0);
+        } else {
+            color_out+=c;
         }
     }
     return vec4((color_out + color_pre * sampled_pre) / (iterations + sampled_pre)
@@ -285,7 +317,7 @@ void calculate_light_for_surfels_in_bucket(uint bucket_index, uint surfels_amoun
         Surfel s = surfels[bucket_index + i];
         
         if (is_ws_pos_contained_in_bb(s.mean_r.xyz, bb_min, bb_extension)) {
-            surfels[bucket_index + i].color = vec4(0,1,1,0);
+            surfels[bucket_index + i].radiance_ambient = vec4(0,1,1,0);
         }
 
     }
@@ -352,8 +384,7 @@ void main() {
                 vec3 surfel_pos = s.mean_r.xyz;
                 if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
                     //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
-                    vec4 c = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.normal.xyz, s.color);
-                    surfels[surfle_data_pointer + i].color = c;
+                    surfels[surfle_data_pointer + i].radiance_ambient = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.mean_r.w,s.normal.xyz, s.radiance_ambient);
                 }
             }
         }
