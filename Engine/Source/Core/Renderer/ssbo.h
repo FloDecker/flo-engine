@@ -83,6 +83,21 @@ public:
 		insert_data(data.data(),0,size_);
 	}
 
+	void* write_ssbo_to_cpu()
+	{
+		if (!initialized_)
+		{
+			return nullptr;
+		}
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
+		return glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+	}
+
+	static void unmap()
+	{
+		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	}
+
 private:
 	unsigned int size_ = 0;
 	unsigned int ssbo_id_ = 0;

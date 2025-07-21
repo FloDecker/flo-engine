@@ -29,9 +29,9 @@ struct surfel_octree_element
 
 struct surfel_gpu
 {
-	glm::vec4 position_r = {};
+	glm::vec4 position_r = {}; //position + radius 
 	glm::vec4 normal = {};
-	glm::vec4 radiance_ambient = {};
+	glm::vec4 radiance_ambient = {}; //radiance_ambient(frist bounce) + sample amout
 	glm::vec4 radiance_direct_and_surface = {};
 };
 
@@ -74,6 +74,7 @@ public:
 	bool insert_surfel_into_octree(surfel* surfel);
 	void generate_surfels_via_compute_shader() const;
 	void update_surfel_ao_via_compute_shader();
+	void find_best_world_positions_to_update_lighting() const;
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
 	bool remove_surfel(const surfel* surfel);
 
@@ -88,12 +89,13 @@ public:
 	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
 	                   max_gradient_difference);
 	bool insert_surfel(const surfel& surfel_to_insert);
-	void register_scene_data(Camera3D *camera, texture_2d* surfel_framebuffer_texture);
+	void register_scene_data(Camera3D *camera, texture_2d* surfel_framebuffer_texture, texture_2d* surfel_framebuffer_metadata_texture);
 	
 
 	//compute shader
 	compute_shader *insert_surfel_compute_shader;
 	compute_shader* compute_shader_approxmiate_ao;
+	compute_shader* compute_shader_find_least_shaded_pos;
 
 	void tick();
 
@@ -133,9 +135,12 @@ private:
 	ssbo_double_buffer<surfel_gpu>* surfel_ssbo_consumer_;
 	ssbo_double_buffer<surfel_octree_element>* surfels_octree_consumer_;
 
+	ssbo<surfel_allocation_metadata>* surfel_allocation_metadata;
+
+	ssbo<glm::vec4>* least_shaded_regions;
+
 	GLsync compute_fence_;
 	
-	ssbo<surfel_allocation_metadata>* surfel_allocation_metadata;
 
 	//a vector that holds all surfels currently used
 	std::vector<std::unique_ptr<surfel>> surfels_ = std::vector<std::unique_ptr<surfel>>();
@@ -161,6 +166,7 @@ private:
 	glm::uvec3 get_bucket_coordinates_from_ws(glm::vec3 ws_pos, int level) const;
 	glm::vec3 get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center, glm::vec<3, float> pos_relative) const;
 	glm::vec3 get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const;
+	static unsigned int get_bucket_amount_at_level(unsigned int level);
 	float node_size_at_level(unsigned int level) const;
 	bool insert_surfel_into_octree_recursive(surfel* surfel_to_insert, int current_layer, glm::vec3 current_center,
 	                                         int target_layer, int

@@ -40,6 +40,9 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	surfel_allocation_metadata->init_buffer_object(1, 2);
 	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(1, 1), 0);
 
+	least_shaded_regions = new ssbo<glm::vec4>();
+	least_shaded_regions->init_buffer_object(4096, 7);
+
 	insert_surfel_compute_shader = new compute_shader();
 	insert_surfel_compute_shader->loadFromFile("EngineContent/ComputeShader/SurfelInserter.glsl");
 	insert_surfel_compute_shader->compileShader();
@@ -47,6 +50,10 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	compute_shader_approxmiate_ao = new compute_shader();
 	compute_shader_approxmiate_ao->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
 	compute_shader_approxmiate_ao->compileShader();
+
+	compute_shader_find_least_shaded_pos = new compute_shader();
+	compute_shader_find_least_shaded_pos->loadFromFile("EngineContent/ComputeShader/LowestPosFinder.glsl");
+	compute_shader_find_least_shaded_pos->compileShader();
 }
 
 void SurfelManagerOctree::clear_samples()
@@ -180,16 +187,32 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 	std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
 	
 	std::set<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons = {};
+	find_best_world_positions_to_update_lighting();
+	GLsync computeFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
-	for (int j = 0; j < 64; j++)
+	GLenum result;
+	do {
+		result = glClientWaitSync(computeFence, GL_SYNC_FLUSH_COMMANDS_BIT, 1'000'000); // timeout in nanoseconds
+	} while (result == GL_TIMEOUT_EXPIRED);
+
+	// Optional: delete the sync object
+	glDeleteSync(computeFence);
+	
+	auto p = static_cast<glm::vec4*>(least_shaded_regions->write_ssbo_to_cpu());
+
+	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 128) + 1;
+	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 128) + 1;
+	
+	least_shaded_regions->unmap();
+	for (int j = 0; j < width * height; j++)
 	{
 		
-		glm::vec4 c;
-		camera_->get_camera()->get_render_target()->read_pixel(float_dist_0_1(gen),float_dist_0_1(gen),0,&c);
+		glm::vec3 c = p[j];
+		//camera_->get_camera()->get_render_target()->read_pixel(float_dist_0_1(gen),float_dist_0_1(gen),0,&c);
 		for (int i=0; i < octree_levels; i++)
 		{
 			auto b = get_bucket_coordinates_from_ws(glm::vec3(c), i);
-			auto g = std::pair<unsigned, std::array<unsigned, 3>>(static_cast<unsigned>(j),{b.x,b.y,b.z});
+			auto g = std::pair<unsigned, std::array<unsigned, 3>>(static_cast<unsigned>(i),{b.x,b.y,b.z});
 			sample_positons.insert(g);
 		}
 	}
@@ -203,6 +226,14 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 	
 }
 
+void SurfelManagerOctree::find_best_world_positions_to_update_lighting() const
+{
+	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 128);
+	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 128);
+	compute_shader_find_least_shaded_pos->use();
+	glDispatchCompute(width, height, 1);
+}
+
 void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const
 {
 		compute_shader_approxmiate_ao->use();
@@ -210,7 +241,6 @@ void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::u
 		compute_shader_approxmiate_ao->setUniformInt("calculation_level", level);
 		compute_shader_approxmiate_ao->set_uniform_vec3_u("pos_ws_start", value_ptr(pos_in_octree));
 		glDispatchCompute(3, 3, 3);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
 }
 
@@ -343,7 +373,8 @@ glm::vec3 SurfelManagerOctree::get_surfel_bucket_center(glm::vec3 ws_pos, int le
 glm::uvec3 SurfelManagerOctree::get_bucket_coordinates_from_ws(glm::vec3 ws_pos, int level) const
 {
 	auto node_size = node_size_at_level(level);
-	return glm::uvec3(floor((ws_pos + octree_total_extension * 0.5f) / node_size));
+	auto p = glm::uvec3(floor((ws_pos + octree_total_extension * 0.5f) / node_size));
+	return glm::clamp(p, glm::uvec3(0), glm::uvec3(get_bucket_amount_at_level(level)));
 }
 
 
@@ -360,6 +391,11 @@ glm::vec3 SurfelManagerOctree::get_center_of_sub_octree_level(int current_layer,
 glm::vec3 SurfelManagerOctree::get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const
 {
 	return glm::vec3(-octree_total_extension * 0.5f) + glm::vec3(octree_index) * node_size_at_level(layer);
+}
+
+unsigned int SurfelManagerOctree::get_bucket_amount_at_level(unsigned int level)
+{
+	return 1u<<level;
 }
 
 float SurfelManagerOctree::node_size_at_level(unsigned int level) const
@@ -990,7 +1026,7 @@ bool SurfelManagerOctree::insert_surfel(const surfel& surfel_to_insert)
 	return true;
 }
 
-void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surfel_framebuffer_texture)
+void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surfel_framebuffer_texture, texture_2d* surfel_framebuffer_metadata_texture)
 {
 	camera_ = camera;
 	auto t_pos = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
@@ -999,6 +1035,9 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surf
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
 	insert_surfel_compute_shader->addTexture(camera->get_scene()->get_scene_direct_light()->light_map(), "direct_light_map_texture");
+
+	compute_shader_find_least_shaded_pos->addTexture(t_pos, "gPos");
+	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_metadata_texture, "surfel_framebuffer_metadata");
 	
 }
 
@@ -1036,7 +1075,6 @@ void SurfelManagerOctree::tick()
 	case 0: //insert surfels
 		generate_surfels_via_compute_shader();
 		//std::printf("\n run generate_surfels_via_compute_shader");
-
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		break;
 	case 1: //compute ao

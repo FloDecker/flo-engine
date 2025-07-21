@@ -372,7 +372,7 @@ int main()
 
 
 	editorRenderContext->camera->set_render_target(&g_buffer);
-	scene->init_surfel_manager(editor3DCamera, framebuffer_surfel_pass_color);
+	scene->init_surfel_manager(editor3DCamera, framebuffer_surfel_pass_color, framebuffer_surfel_pass_debug);
 
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
@@ -448,6 +448,7 @@ int main()
 		surfel_buffer_shader->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_approxmiate_ao->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
+		scene->get_surfel_manager()->compute_shader_find_least_shaded_pos->recompile_if_changed();
 
 		//MAIN PASS:
 		editorRenderContext->camera->set_render_target(&g_buffer);
