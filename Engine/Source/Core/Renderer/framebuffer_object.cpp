@@ -83,7 +83,6 @@ texture_2d* framebuffer_object::get_color_attachment_at_index(unsigned int index
 	{
 		return nullptr;
 	}
-
 	return color_attachments_.at(index);
 	
 }
@@ -95,6 +94,31 @@ void framebuffer_object::add_size_change_listener(eventpp::CallbackList<void(glm
 	{
 		resize_attach_textures(i.x, i.y);
 	});
+}
+
+void framebuffer_object::read_pixel(const unsigned int x, const unsigned int y, const unsigned int color_attachment_id,
+	void* pixel_out) const
+{
+	if (color_attachment_id >= color_attachments_.size())
+	{
+		return;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + color_attachment_id);
+	color_attachments_.at(color_attachment_id)->get_pixel_value(x, y, pixel_out);
+}
+
+void framebuffer_object::read_pixel(float x, float y, unsigned int color_attachment_id, void* pixel_out) const
+{
+	if (color_attachment_id >= color_attachments_.size())
+	{
+		return;
+	}
+	
+	unsigned int w = color_attachments_.at(color_attachment_id)->width() * x;
+	unsigned int h = color_attachments_.at(color_attachment_id)->height() * y;
+	read_pixel(w,h,color_attachment_id,pixel_out);
+	return;
 }
 
 void framebuffer_object::generate_framebuffer()

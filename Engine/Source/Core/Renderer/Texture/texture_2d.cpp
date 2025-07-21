@@ -120,3 +120,8 @@ void texture_2d::generate_mip_map() const
 	glBindTexture(GL_TEXTURE_2D, texture_);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
+
+void texture_2d::get_pixel_value(unsigned int x, unsigned int y, void* pixel_out) const
+{
+	glReadPixels(x, y, 1, 1, format_, type_, pixel_out);
+}

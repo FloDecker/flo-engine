@@ -31,7 +31,7 @@ layout(std430, binding = 1) buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
-layout (local_size_x = 27, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 uniform int offset_id;
 uniform int calculation_level;
@@ -219,7 +219,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
     vec3 color_out = vec3(0.0f);
     vec3 color_pre = color_sampled_old.rgb;
     float sampled_pre = color_sampled_old.a;
-    const int iterations = 2;
+    const int iterations = 5;
     for (int i = 0; i < iterations; i++) {
         vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y;
         vec3 d =sampleHemisphereUniform(random_seed);
@@ -367,25 +367,27 @@ void main() {
     const uint level = calculation_level;
 
     float node_size_at_level = OCTREE_TOTOAL_EXTENSION / float(1<<level);
+    
+    uint flatIndex = gl_WorkGroupID.x +
+    gl_NumWorkGroups.x * (gl_WorkGroupID.y +
+    gl_NumWorkGroups.y * gl_WorkGroupID.z);
 
-    uvec3 center = gl_WorkGroupID * 3 + pos_offset_3x3[offset_id] + pos_ws_start;
+    uvec3 center = pos_ws_start;
     vec3 bb_min = vec3(-OCTREE_TOTOAL_EXTENSION * 0.5f) + center * node_size_at_level;
     vec3 bb_extension = vec3(node_size_at_level);
 
-    uvec3 offset_center = center + pos_offset_3x3[gl_LocalInvocationID.x];
+    uvec3 offset_center = center +  pos_offset_3x3[flatIndex] ;
     if (get_surfe_pointer_at_octree_pos(level, offset_center, p, metadata)){
         OctreeElement o = octreeElements[p];
 
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
-        if (surfels_amount > 0) {
+        if (gl_LocalInvocationID.x < surfels_amount) {
             uint surfle_data_pointer = o.surfels_at_layer_pointer;
-            for (int i = 0; i < surfels_amount; i++) {
-                Surfel s = surfels[surfle_data_pointer + i];
-                vec3 surfel_pos = s.mean_r.xyz;
-                if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
-                    //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
-                    surfels[surfle_data_pointer + i].radiance_ambient = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.mean_r.w,s.normal.xyz, s.radiance_ambient);
-                }
+            Surfel s = surfels[surfle_data_pointer + gl_LocalInvocationID.x];
+            vec3 surfel_pos = s.mean_r.xyz;
+            if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
+                //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
+                surfels[surfle_data_pointer + gl_LocalInvocationID.x].radiance_ambient = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.mean_r.w,s.normal.xyz, s.radiance_ambient);
             }
         }
     }

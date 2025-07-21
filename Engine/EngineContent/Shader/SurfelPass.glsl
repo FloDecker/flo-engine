@@ -59,11 +59,11 @@ struct OctreeElement
 
 
 //front buffers
-layout(std430, binding = 4) buffer SurfelBuffer {
+layout(std430, binding = 4) readonly buffer SurfelBuffer {
     Surfel surfels[];
 };
 
-layout(std430, binding = 6) buffer OctreeBuffer {
+layout(std430, binding = 6) readonly buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
@@ -232,8 +232,8 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 
-vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches, out bool hit_surfel) {
-    hit_surfel = false;
+vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage) {
+    surfel_coverage = 0;
     if (!is_ws_pos_contained_in_bb(pos, vec3(- total_extension * 0.5f), vec3(total_extension))) {
         return vec3(0.0);
     }
@@ -258,24 +258,21 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
         if (surfels_amount > 0) {
             surfle_data_pointer = o.surfels_at_layer_pointer;
             amount_texture_fetches++;
-            //return (vec3 (float(surfels_amount));
-            //return (vec3 (float(current_layer == 0)));
-            //return vec3(float(o.surfels_at_layer_pointer < 1550));
-            //sample all of the surfels in bucket
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 amount_texture_fetches++;
 
                 float d = distance(pos, s.mean_r.xyz);
-                //return vec3(1.0);
-                if (d < s.mean_r.w) {
+
+                if (d < s.mean_r.w ) {
                     if (dot(s.normal.xyz, normalWS) > 0.1) {
                         debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f;
+                        
                         float attenuation = 1.0f - d / s.mean_r.w;
                         final_color+=s.radiance_ambient.rgb*attenuation;
                         amount_contribution++;
                         feched_samples+=attenuation;
-                        hit_surfel = true;
+                        surfel_coverage += attenuation;
                     }
                 } else {
                     amount_innceseary_fetches++;
@@ -305,15 +302,15 @@ void main()
 
     int amount_texture_fetches;
     int amount_innceseary_fetches;
-    bool hit_surfel = false;
-    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,hit_surfel);
+    float surfel_coverage = 0.0;
+    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,surfel_coverage);
 
 
     OctreeElement f;
     vec3 x_v = surfels[0].mean_r.xyz;
     //uint x = octreeElements[7].surfels_at_layer_pointer;
 
-    gSurfel = vec4(d, float(hit_surfel));
+    gSurfel = vec4(d, surfel_coverage);
     gSurfelDebug = vec4(amount_texture_fetches,0,0,1);
     
     

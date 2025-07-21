@@ -16,6 +16,8 @@ public:
 	texture_2d* get_color_attachment_at_index(unsigned int index) const;
 	bool clear_before_rendering = true;
 	void add_size_change_listener(eventpp::CallbackList<void (glm::ivec2)>* texture_change_dispatcher) const;
+	void read_pixel(unsigned int x, unsigned int y, unsigned int color_attachment_id, void* pixel_out) const;
+	void read_pixel(float x, float y, unsigned int color_attachment_id, void* pixel_out) const;
 
 private:
 	void generate_framebuffer();

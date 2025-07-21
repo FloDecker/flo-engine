@@ -243,26 +243,7 @@ int main()
 
 	/////ADD SCENE GEOMETRY:
 
-	auto mSphere1 = new Mesh3D(scene->get_root(), sphere);
-	mSphere1->set_material(worldPosMat);
-	mSphere1->setPositionLocal(20, 0, 0);
-	mSphere1->setRotationLocalDegrees(0, 0, 0);
-	mSphere1->name = "sphere 1";
-
-	auto mSphere2 = new Mesh3D(scene->get_root(), sphere);
-	mSphere2->setPositionLocal(0, -1.5, -10);
-	mSphere2->name = "sphere 2";
-
-	auto test_triangle = new Mesh3D(scene->get_root(), me_test_triangle);
-	test_triangle->setPositionLocal(0, 0, -20);
-	test_triangle->name = "test_triangle";
-
-	auto mSphere3 = new Mesh3D(mSphere2, sphere);
-	mSphere3->setPositionLocal(0.9, -0.55, -4.3);
-	mSphere3->name = "sphere 3";
-	mSphere3->add_modifier(new physics_object_modifier(mSphere3));
-
-
+	
 	auto collision_test_cube_1 = new Mesh3D(scene->get_root(), cube);
 	collision_test_cube_1->name = "collision_test_cube_1";
 	collision_test_cube_1->set_position_global(0, -3, 0);
@@ -277,62 +258,11 @@ int main()
 	collision_test_cube_2->name = "collision_test_cube_2";
 	collision_test_cube_2->add_modifier(new box_collider(collision_test_cube_2));
 	collision_test_cube_2->add_modifier(new rigid_body(collision_test_cube_2));
-
-
-	auto mInertiaTest = new Mesh3D(scene->get_root(), me_inertia_test);
-	mInertiaTest->name = "mInertiaTest";
-	mInertiaTest->set_position_global(20, 20, 20);
+	
 
 	auto sky_sphere = new sky_box_simple_sky_sphere(scene->get_root());
 	//auto sky_sphere = new sky_box_atmospheric_scattering(scene->get_root());
-
-	rigid_body_mod = new rigid_body(mInertiaTest);
-	rigid_body_mod->mass = 20;
-	mInertiaTest->add_modifier(rigid_body_mod);
-
-	auto mSphere_phyics_1 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_1->set_material(worldPosMat);
-	mSphere_phyics_1->setPositionLocal(10, 0, 0);
-	mSphere_phyics_1->name = "mSphere_phyics_1";
-	auto spring1 = new mass_spring_point(mSphere_phyics_1);
-	spring1->is_fixed = true;
-	mSphere_phyics_1->add_modifier(spring1);
-
-	auto mSphere_phyics_2 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_2->set_material(worldPosMat);
-	mSphere_phyics_2->setPositionLocal(5, 0, 0);
-	mSphere_phyics_2->name = "mSphere_phyics_2";
-	auto spring2 = new mass_spring_point(mSphere_phyics_2);
-	spring2->damp = 1;
-	mSphere_phyics_2->add_modifier(spring2);
-
-
-	auto mSphere_phyics_3 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_3->set_material(worldPosMat);
-	mSphere_phyics_3->setPositionLocal(5, 2, 0);
-	mSphere_phyics_3->name = "mSphere_phyics_3";
-	auto spring3 = new mass_spring_point(mSphere_phyics_3);
-	spring3->damp = 1;
-	mSphere_phyics_3->add_modifier(spring3);
-
-	auto mSphere_phyics_4 = new Mesh3D(scene->get_root(), sphere);
-	mSphere_phyics_4->set_material(worldPosMat);
-	mSphere_phyics_4->setPositionLocal(10, 2, 0);
-	mSphere_phyics_4->name = "mSphere_phyics_4";
-	auto spring4 = new mass_spring_point(mSphere_phyics_4);
-	spring4->damp = 1;
-	spring4->is_fixed = true;
-	mSphere_phyics_4->add_modifier(spring4);
-
-
-	scene->get_physics_engine()->add_spring(spring1, spring2, 200.0);
-	scene->get_physics_engine()->add_spring(spring2, spring3, 200.0);
-	scene->get_physics_engine()->add_spring(spring3, spring4, 200.0);
-	scene->get_physics_engine()->add_spring(spring4, spring1, 200.0);
-	scene->get_physics_engine()->add_spring(spring3, spring1, 200.0);
-	scene->get_physics_engine()->add_spring(spring2, spring4, 200.0);
-
-
+	
 	//TODO: this call should be automatically called when changing the scene
 	scene->recalculate_from_root();
 
@@ -405,7 +335,7 @@ int main()
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
 
 	auto g_buffer = framebuffer_object();
-	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_ws, 0);
+	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_ws, 0); //THIS IS ALSO USED ELSEWHERE DON'T CHANGE ATTACHMENT IDS
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_normal, 1);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_albedo, 2);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_render_flags, 3);

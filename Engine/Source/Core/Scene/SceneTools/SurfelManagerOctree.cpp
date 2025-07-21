@@ -168,79 +168,50 @@ void SurfelManagerOctree::generate_surfels_via_compute_shader() const
 			                                                 glm::value_ptr(camera_->getWorldPosition()));
 
 			glDispatchCompute(t->width(), t->height(), 1);
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		}
 	}
 }
 
 void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 {
+	std::random_device rd; // Seed the random number generator
+	std::mt19937 gen(rd()); // Mersenne Twister PRNG
+	std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
+	
+	std::set<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons = {};
 
-	constexpr GLuint segmented_calculation_min_level = 3;
-	ray_cast_result r;
-	StructBoundingBox b;
-	auto level_to_update = 0;
-	auto pos_in_octree_to_update = glm::uvec3();
-	auto size_to_update = glm::uvec3();
-	do
+	for (int j = 0; j < 64; j++)
 	{
-		if (light_update_current_level_ <= segmented_calculation_min_level)
+		
+		glm::vec4 c;
+		camera_->get_camera()->get_render_target()->read_pixel(float_dist_0_1(gen),float_dist_0_1(gen),0,&c);
+		for (int i=0; i < octree_levels; i++)
 		{
-			level_to_update = light_update_current_level_;
-			pos_in_octree_to_update = glm::uvec3();
-			size_to_update = glm::uvec3(1 << light_update_current_level_);
-			light_update_current_level_++;
+			auto b = get_bucket_coordinates_from_ws(glm::vec3(c), i);
+			auto g = std::pair<unsigned, std::array<unsigned, 3>>(static_cast<unsigned>(j),{b.x,b.y,b.z});
+			sample_positons.insert(g);
 		}
-		else
-		{
-			auto l = 1 << (light_update_current_level_ - segmented_calculation_min_level);
-			GLuint z = light_update_current_pos_ % l;
-			GLuint y = (light_update_current_pos_ / l) % l;
-			GLuint x = light_update_current_pos_ / (l * l);
-
-			level_to_update = light_update_current_level_;
-			pos_in_octree_to_update = glm::uvec3(x, y, z) * 1u << segmented_calculation_min_level;
-			size_to_update = glm::uvec3(1 << segmented_calculation_min_level);
-
-
-			light_update_current_pos_++;
-			if (light_update_current_pos_ >= l * l * l)
-			{
-				light_update_current_pos_ = 0;
-				light_update_current_level_++;
-			}
-
-			if (light_update_current_level_ >= octree_levels)
-			{
-				light_update_current_level_ = 0;
-				light_update_current_pos_ = 0;
-			}
-		}
-
-		auto size = size_to_update.x * node_size_at_level(level_to_update);
-		b = StructBoundingBox(get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update),
-							  get_ws_bucket_lowest_edge_from_octree_index(level_to_update, pos_in_octree_to_update) +
-							  glm::vec3(size_to_update) * node_size_at_level(level_to_update));
-		r = scene_->proximity_check_in_scene(BoundingBoxHelper::get_center_of_bb(&b), size);
 	}
-	while (r.hit == false);
 
-	scene_->get_debug_tools()->draw_debug_cube(&b);
-	compute_shader_ao_approximation(level_to_update, pos_in_octree_to_update, size_to_update);
+	for (auto sample_positon : sample_positons)
+	{
+		compute_shader_ao_approximation(sample_positon.first, {sample_positon.second[0],sample_positon.second[1],sample_positon.second[2]});
+	}
+	
+
+	
 }
 
-void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree,
-                                                          glm::uvec3 size) const
+void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const
 {
-	for (int i = 0; i < 27; i++)
-	{
 		compute_shader_approxmiate_ao->use();
-		compute_shader_approxmiate_ao->setUniformInt("offset_id", i);
+		compute_shader_approxmiate_ao->setUniformInt("offset_id", 0);
 		compute_shader_approxmiate_ao->setUniformInt("calculation_level", level);
 		compute_shader_approxmiate_ao->set_uniform_vec3_u("pos_ws_start", value_ptr(pos_in_octree));
-		glDispatchCompute(size.x, size.y, size.z);
-		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	}
+		glDispatchCompute(3, 3, 3);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	
 }
 
 bool SurfelManagerOctree::remove_surfel(const surfel* surfel)
@@ -367,6 +338,12 @@ glm::vec3 SurfelManagerOctree::get_surfel_bucket_center(glm::vec3 ws_pos, int le
 	ws_pos *= bucket_amount_at_level * 0.5f;
 	ws_pos = glm::floor(ws_pos) + 0.5f;
 	return ws_pos * bucket_extension_ws;
+}
+
+glm::uvec3 SurfelManagerOctree::get_bucket_coordinates_from_ws(glm::vec3 ws_pos, int level) const
+{
+	auto node_size = node_size_at_level(level);
+	return glm::uvec3(floor((ws_pos + octree_total_extension * 0.5f) / node_size));
 }
 
 
@@ -1047,6 +1024,7 @@ void SurfelManagerOctree::tick()
 		}
 		else
 		{
+			//std::printf(" |");
 			return;
 		}
 	}
@@ -1057,36 +1035,31 @@ void SurfelManagerOctree::tick()
 
 	case 0: //insert surfels
 		generate_surfels_via_compute_shader();
+		//std::printf("\n run generate_surfels_via_compute_shader");
+
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		break;
 	case 1: //compute ao
 		update_surfel_ao_via_compute_shader();
+		//std::printf("\n run update_surfel_ao_via_compute_shader");
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
 		break;
 	case 2: //copying from compute buffer to backbuffer
 		copy_data_from_compute_to_back_buffer();
+		//std::printf("\n run copy_data_from_compute_to_back_buffer");
+
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		break;
 	case 3: //swap front and backbuffer
 		swap_surfel_buffers();
+		//std::printf("\n run swap_surfel_buffers");
+
 		manager_state_ = -1;
 		break;
 	default:
 		manager_state_ = -1;
 	}
-	
-	//generate new surfels
-	if (tick_amount_ % 2 == 0)
-	{
-		
-		return;
-	}
-
-
-
-
-	
-	compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
 void SurfelManagerOctree::copy_data_from_compute_to_back_buffer() const

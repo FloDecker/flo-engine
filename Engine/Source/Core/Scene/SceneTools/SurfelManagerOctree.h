@@ -74,7 +74,7 @@ public:
 	bool insert_surfel_into_octree(surfel* surfel);
 	void generate_surfels_via_compute_shader() const;
 	void update_surfel_ao_via_compute_shader();
-	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree, glm::uvec3 size) const;
+	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
 	bool remove_surfel(const surfel* surfel);
 
 
@@ -158,6 +158,7 @@ private:
 	static unsigned int get_surfel_count_in_octree_element(const surfel_octree_element* surfel_octree_element);
 	bool insert_surfel_in_surrounding_buckets(surfel* surfel, int target_layer);
 	glm::vec3 get_surfel_bucket_center(glm::vec3 ws_pos, int level) const;
+	glm::uvec3 get_bucket_coordinates_from_ws(glm::vec3 ws_pos, int level) const;
 	glm::vec3 get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center, glm::vec<3, float> pos_relative) const;
 	glm::vec3 get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const;
 	float node_size_at_level(unsigned int level) const;

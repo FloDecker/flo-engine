@@ -35,6 +35,7 @@ public:
 	void resize(unsigned int width, unsigned int height);
 	void generate_mip_map() const;
 
+	void get_pixel_value(unsigned int x, unsigned int y, void* pixel_out) const;
 	[[nodiscard]] int width() const
 	{
 		return width_;

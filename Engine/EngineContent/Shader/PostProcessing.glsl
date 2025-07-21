@@ -291,6 +291,7 @@ void main()
     vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
     
     vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
+
     vec3 normal_ws = vec3(texture(gNormal, TexCoords_scaled));
     vec3 pos_ws = vec3(texture(gPos, TexCoords_scaled));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
