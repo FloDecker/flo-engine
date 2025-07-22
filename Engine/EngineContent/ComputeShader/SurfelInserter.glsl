@@ -66,6 +66,7 @@ uniform int calculation_level;
 
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
+uniform sampler2D gAlbedo;
 uniform sampler2D gSurfels;
 
 uniform vec3 camera_position;
@@ -187,7 +188,7 @@ bool is_inside_shadow_map_frustum(vec3 vertexPosWs) {
 }
 
 
-float in_light_map_shadow(vec3 vertexPosWs) {
+bool in_light_map_shadow(vec3 vertexPosWs) {
     vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
     vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
     projCoords = projCoords * 0.5 + 0.5;
@@ -195,9 +196,9 @@ float in_light_map_shadow(vec3 vertexPosWs) {
     float currentDepth = projCoords.z;
     float lm_depth = light_map_at(projCoords.xy);
     if (currentDepth - bias > lm_depth) {
-        return 0;
+        return true;
     }
-    return 1;
+    return false;
 }
 
 
@@ -363,6 +364,7 @@ void main() {
 
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
+    vec3 albedo = vec3(texture(gAlbedo, TexCoords));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
     if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION))) {
@@ -424,7 +426,11 @@ void main() {
     Surfel s;
     s.mean_r = vec4(pos_ws, radius);
     s.radiance_ambient = vec4(1.0);
-    s.radiance_direct_and_surface = vec4(in_light_map_shadow(pos_ws)) * 1.0;
+    
+    vec3 direct_light = (in_light_map_shadow(pos_ws) ? vec3(0.0) : 
+    direct_light_intensity * direct_light_color * albedo);
+    
+    s.radiance_direct_and_surface = vec4(direct_light ,1.0);
     s.normal = vec4(normal_ws,0);
     
     

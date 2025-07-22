@@ -188,6 +188,7 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 	
 	std::set<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons = {};
 	find_best_world_positions_to_update_lighting();
+	
 	GLsync computeFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
 	GLenum result;
@@ -195,7 +196,6 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 		result = glClientWaitSync(computeFence, GL_SYNC_FLUSH_COMMANDS_BIT, 1'000'000); // timeout in nanoseconds
 	} while (result == GL_TIMEOUT_EXPIRED);
 
-	// Optional: delete the sync object
 	glDeleteSync(computeFence);
 	
 	auto p = static_cast<glm::vec4*>(least_shaded_regions->write_ssbo_to_cpu());
@@ -219,7 +219,10 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 
 	for (auto sample_positon : sample_positons)
 	{
-		compute_shader_ao_approximation(sample_positon.first, {sample_positon.second[0],sample_positon.second[1],sample_positon.second[2]});
+		unsigned int level = sample_positon.first;
+		glm::uvec3 coordinates = {sample_positon.second[0],sample_positon.second[1],sample_positon.second[2]};
+		//scene_->get_debug_tools()->draw_debug_point(get_ws_bucket_center_from_octree_index(level, coordinates),0, {1,0,0});
+		compute_shader_ao_approximation(level, coordinates);
 	}
 	
 
@@ -392,6 +395,11 @@ glm::vec3 SurfelManagerOctree::get_ws_bucket_lowest_edge_from_octree_index(int l
 {
 	return glm::vec3(-octree_total_extension * 0.5f) + glm::vec3(octree_index) * node_size_at_level(layer);
 }
+
+glm::vec3 SurfelManagerOctree::get_ws_bucket_center_from_octree_index(int layer, glm::uvec3 octree_index) const
+{
+	return get_ws_bucket_lowest_edge_from_octree_index(layer, octree_index) + glm::vec3(node_size_at_level(layer)*0.5f);
+}	
 
 unsigned int SurfelManagerOctree::get_bucket_amount_at_level(unsigned int level)
 {
@@ -1031,8 +1039,10 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surf
 	camera_ = camera;
 	auto t_pos = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
 	auto t_normal = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
+	auto t_albedo = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(2);
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
+	insert_surfel_compute_shader->addTexture(t_albedo, "gAlbedo");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
 	insert_surfel_compute_shader->addTexture(camera->get_scene()->get_scene_direct_light()->light_map(), "direct_light_map_texture");
 

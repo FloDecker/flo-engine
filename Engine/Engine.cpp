@@ -225,6 +225,9 @@ int main()
 	auto me_inertia_test = loadModel("EngineContent/inertiaTest_mass_center.fbx");
 	me_inertia_test->initializeVertexArrays();
 
+	auto me_simple_building = loadModel("EngineContent/SimpleBuilding.fbx");
+	me_simple_building->initializeVertexArrays();
+
 	//init shaders
 
 	//auto* gaussian_gi_shader = new ShaderProgram();
@@ -239,6 +242,10 @@ int main()
 	auto* grey_shader = new ShaderProgram();
 	grey_shader->loadFromFile("EngineContent/Shader/BasicGrey.glsl");
 	grey_shader->compileShader();
+
+	auto* green_shader = new ShaderProgram();
+	green_shader->loadFromFile("EngineContent/Shader/BasicGreen.glsl");
+	green_shader->compileShader();
 	
 
 	/////ADD SCENE GEOMETRY:
@@ -290,14 +297,19 @@ int main()
 	object_house->set_material(grey_shader);
 	object_house->set_position_global(-12,-1.7,0);
 	object_house->setRotationLocal(-90,0,0);
-	new plane_3d(scene->get_root());
 
 	auto object_landscape = new Mesh3D(scene->get_root(), me_test_landscape);
 	object_landscape->name = "object_landscape";
-	//object_house->set_material(gaussian_gi_shader);
+	object_landscape->set_material(green_shader);
 	object_landscape->set_position_global(-12,-1.7,0);
 	object_landscape->setRotationLocal(-90,0,0);
-	new plane_3d(scene->get_root());
+
+	
+	auto object_simple_building = new Mesh3D(scene->get_root(), me_simple_building);
+	object_simple_building->name = "object_simple_building";
+	object_simple_building->set_material(grey_shader);
+	object_simple_building->set_position_global(-40,-5,0);
+	object_simple_building->setRotationLocal(-90,-90,0);
 
 	//object_plane->setScale(20);
 
@@ -317,19 +329,19 @@ int main()
 
 	//albedo
     auto framebuffer_texture_albedo = new texture_2d();
-    framebuffer_texture_albedo->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+    framebuffer_texture_albedo->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,GL_LINEAR);
 
 	//normal
 	auto framebuffer_texture_normal = new texture_2d();
-	framebuffer_texture_normal->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGB16F, GL_RGB, GL_FLOAT);
+	framebuffer_texture_normal->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGB16F, GL_RGB, GL_FLOAT,GL_LINEAR);
 
 	//pos
 	auto framebuffer_texture_ws = new texture_2d();
-	framebuffer_texture_ws->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGB16F, GL_RGB, GL_FLOAT);
+	framebuffer_texture_ws->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGB16F, GL_RGB, GL_FLOAT,GL_LINEAR);
 
 	//g-buffer-flags
 	auto framebuffer_render_flags = new texture_2d();
-	framebuffer_render_flags->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_R16UI, GL_RED_INTEGER,  GL_UNSIGNED_SHORT);
+	framebuffer_render_flags->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT,GL_NEAREST);
 
 	auto framebuffer_texture_depth = new texture_2d();
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
@@ -346,11 +358,11 @@ int main()
 	
 	//stores r,g,b surfel radiance_ambient a = 0 no surfel a = 1 surfel 
 	auto framebuffer_surfel_pass_color = new texture_2d();
-	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
+	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
 	//stores r,g,b surfel radiance_ambient a = 0 no surfel a = 1 surfel 
 	auto framebuffer_surfel_pass_debug = new texture_2d();
-	framebuffer_surfel_pass_debug->initialize_as_frame_buffer(windowSize.x, windowSize.y,GL_RGBA16F, GL_RGBA, GL_FLOAT);
+	framebuffer_surfel_pass_debug->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
 	
 

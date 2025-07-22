@@ -174,7 +174,7 @@ vec3 get_distance_blur(float distance) {
 }
 
 vec3 get_ao_color(){
-    return vec3(80.0/255.0,156.0/255.0,250.0/255.0);
+    return vec3(80.0/255.0,156.0/255.0,250.0/255.0) * 0.3f;
 }
 
 float in_light_map_shadow() {
@@ -241,7 +241,9 @@ float in_light_map_shadow(vec3 vertexPosWs) {
     vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
     vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
     projCoords = projCoords * 0.5 + 0.5;
-
+    
+    float pcfDepth = light_map_at(projCoords.xy, 0);
+    if(pcfDepth == 1) return 0;
     float currentDepth = projCoords.z;
 
     float distance = occluder_distance_estimation(currentDepth, projCoords.xy,vertexPosWs);
@@ -251,7 +253,7 @@ float in_light_map_shadow(vec3 vertexPosWs) {
 
 /////////////////
 
-vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer){
+vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer, bool has_surfel){
     vec3 lightDir = normalize(direct_light_direction);
     vec3 viewDir = normalize(cameraPosWs-vertexPosWs);
 
@@ -274,10 +276,11 @@ vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer){
     float diffEase = 1 - pow(1 - _light_diffuse_intensity, 3);
     float specIntensity = clamp(pow(specAngle, _specularExponent)*diffEase,0,1);
     
-    return vec3(
-    _light_diffuse_intensity * in_light * albedo * direct_light_color +
-    specIntensity * in_light * direct_light_color * direct_light_intensity +
-     _ambientLightIntensity * _ambientMaterialConstant * get_ao_color() * surfel_buffer);
+    vec3 diffuse_part = _light_diffuse_intensity * in_light * albedo * direct_light_color;
+    vec3 specular_part = specIntensity * in_light * direct_light_color * direct_light_intensity;
+    vec3 ambient_part = _ambientLightIntensity * _ambientMaterialConstant * (has_surfel ? surfel_buffer:get_ao_color());
+
+    return diffuse_part + specular_part + ambient_part;
 
 }
 
@@ -288,7 +291,7 @@ vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer){
 void main()
 {
 
-    vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
+    vec2 TexCoords_scaled = TexCoords;// * vec2(2.0f); 
     
     vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
 
@@ -311,11 +314,12 @@ void main()
     vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
     vec3 final_color = vec3(0.0);
     if (flags == 0) {
-        final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb);
+        final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb, surfel_buffer.w > 0);
     } else {
         final_color = albedo;
     }
-    
+    FragColor = vec4(final_color, 1.0);
+    return;
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);
         return;

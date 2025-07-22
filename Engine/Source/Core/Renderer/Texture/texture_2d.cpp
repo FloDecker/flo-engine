@@ -51,7 +51,8 @@ void texture_2d::initialize_as_depth_map_render_target(const unsigned int width,
 	initialized_ = true;
 }
 
-void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int height, unsigned int internalformat, unsigned int format, unsigned int type)
+void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int height, unsigned int internalformat, unsigned int format, unsigned int type, unsigned
+                                            int texture_filtering)
 {
 	if (initialized_)
 	{
@@ -62,14 +63,15 @@ void texture_2d::initialize_as_frame_buffer(unsigned int width, unsigned int hei
 	internalformat_ = internalformat;
 	format_ = format;
 	type_ = type;
+	filtering_ = texture_filtering;
 
 	glGenTextures(1, &texture_);
 	glBindTexture(GL_TEXTURE_2D, texture_);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width_, height_, 0, format, type, nullptr);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering_);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering_);
 	texture_type_ = FRAME_BUFFER_COLOR;
 
 	initialized_ = true;

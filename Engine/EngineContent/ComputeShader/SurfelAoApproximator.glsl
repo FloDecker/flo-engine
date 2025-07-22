@@ -37,6 +37,11 @@ uniform int offset_id;
 uniform int calculation_level;
 uniform uvec3 pos_ws_start;
 
+vec3 get_ao_color(){
+    return vec3(80.0/255.0,156.0/255.0,250.0/255.0);
+}
+
+
 
 uint bitmask_surfel_amount = 0x00FFFFFF;
 
@@ -239,9 +244,9 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
 
         vec3 c;
         if (!traverseHERO(r, c)) {
-            color_out+=vec3(1.0);
+            color_out+=get_ao_color(); //no object intersected -> skycolor
         } else {
-            color_out+=c;
+            color_out+=c; //object intersected -> return object color;
         }
     }
     return vec4((color_out + color_pre * sampled_pre) / (iterations + sampled_pre)
@@ -311,18 +316,6 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 
 }
 
-void calculate_light_for_surfels_in_bucket(uint bucket_index, uint surfels_amount, vec3 bb_min, vec3 bb_extension) {
-
-    for (int i = 0; i < surfels_amount; i++) { 
-        Surfel s = surfels[bucket_index + i];
-        
-        if (is_ws_pos_contained_in_bb(s.mean_r.xyz, bb_min, bb_extension)) {
-            surfels[bucket_index + i].radiance_ambient = vec4(0,1,1,0);
-        }
-
-    }
-
-}
 
 const uvec3 pos_offset_3x3[27] = {
 

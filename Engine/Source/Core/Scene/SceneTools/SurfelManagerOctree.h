@@ -166,6 +166,7 @@ private:
 	glm::uvec3 get_bucket_coordinates_from_ws(glm::vec3 ws_pos, int level) const;
 	glm::vec3 get_center_of_sub_octree_level(int current_layer, glm::vec3 current_center, glm::vec<3, float> pos_relative) const;
 	glm::vec3 get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const;
+	glm::vec3 get_ws_bucket_center_from_octree_index(int layer, glm::uvec3 octree_index) const;
 	static unsigned int get_bucket_amount_at_level(unsigned int level);
 	float node_size_at_level(unsigned int level) const;
 	bool insert_surfel_into_octree_recursive(surfel* surfel_to_insert, int current_layer, glm::vec3 current_center,

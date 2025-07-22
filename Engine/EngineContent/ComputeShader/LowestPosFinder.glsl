@@ -10,10 +10,18 @@ layout(std430, binding = 7) buffer LeastShaded {
     vec4 least_shaded_regions[];
 };
 
-shared int min_value = 5000000;
-shared vec3 ws_pos_of_min = vec3(0);
+shared int min_value;
+shared vec3 ws_pos_of_min;
 
 void main() {
+    
+    //thread 0,0  initalizes varaibles 
+    if (gl_LocalInvocationID.xy != uvec2(0)) {
+        min_value  = 5000000;
+        ws_pos_of_min = vec3(0);
+    }
+    barrier();
+    
 
     uvec2 size_texutre = uvec2(textureSize(surfel_framebuffer_metadata,0).xy);
     
