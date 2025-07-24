@@ -396,7 +396,7 @@ void main() {
     
     uvec2 required_pixel_interval = uvec2(target_radius_pixels );
 
-    if (surfel_buffer.a > 0.5) {
+    if (surfel_buffer.a > 0.1) {
         return;
     }
 

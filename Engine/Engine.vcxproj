@@ -796,6 +796,7 @@
         <Content Include="EngineContent\CanyonGroundRock_basecolor.png" />
         <Content Include="EngineContent\ComputeShader\LowestPosFinder.glsl" />
         <Content Include="EngineContent\ComputeShader\SurfelAoApproximator.glsl" />
+        <Content Include="EngineContent\ComputeShader\SurfelAoApproximatorParallelized.glsl" />
         <Content Include="EngineContent\ComputeShader\SurfelInserter.glsl" />
         <Content Include="EngineContent\coordinates.fbx" />
         <Content Include="EngineContent\coordinates2.fbx" />

@@ -206,6 +206,9 @@ int main()
 	//load models 
 	auto plane = loadModel("EngineContent/Plane.fbx");
 	plane->initializeVertexArrays();
+	
+	auto me_temple = loadModel("EngineContent/temple.fbx");
+	me_temple->initializeVertexArrays();
 
 	auto sphere = loadModel("EngineContent/Sphere.fbx");
 	sphere->initializeVertexArrays();
@@ -310,6 +313,12 @@ int main()
 	object_simple_building->set_material(grey_shader);
 	object_simple_building->set_position_global(-40,-5,0);
 	object_simple_building->setRotationLocal(-90,-90,0);
+	
+	auto object_temple = new Mesh3D(scene->get_root(), me_temple);
+	object_temple->name = "me_temple";
+	object_temple->set_material(grey_shader);
+	object_temple->set_position_global(40,-5,0);
+	object_temple->setRotationLocal(-90,-90,0);
 
 	//object_plane->setScale(20);
 

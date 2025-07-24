@@ -291,7 +291,8 @@ vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer, boo
 void main()
 {
 
-    vec2 TexCoords_scaled = TexCoords;// * vec2(2.0f); 
+    //vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
+    vec2 TexCoords_scaled = TexCoords; 
     
     vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
 
@@ -318,8 +319,8 @@ void main()
     } else {
         final_color = albedo;
     }
-    FragColor = vec4(final_color, 1.0);
-    return;
+   FragColor = vec4(final_color, 1.0);
+   return;
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);
         return;
@@ -328,10 +329,9 @@ void main()
     if (TexCoords_scaled.x < 1.0) {
         if (TexCoords_scaled.y > 1.0) {
 
-            FragColor = vec4(clamp(surfel_buffer.rgb, vec3(0),vec3(1)) , 1.0);
+            FragColor = vec4(clamp(normal_ws.rgb, vec3(0),vec3(1)) , 1.0);
         } else {
-            FragColor = vec4(vec3(lightmap), 1.0);
-
+            FragColor = vec4(vec3(surfel_buffer_debug.g * 0.001f),1.0);
         }
     } else {
         if (TexCoords_scaled.y > 1.0) {

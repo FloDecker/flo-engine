@@ -200,28 +200,35 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 	
 	auto p = static_cast<glm::vec4*>(least_shaded_regions->write_ssbo_to_cpu());
 
-	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 128) + 1;
-	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 128) + 1;
+	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 32) + 1;
+	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 32) + 1;
 	
 	least_shaded_regions->unmap();
 	for (int j = 0; j < width * height; j++)
 	{
 		
-		glm::vec3 c = p[j];
-		//camera_->get_camera()->get_render_target()->read_pixel(float_dist_0_1(gen),float_dist_0_1(gen),0,&c);
-		for (int i=0; i < octree_levels; i++)
+		glm::vec4 c = p[j];
+		if (c.w < 0)
 		{
-			auto b = get_bucket_coordinates_from_ws(glm::vec3(c), i);
-			auto g = std::pair<unsigned, std::array<unsigned, 3>>(static_cast<unsigned>(i),{b.x,b.y,b.z});
-			sample_positons.insert(g);
+			continue;
 		}
+		//camera_->get_camera()->get_render_target()->read_pixel(float_dist_0_1(gen),float_dist_0_1(gen),0,&c);
+
+		int level = c.w;
+		auto b = get_bucket_coordinates_from_ws(glm::vec3(c), level);
+		auto g = std::pair<unsigned, std::array<unsigned, 3>>(static_cast<unsigned>(level),{b.x,b.y,b.z});
+		sample_positons.insert(g);
+		
 	}
 
 	for (auto sample_positon : sample_positons)
 	{
 		unsigned int level = sample_positon.first;
 		glm::uvec3 coordinates = {sample_positon.second[0],sample_positon.second[1],sample_positon.second[2]};
-		//scene_->get_debug_tools()->draw_debug_point(get_ws_bucket_center_from_octree_index(level, coordinates),0, {1,0,0});
+		auto b = StructBoundingBox();
+		b.min = get_ws_bucket_lowest_edge_from_octree_index(level, coordinates);
+		b.max = b.min + node_size_at_level(level);
+		scene_->get_debug_tools()->draw_debug_cube(&b);
 		compute_shader_ao_approximation(level, coordinates);
 	}
 	
@@ -231,8 +238,8 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 
 void SurfelManagerOctree::find_best_world_positions_to_update_lighting() const
 {
-	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 128);
-	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 128);
+	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 32);
+	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 32);
 	compute_shader_find_least_shaded_pos->use();
 	glDispatchCompute(width, height, 1);
 }

@@ -75,7 +75,7 @@ auto FRAGMENT_SHADER_FOOTHER_DEFERRED_PASS =
 	"#ifdef DEFAULT_VERTEX_SHADER\n"
 	"void main(){\n"
 	"gPosition = pos_ws;\n"
-	"gNormal = normal_ws;\n"
+	"gNormal = normalize(normal_ws);\n"
 	"gAlbedoSpec = vec4(1,1,0,1);\n"
 	"gRenderFlags = 0u;\n"
 	"main_u();\n"
