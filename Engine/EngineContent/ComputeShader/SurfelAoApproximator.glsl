@@ -1,7 +1,7 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
-
+#define ITERATIONS 3
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -224,8 +224,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
     vec3 color_out = vec3(0.0f);
     vec3 color_pre = color_sampled_old.rgb;
     float sampled_pre = color_sampled_old.a;
-    const int iterations = 5;
-    for (int i = 0; i < iterations; i++) {
+    for (int i = 0; i < ITERATIONS; i++) {
         vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y;
         vec3 d =sampleHemisphereUniform(random_seed);
         vec3 tangent;
@@ -249,8 +248,8 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
             color_out+=c; //object intersected -> return object color;
         }
     }
-    return vec4((color_out + color_pre * sampled_pre) / (iterations + sampled_pre)
-    , sampled_pre + iterations);
+    return vec4((color_out + color_pre * sampled_pre) / (ITERATIONS + sampled_pre)
+    , sampled_pre + ITERATIONS);
 }
 
 
@@ -353,7 +352,6 @@ uvec3(-1, -1, -1),
 };
 
 void main() {
-
     uint p;
     vec3 metadata = vec3(0.0);
     

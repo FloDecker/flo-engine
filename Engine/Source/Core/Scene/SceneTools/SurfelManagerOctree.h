@@ -89,7 +89,7 @@ public:
 	bool merge_surfels(const surfel* s_1, const surfel* s_2, const surfel& new_surfel, std::set<surfel*>& additional_overlaps, float
 	                   max_gradient_difference);
 	bool insert_surfel(const surfel& surfel_to_insert);
-	void register_scene_data(Camera3D *camera, texture_2d* surfel_framebuffer_texture, texture_2d* surfel_framebuffer_metadata_texture);
+	void register_scene_data(Camera3D *camera, const framebuffer_object* surfel_framebuffer);
 	
 
 	//compute shader

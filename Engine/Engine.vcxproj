@@ -153,7 +153,9 @@
         <ClCompile Include="Engine.cpp"/>
         <ClCompile Include="Source\Content\Mesh.cpp"/>
         <ClCompile Include="Source\Core\Editor\GlobalContext.cpp"/>
+        <ClCompile Include="Source\Core\Editor\performance_metrics.cpp" />
         <ClCompile Include="Source\Core\GUI\GUIBase.cpp"/>
+        <ClCompile Include="Source\Core\GUI\gui_performance_metrics.cpp" />
         <ClCompile Include="Source\Core\GUI\gui_scene_tools.cpp"/>
         <ClCompile Include="Source\Core\GUI\GUIManager.cpp"/>
         <ClCompile Include="Source\Core\GUI\LogGUI.cpp"/>
@@ -687,7 +689,9 @@
         <ClInclude Include="Source\Core\CommonDataStructures\StructBoundingBox.h" />
         <ClInclude Include="Source\Core\CommonDataStructures\StructVertexArray.h" />
         <ClInclude Include="Source\Core\Editor\GlobalContext.h" />
+        <ClInclude Include="Source\Core\Editor\performance_metrics.h" />
         <ClInclude Include="Source\Core\GUI\GUIBase.h" />
+        <ClInclude Include="Source\Core\GUI\gui_performance_metrics.h" />
         <ClInclude Include="Source\Core\GUI\gui_scene_tools.h" />
         <ClInclude Include="Source\Core\GUI\GUIManager.h" />
         <ClInclude Include="Source\Core\GUI\LogGUI.h" />

@@ -21,7 +21,8 @@ uniform sampler2D gAlbedo;
 uniform sampler2D dpeth_framebuffer;
 uniform sampler2D light_map;
 uniform sampler2D gSurfels;
-uniform sampler2D gSurfelsDebug;
+uniform sampler2D surfel_framebuffer_metadata_0;
+uniform sampler2D surfel_framebuffer_metadata_1;
 uniform usampler2D gRenderFlags;
 
 
@@ -291,15 +292,16 @@ vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer, boo
 void main()
 {
 
-    //vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
-    vec2 TexCoords_scaled = TexCoords; 
+    vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
+    // vec2 TexCoords_scaled = TexCoords; 
     
     vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
 
     vec3 normal_ws = vec3(texture(gNormal, TexCoords_scaled));
     vec3 pos_ws = vec3(texture(gPos, TexCoords_scaled));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
-    vec4 surfel_buffer_debug = vec4(texture(gSurfelsDebug, TexCoords_scaled));
+    vec4 surfel_metadata_0 = vec4(texture(surfel_framebuffer_metadata_0, TexCoords_scaled));
+    vec4 surfel_metadata_1 = vec4(texture(surfel_framebuffer_metadata_1, TexCoords_scaled));
     float depth = texture(dpeth_framebuffer, TexCoords_scaled).x;
     uint flags = texture(gRenderFlags, TexCoords_scaled).r;
     vec3 lightmap = texture(direct_light_map_texture, TexCoords_scaled).rgb;
@@ -319,8 +321,8 @@ void main()
     } else {
         final_color = albedo;
     }
-   FragColor = vec4(final_color, 1.0);
-   return;
+    //FragColor = vec4(final_color, 1.0);
+    //return;
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);
         return;
@@ -331,11 +333,11 @@ void main()
 
             FragColor = vec4(clamp(normal_ws.rgb, vec3(0),vec3(1)) , 1.0);
         } else {
-            FragColor = vec4(vec3(surfel_buffer_debug.g * 0.001f),1.0);
+            FragColor = vec4(surfel_metadata_0.ggg*0.01,1.0);
         }
     } else {
         if (TexCoords_scaled.y > 1.0) {
-            vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - surfel_buffer_debug.r * 0.01);
+            vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - surfel_metadata_0.r * 0.01);
 
             FragColor = vec4(heat_map_texture_fetches, 1.0);
 

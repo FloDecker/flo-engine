@@ -13,7 +13,8 @@ void main()
 [fragment]
 
 layout (location = 0) out vec4 gSurfel;
-layout (location = 1) out vec4 gSurfelDebug;
+layout (location = 1) out vec4 surfel_metadata_0;
+layout (location = 2) out vec4 surfel_metadata_1;
 in vec2 TexCoords;
 
 uniform sampler2D gPos;
@@ -232,7 +233,7 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 
-vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level) {
+vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center) {
     surfel_coverage = 0;
     min_samples = 10000000.0f;
     min_sample_level = 0;
@@ -281,6 +282,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
                         if (s.radiance_ambient.w < min_samples) {
                             min_samples = s.radiance_ambient.w;
                             min_sample_level = float(current_layer);
+                            min_sample_center = s.mean_r.xyz;
                         }
                     }
                 } else {
@@ -314,7 +316,8 @@ void main()
     float surfel_coverage = 0.0;
     float min_samples; //returns the minimal amount of surfle samples at this fragments location
     float min_sample_level; //returns the octree level of the minimal level surfel
-    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,surfel_coverage,min_samples,min_sample_level);
+    vec3 min_sample_center;
+    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,surfel_coverage,min_samples,min_sample_level, min_sample_center);
 
 
     OctreeElement f;
@@ -322,7 +325,8 @@ void main()
     //uint x = octreeElements[7].surfels_at_layer_pointer;
 
     gSurfel = vec4(d, surfel_coverage);
-    gSurfelDebug = vec4(amount_texture_fetches,min_samples,min_sample_level,surfel_coverage);
+    surfel_metadata_0 = vec4(amount_texture_fetches,min_samples,min_sample_level,surfel_coverage);
+    surfel_metadata_1 = vec4(min_sample_center,surfel_coverage);
     
     
 }

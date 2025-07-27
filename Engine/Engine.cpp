@@ -22,6 +22,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "Source/Core/GUI/GUIManager.h"
+#include "Source/Core/GUI/gui_performance_metrics.h"
 #include "Source/Core/GUI/gui_scene_tools.h"
 #include "Source/Core/GUI/LogGUI.h"
 #include "Source/Core/GUI/ObjectInfo.h"
@@ -283,11 +284,7 @@ int main()
 	direct_scene_light->set_light_settings(150,0.01,100,60);
 
 
-	//depth map visualizer
-	//auto* visualize_light_map = new ShaderProgram();
-	//visualize_light_map->loadFromFile("EngineContent/Shader/testVisualizeDepthMap.glsl");
-	//visualize_light_map->compileShader();
-	//visualize_light_map->addTexture(scene->get_scene_direct_light()->light_map(), "depthMap");
+
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
 	//object_plane->set_material(gaussian_gi_shader);
@@ -320,18 +317,16 @@ int main()
 	object_temple->set_position_global(40,-5,0);
 	object_temple->setRotationLocal(-90,-90,0);
 
-	//object_plane->setScale(20);
 
 	//WIDNOWS
 	//INTI GUI MANAGER
 	guiManager = new GUIManager();
 	guiManager->addGUI(new LogGUI(&global_context));
+	guiManager->addGUI(new gui_performance_metrics(global_context.performance_metrics));
 	guiManager->addGUI(new SceneTree(scene));
 	guiManager->addGUI(new ObjectInfo(scene));
 	guiManager->addGUI(new gui_scene_tools(scene));
-
-	//rigid_body_mod->apply_force_at_vertex(1, glm::vec3(100, 0, 0));
-
+	
 	
 	
 	//INIT G buffer
@@ -352,6 +347,7 @@ int main()
 	auto framebuffer_render_flags = new texture_2d();
 	framebuffer_render_flags->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT,GL_NEAREST);
 
+	//depth
 	auto framebuffer_texture_depth = new texture_2d();
 	framebuffer_texture_depth->initialize_as_depth_map_render_target(windowSize.x, windowSize.y);
 
@@ -370,17 +366,20 @@ int main()
 	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
 	//stores r,g,b surfel radiance_ambient a = 0 no surfel a = 1 surfel 
-	auto framebuffer_surfel_pass_debug = new texture_2d();
-	framebuffer_surfel_pass_debug->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
+	auto framebuffer_surfel_pass_metadata_0 = new texture_2d();
+	framebuffer_surfel_pass_metadata_0->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
+	auto framebuffer_surfel_pass_metadata_1 = new texture_2d();
+	framebuffer_surfel_pass_metadata_1->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 	
 
 	auto surfel_buffer = framebuffer_object();
 	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_color, 0);
-	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_debug, 1);
+	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_metadata_0, 1);
+	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_metadata_1, 2);
 	surfel_buffer.clear_before_rendering = false;
 	surfel_buffer.add_size_change_listener(&change_window_size_dispatcher);
-
+	
 	auto surfel_buffer_shader = new ShaderProgram();
 	surfel_buffer_shader->loadFromFile("EngineContent/Shader/SurfelPass.glsl");
 	surfel_buffer_shader->set_shader_header_include(DEFAULT_HEADERS, false);
@@ -391,9 +390,8 @@ int main()
 
 	
 
-
 	editorRenderContext->camera->set_render_target(&g_buffer);
-	scene->init_surfel_manager(editor3DCamera, framebuffer_surfel_pass_color, framebuffer_surfel_pass_debug);
+	scene->init_surfel_manager(editor3DCamera, &surfel_buffer);
 
 	auto pp_shader = new ShaderProgram();
 	pp_shader->loadFromFile("EngineContent/Shader/PostProcessing.glsl");
@@ -405,7 +403,8 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_albedo, "gAlbedo");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
-	pp_shader->addTexture(framebuffer_surfel_pass_debug, "gSurfelsDebug");
+	pp_shader->addTexture(framebuffer_surfel_pass_metadata_0, "surfel_framebuffer_metadata_0");
+	pp_shader->addTexture(framebuffer_surfel_pass_metadata_1, "surfel_framebuffer_metadata_1");
 	pp_shader->addTexture(framebuffer_render_flags, "gRenderFlags");
 	pp_shader->addTexture(direct_scene_light->light_map(), "direct_light_map_texture");
 	
@@ -416,11 +415,7 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		renderFrameStart = glfwGetTime();
-
-		//lightpass 
-		scene->light_pass(editor3DCamera->get_camera());
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, windowSize.x, windowSize.y);
+		global_context.performance_metrics->start_measuring(tick_cycle_time);
 
 		glfwPollEvents(); //input events
 		processInput(editor3DCamera, scene, window); //low level input processing
@@ -440,7 +435,9 @@ int main()
 		//PHYSICS
 		//if handler is attached to rigid body
 		//-> calculate velocity from dragging the object
-		//-> suspend physics calculation for this object 
+		//-> suspend physics calculation for this object
+
+		global_context.performance_metrics->start_measuring(physics);
 		if (scene->handle()->is_attached())
 		{
 			auto modifiers = scene->handle()->attached_object_3d()->get_modifiers_by_id(10);
@@ -460,10 +457,12 @@ int main()
 			}
 		}
 
-
 		//run physics step
 		scene->get_physics_engine()->evaluate_physics_step(editorRenderContext->deltaTime);
+		
+		global_context.performance_metrics->stop_and_store_measuring(physics);
 
+		
 		//TEST:
 		pp_shader->recompile_if_changed();
 		surfel_buffer_shader->recompile_if_changed();
@@ -471,32 +470,44 @@ int main()
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_find_least_shaded_pos->recompile_if_changed();
 
-		//MAIN PASS:
+
+		//////////  LIGHT PASS :
+		///
+		global_context.performance_metrics->start_measuring(pass_direct_light);
+		scene->light_pass(editor3DCamera->get_camera());
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, windowSize.x, windowSize.y);
+		global_context.performance_metrics->stop_and_store_measuring(pass_direct_light);
+
+		
+		//////////  MAIN PASS:
+		global_context.performance_metrics->start_measuring(pass_main);
 		editorRenderContext->camera->set_render_target(&g_buffer);
 		editor3DCamera->calculateView();
 		editorRenderContext->camera->use();
-		
+
 		//draw debug elements
 		scene->draw_debug_tools(editorRenderContext);
 		
 		//draw scene elements
 		scene->draw_scene(editorRenderContext);
+		global_context.performance_metrics->stop_and_store_measuring(pass_main);
 
 
-		//SURFEL PASS
+		//////////  SURFEL PASS:
+		global_context.performance_metrics->start_measuring(pass_surfels);
 		surfel_buffer.render_to_framebuffer();		
 		surfel_buffer_shader->use();
 		quad_screen->draw();
+		global_context.performance_metrics->stop_and_store_measuring(pass_surfels);
 
-
-
+		global_context.performance_metrics->start_measuring(surfels_tick);
 		scene->get_surfel_manager()->tick();
-		
+		global_context.performance_metrics->stop_and_store_measuring(surfels_tick);
 
-		
-
-
-		//G-BUFFER PASS AND POST PROCESSING
+		//////////  G-BUFFER PASS AND POST PROCESSING
+		///
+		global_context.performance_metrics->start_measuring(pass_g_buffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 		glViewport(0, 0, windowSize.x, windowSize.y);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -508,6 +519,7 @@ int main()
 		pp_shader->set_uniform_vec3_f("cameraPosWs", value_ptr(*editorRenderContext->camera->getWorldPosition()));
 		quad_screen->draw();
 		glEnable(GL_DEPTH_TEST);
+		global_context.performance_metrics->stop_and_store_measuring(pass_g_buffer);
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -525,6 +537,8 @@ int main()
 		memset(mouseButtonsReleased, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 
 		editorRenderContext->deltaTime = glfwGetTime() - renderFrameStart;
+		global_context.performance_metrics->stop_and_store_measuring(tick_cycle_time);
+
 	}
 
 	ImGui_ImplOpenGL3_Shutdown();

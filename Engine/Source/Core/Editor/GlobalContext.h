@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include "performance_metrics.h"
 #include "../Renderer/uniform_buffer_object.h"
 #include "../Renderer/Primitives/Cube.h"
 #include "../Renderer/Primitives/Line.h"
@@ -72,6 +73,7 @@ struct GlobalContext
 {
 	TagManager tag_manager;
 	Logger* logger = new Logger();
+	performance_metrics* performance_metrics = new ::performance_metrics();
 	global_primitives global_primitives;
 	uniform_buffer_object* uniform_buffer_object;
 

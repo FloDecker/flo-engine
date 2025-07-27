@@ -63,46 +63,6 @@ void SurfelManagerOctree::clear_samples()
 
 void SurfelManagerOctree::draw_ui()
 {
-	//if (ImGui::Button("Generate surfels"))
-	//{
-	//	generate_surfels();
-	//	recalculate_surfels();
-	//	/*if (!has_surfels_buffer_)
-	//	{
-	//		init_surfels_buffer();
-	//	}
-	//	reset_surfels_buffer();
-	//	auto s = surfel();
-	//	s.mean = glm::vec3(-255.5, -255.5, -255.5);
-	//	s.normal = glm::vec3(0, 1, 0);
-	//	s.radius = 1;
-	//	insert_surfel(s);*/
-	//}
-
-	//ImGui::Checkbox("Draw debug tools", &draw_debug_tools_);
-
-	//if (draw_debug_tools_)
-	//{
-	//	for (const auto& sample : surfels_)
-	//	{
-	//		scene_->get_debug_tools()->draw_debug_point(sample.get()->mean);
-	//	}
-	//}
-
-	if (ImGui::Button("Dispatch light approx compute shader"))
-	{
-		for (int j = 0; j < 10; j++)
-		{
-			for (int i = 0; i < 27; i++)
-			{
-				compute_shader_approxmiate_ao->use();
-				compute_shader_approxmiate_ao->setUniformInt("offset_id", i);
-				compute_shader_approxmiate_ao->setUniformInt("calculation_level", j);
-				glDispatchCompute(16, 16, 16);
-				//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-			}
-		}
-	}
 
 	if (ImGui::Button("Clear Surfels on GPU"))
 	{
@@ -112,13 +72,6 @@ void SurfelManagerOctree::draw_ui()
 	{
 		generate_surfels_via_compute_shader();
 	}
-
-	//ImGui::DragFloat("points per square meter", &points_per_square_meter);
-	//ImGui::DragFloat("default radius", &starting_radius);
-	//ImGui::DragInt("surfel primary rays", &gi_primary_rays);
-	//ImGui::DragInt("surfel updates per tick", &update_surfels_per_tick);
-	//ImGui::DragFloat("Surfel minimal radius", &minimal_surfel_radius);
-	//ImGui::DragFloat("Max illuminance derivative to split", &illumination_derivative_threshold);
 
 	ImGui::Checkbox("Update Surfels", &update_surfels_next_tick);
 }
@@ -1041,20 +994,27 @@ bool SurfelManagerOctree::insert_surfel(const surfel& surfel_to_insert)
 	return true;
 }
 
-void SurfelManagerOctree::register_scene_data(Camera3D* camera, texture_2d* surfel_framebuffer_texture, texture_2d* surfel_framebuffer_metadata_texture)
+void SurfelManagerOctree::register_scene_data(Camera3D* camera, const framebuffer_object* surfel_framebuffer)
 {
 	camera_ = camera;
 	auto t_pos = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
 	auto t_normal = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
 	auto t_albedo = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(2);
+
+	auto surfel_framebuffer_texture = surfel_framebuffer->get_color_attachment_at_index(0);
+	auto surfel_framebuffer_metadata_0_texture = surfel_framebuffer->get_color_attachment_at_index(1);
+	auto surfel_framebuffer_metadata_1_texture = surfel_framebuffer->get_color_attachment_at_index(2);
+	
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
 	insert_surfel_compute_shader->addTexture(t_albedo, "gAlbedo");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
 	insert_surfel_compute_shader->addTexture(camera->get_scene()->get_scene_direct_light()->light_map(), "direct_light_map_texture");
 
+	
 	compute_shader_find_least_shaded_pos->addTexture(t_pos, "gPos");
-	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_metadata_texture, "surfel_framebuffer_metadata");
+	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_metadata_0_texture, "surfel_framebuffer_metadata_0");
+	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_metadata_1_texture, "surfel_framebuffer_metadata_1");
 	
 }
 
