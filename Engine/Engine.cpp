@@ -335,6 +335,10 @@ int main()
     auto framebuffer_texture_albedo = new texture_2d();
     framebuffer_texture_albedo->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,GL_LINEAR);
 
+	//albedo
+    auto framebuffer_texture_roughness_metallic_ao = new texture_2d();
+    framebuffer_texture_roughness_metallic_ao->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,GL_LINEAR);
+
 	//normal
 	auto framebuffer_texture_normal = new texture_2d();
 	framebuffer_texture_normal->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGB16F, GL_RGB, GL_FLOAT,GL_LINEAR);
@@ -356,6 +360,7 @@ int main()
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_normal, 1);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_albedo, 2);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_render_flags, 3);
+	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_roughness_metallic_ao, 4);
 	g_buffer.attach_texture_as_depth_buffer(framebuffer_texture_depth);
 
 
@@ -402,6 +407,7 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_normal, "gNormal");
 	pp_shader->addTexture(framebuffer_texture_albedo, "gAlbedo");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
+	pp_shader->addTexture(framebuffer_texture_roughness_metallic_ao, "gRoughnessMetallicAo");
 	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
 	pp_shader->addTexture(framebuffer_surfel_pass_metadata_0, "surfel_framebuffer_metadata_0");
 	pp_shader->addTexture(framebuffer_surfel_pass_metadata_1, "surfel_framebuffer_metadata_1");

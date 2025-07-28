@@ -38,7 +38,7 @@ uniform int calculation_level;
 uniform uvec3 pos_ws_start;
 
 vec3 get_ao_color(){
-    return vec3(80.0/255.0,156.0/255.0,250.0/255.0);
+    return vec3(80.0/255.0,156.0/255.0,250.0/255.0) * 0.5;
 }
 
 

@@ -19,6 +19,7 @@ uniform sampler2D gPos;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D dpeth_framebuffer;
+uniform sampler2D gRoughnessMetallicAo;
 uniform sampler2D light_map;
 uniform sampler2D gSurfels;
 uniform sampler2D surfel_framebuffer_metadata_0;
@@ -282,23 +283,103 @@ vec3 phong(vec3 vertexPosWs, vec3 normalWS, vec3 albedo, vec3 surfel_buffer, boo
     vec3 ambient_part = _ambientLightIntensity * _ambientMaterialConstant * (has_surfel ? surfel_buffer:get_ao_color());
 
     return diffuse_part + specular_part + ambient_part;
-
 }
 
+//from https://learnopengl.com/PBR/Theory
+float DistributionGGX(vec3 N, vec3 H, float a)
+{
+    float a2     = a*a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
 
+    float nom    = a2;
+    float denom  = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom        = PI * denom * denom;
 
+    return nom / denom;
+}
 
+float GeometrySchlickGGX(float NdotV, float k)
+{
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return nom / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float k)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx1 = GeometrySchlickGGX(NdotV, k);
+    float ggx2 = GeometrySchlickGGX(NdotL, k);
+
+    return ggx1 * ggx2;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+vec3 calculate_pbr_lighting (vec3 WorldPos, vec3 Normal, vec3 albedo, float roughness, float metallic, float ao, vec4 surfel_buffer) {
+    vec3 N = normalize(Normal);
+    vec3 V = normalize(cameraPosWs - WorldPos);
+
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
+    // reflectance equation
+    vec3 Lo = vec3(0.0);
+
+    // calculate per-light radiance
+    vec3 L = normalize(direct_light_direction);
+    vec3 H = normalize(V + L);
+    vec3 radiance  = direct_light_color * direct_light_intensity;
+    
+    //calcualte shadows
+    float in_light = float(dot(Normal, L) > 0)
+    * (is_inside_shadow_map_frustum(WorldPos)? clamp(1.-in_light_map_shadow(WorldPos), 0.0, 1.0) : 1.0);
+
+    radiance*=in_light;
+
+    // cook-torrance brdf
+    float NDF = DistributionGGX(N, H, roughness);
+    float G   = GeometrySmith(N, V, L, roughness);
+    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;
+
+    vec3 numerator    = NDF * G * F;
+    float denominator = max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular     = numerator / denominator;
+
+    // add to outgoing radiance Lo
+    float NdotL = max(dot(N, L), 0.0);
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    
+    
+    vec3 ambient = (vec3(0.00) * albedo + 0.9f*clamp(surfel_buffer.rgb, vec3(0.0), vec3(1.0)))* ao;
+    vec3 color = ambient + Lo;
+
+    //color = color / (color + vec3(1.0));
+    //color = pow(color, vec3(1.0/2.2));
+
+    return color;
+}
 
 void main()
 {
 
-    vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
-    // vec2 TexCoords_scaled = TexCoords; 
+    //vec2 TexCoords_scaled = TexCoords * vec2(2.0f); 
+     vec2 TexCoords_scaled = TexCoords; 
     
     vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
-
     vec3 normal_ws = vec3(texture(gNormal, TexCoords_scaled));
     vec3 pos_ws = vec3(texture(gPos, TexCoords_scaled));
+    vec3 RoughnessMetallicAo = vec3(texture(gRoughnessMetallicAo, TexCoords_scaled));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
     vec4 surfel_metadata_0 = vec4(texture(surfel_framebuffer_metadata_0, TexCoords_scaled));
     vec4 surfel_metadata_1 = vec4(texture(surfel_framebuffer_metadata_1, TexCoords_scaled));
@@ -317,17 +398,18 @@ void main()
     vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
     vec3 final_color = vec3(0.0);
     if (flags == 0) {
-        final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb, surfel_buffer.w > 0);
+        //final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb, surfel_buffer.w > 0);
+        final_color = calculate_pbr_lighting(pos_ws, normal_ws, albedo, RoughnessMetallicAo.r, RoughnessMetallicAo.g, RoughnessMetallicAo.b, surfel_buffer);
     } else {
         final_color = albedo;
     }
-    //FragColor = vec4(final_color, 1.0);
-    //return;
+    FragColor = vec4(final_color, 1.0);
+    return;
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);
         return;
     }
-
+    
     if (TexCoords_scaled.x < 1.0) {
         if (TexCoords_scaled.y > 1.0) {
 

@@ -74,6 +74,7 @@ void SurfelManagerOctree::draw_ui()
 	}
 
 	ImGui::Checkbox("Update Surfels", &update_surfels_next_tick);
+	ImGui::Checkbox("Draw boxes on update nodes", &draw_debug_boxes_);
 }
 
 
@@ -181,7 +182,7 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 		auto b = StructBoundingBox();
 		b.min = get_ws_bucket_lowest_edge_from_octree_index(level, coordinates);
 		b.max = b.min + node_size_at_level(level);
-		scene_->get_debug_tools()->draw_debug_cube(&b);
+		if (draw_debug_boxes_) scene_->get_debug_tools()->draw_debug_cube(&b);
 		compute_shader_ao_approximation(level, coordinates);
 	}
 	

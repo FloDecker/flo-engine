@@ -150,6 +150,8 @@ private:
 	float points_per_square_meter = 1;
 	float starting_radius = 1.0f;
 
+	bool draw_debug_boxes_ = false;
+
 	void init_surfels_buffer();
 	void reset_surfels_buffer();
 
