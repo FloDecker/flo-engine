@@ -333,9 +333,9 @@ int main()
 
 	//albedo
     auto framebuffer_texture_albedo = new texture_2d();
-    framebuffer_texture_albedo->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,GL_LINEAR);
+    framebuffer_texture_albedo->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
-	//albedo
+	//roughness metallic ao
     auto framebuffer_texture_roughness_metallic_ao = new texture_2d();
     framebuffer_texture_roughness_metallic_ao->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE,GL_LINEAR);
 
@@ -376,7 +376,6 @@ int main()
 
 	auto framebuffer_surfel_pass_metadata_1 = new texture_2d();
 	framebuffer_surfel_pass_metadata_1->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
-	
 
 	auto surfel_buffer = framebuffer_object();
 	surfel_buffer.attach_texture_as_color_buffer(framebuffer_surfel_pass_color, 0);
@@ -393,7 +392,14 @@ int main()
 	surfel_buffer_shader->addTexture(framebuffer_texture_ws, "gPos");
 	surfel_buffer_shader->addTexture(framebuffer_texture_normal, "gNormal");
 
-	
+	//final light pass buffer
+	auto framebuffer_final_light_pass = new texture_2d();
+	framebuffer_final_light_pass->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGB16F, GL_RGB, GL_FLOAT,GL_LINEAR);
+
+	auto light_pass_buffer = framebuffer_object();
+	light_pass_buffer.attach_texture_as_color_buffer(framebuffer_final_light_pass,0);
+	light_pass_buffer.add_size_change_listener(&change_window_size_dispatcher);
+
 
 	editorRenderContext->camera->set_render_target(&g_buffer);
 	scene->init_surfel_manager(editor3DCamera, &surfel_buffer);
@@ -413,6 +419,24 @@ int main()
 	pp_shader->addTexture(framebuffer_surfel_pass_metadata_1, "surfel_framebuffer_metadata_1");
 	pp_shader->addTexture(framebuffer_render_flags, "gRenderFlags");
 	pp_shader->addTexture(direct_scene_light->light_map(), "direct_light_map_texture");
+	pp_shader->addTexture(framebuffer_final_light_pass, "light_pass_result");
+
+	
+	auto lighting_pass = new ShaderProgram();
+	lighting_pass->loadFromFile("EngineContent/Shader/PBRLighting.glsl");
+	lighting_pass->set_shader_header_include(DEFAULT_HEADERS, false);
+	lighting_pass->render_method = NONE;
+	lighting_pass->compileShader();
+	lighting_pass->addTexture(framebuffer_texture_ws, "gPos");
+	lighting_pass->addTexture(framebuffer_texture_normal, "gNormal");
+	lighting_pass->addTexture(framebuffer_texture_albedo, "gAlbedo");
+	lighting_pass->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
+	lighting_pass->addTexture(framebuffer_texture_roughness_metallic_ao, "gRoughnessMetallicAo");
+	lighting_pass->addTexture(framebuffer_surfel_pass_color, "gSurfels");
+	lighting_pass->addTexture(framebuffer_surfel_pass_metadata_0, "surfel_framebuffer_metadata_0");
+	lighting_pass->addTexture(framebuffer_surfel_pass_metadata_1, "surfel_framebuffer_metadata_1");
+	lighting_pass->addTexture(framebuffer_render_flags, "gRenderFlags");
+	lighting_pass->addTexture(direct_scene_light->light_map(), "direct_light_map_texture");
 	
 	auto quad_screen = new quad_fill_screen();
 	quad_screen->load();
@@ -472,6 +496,7 @@ int main()
 		//TEST:
 		pp_shader->recompile_if_changed();
 		surfel_buffer_shader->recompile_if_changed();
+		lighting_pass->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_approxmiate_ao->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_find_least_shaded_pos->recompile_if_changed();
@@ -511,9 +536,18 @@ int main()
 		scene->get_surfel_manager()->tick();
 		global_context.performance_metrics->stop_and_store_measuring(surfels_tick);
 
-		//////////  G-BUFFER PASS AND POST PROCESSING
+		//////////  FINAL LIGHT PASS AND POST PROCESSING
 		///
+		
 		global_context.performance_metrics->start_measuring(pass_g_buffer);
+		
+		light_pass_buffer.render_to_framebuffer();
+		lighting_pass->use();
+		lighting_pass->set_uniform_vec3_f("cameraPosWs",glm::value_ptr(*scene_cam->getWorldPosition()));
+		quad_screen->draw();
+
+
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 		glViewport(0, 0, windowSize.x, windowSize.y);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

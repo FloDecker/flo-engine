@@ -7,6 +7,7 @@ float SKY_SPHERE_SCALE = 512.0;
 vec3 COLOR_SKY_BOTTOM = vec3(0.2, 0.3, 0.4);
 vec3 COLOR_SKY_MIDDLE = vec3(0.5294, 0.8078, 0.9215);
 vec3 COLOR_SKY_TOP = vec3(0.3882, 0.8980, 0.9490);
+float SKY_INTENSITY = 4.0f;
 
 float TRANSITION_0 = 0.1;
 float TRANSITION_1 = 0.5;
@@ -55,6 +56,6 @@ void main_u() {
     //FragColor = vec4(color_mix, 1.0);
     gPosition = pos_ws;
     gNormal = normal_ws;
-    gAlbedoSpec = vec4(color_mix, 1.0);
+    gAlbedoSpec = vec4(color_mix * SKY_INTENSITY, 1.0);
     gRenderFlags = 1u;
 }

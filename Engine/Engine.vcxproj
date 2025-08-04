@@ -810,6 +810,7 @@
         <Content Include="EngineContent\Shader\BasicGreen.glsl" />
         <Content Include="EngineContent\Shader\BasicGrey.glsl" />
         <Content Include="EngineContent\Shader\GaussianGI.glsl" />
+        <Content Include="EngineContent\Shader\PBRLighting.glsl" />
         <Content Include="EngineContent\Shader\PostProcessing.glsl" />
         <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl" />
         <Content Include="EngineContent\Shader\DebugColorChangable.glsl" />

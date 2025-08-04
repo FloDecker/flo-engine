@@ -70,6 +70,7 @@ uniform sampler2D gAlbedo;
 uniform sampler2D gSurfels;
 
 uniform vec3 camera_position;
+uniform vec3 random_offset;
 
 const uint LOCK_SENTINAL = 0xFFFFFFFFu;
 
@@ -116,14 +117,6 @@ float rand(vec2 co) {
 vec2 rand2(vec2 co) {
     return vec2(rand(co), rand(co + 1.23));// co + offset to get independent value
 }
-
-vec3 sampleHemisphereUniform(vec2 uv) {
-    uv = rand2(uv);
-    float theta = acos(1 - uv.x);
-    float phi = 2.0f *  PI * uv.y;
-    return vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-}
-
 
 void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
     vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
@@ -180,12 +173,6 @@ float light_map_at(vec2 coords) {
     return a;
 }
 
-bool is_inside_shadow_map_frustum(vec3 vertexPosWs) {
-    vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
-    vec3 projCoords = frag_in_light_space.xyz / frag_in_light_space.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    return (projCoords.x > 0 && projCoords.y > 0 && projCoords.x < 1 && projCoords.y < 1);
-}
 
 
 bool in_light_map_shadow(vec3 vertexPosWs) {
@@ -394,13 +381,15 @@ void main() {
     target_radius_pixels = ((real_world_size * sizeTex.xy) / (2.0 * d_camera_pos * tan(fov_rad*0.5f))).x;
     
     
-    uvec2 required_pixel_interval = uvec2(target_radius_pixels );
+    uvec2 required_pixel_interval = uvec2(target_radius_pixels);
 
     if (surfel_buffer.a > 0.1) {
         return;
     }
-
-    if(mod(gl_WorkGroupID.xy, required_pixel_interval) != uvec2(0) ) {
+    
+    uvec2 random_pos_in_intervall = uvec2(vec2(required_pixel_interval) * random_offset.xy);
+    
+    if(mod(gl_WorkGroupID.xy, required_pixel_interval) != uvec2(random_pos_in_intervall) ) {
         return;
     };
     
@@ -426,9 +415,12 @@ void main() {
     Surfel s;
     s.mean_r = vec4(pos_ws, radius);
     s.radiance_ambient = vec4(1.0);
+
+    float NdotL = dot(normal_ws, normalize(direct_light_direction));
+    float diffuseIntensity = clamp(NdotL,0,1);
     
     vec3 direct_light = (in_light_map_shadow(pos_ws) ? vec3(0.0) : 
-    direct_light_intensity * direct_light_color * albedo);
+    direct_light_intensity * direct_light_color * albedo * diffuseIntensity);
     
     s.radiance_direct_and_surface = vec4(direct_light ,1.0);
     s.normal = vec4(normal_ws,0);

@@ -124,9 +124,15 @@ void SurfelManagerOctree::generate_surfels_via_compute_shader() const
 		auto t = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
 		if (t != nullptr)
 		{
+
+			std::random_device rd; // Seed the random number generator
+			std::mt19937 gen(rd()); // Mersenne Twister PRNG
+			std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
+			
 			insert_surfel_compute_shader->use();
 			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",
 			                                                 glm::value_ptr(camera_->getWorldPosition()));
+			insert_surfel_compute_shader->set_uniform_vec3_f("random_offset", glm::value_ptr(glm::vec3(float_dist_0_1(gen), float_dist_0_1(gen),0.0 )));
 
 			glDispatchCompute(t->width(), t->height(), 1);
 			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
