@@ -79,6 +79,9 @@ GUIManager* guiManager = nullptr;
 //TEST: REMOVE ME
 static rigid_body* rigid_body_mod;
 
+//fence to sync CPU and GPU after each tick cycle
+GLsync main_thread_fence;
+
 class Importer;
 
 int main()
@@ -250,6 +253,10 @@ int main()
 	auto* green_shader = new ShaderProgram();
 	green_shader->loadFromFile("EngineContent/Shader/BasicGreen.glsl");
 	green_shader->compileShader();
+
+	auto* emissive_shader = new ShaderProgram();
+	emissive_shader->loadFromFile("EngineContent/Shader/BasicEmissive.glsl");
+	emissive_shader->compileShader();
 	
 
 	/////ADD SCENE GEOMETRY:
@@ -284,6 +291,10 @@ int main()
 	direct_scene_light->set_light_settings(150,0.01,100,60);
 
 
+	
+	auto emissive_cube = new Mesh3D(scene->get_root(), cube);
+	emissive_cube->name = "emissive_cube";
+	emissive_cube->set_material(emissive_shader);
 
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
@@ -347,6 +358,10 @@ int main()
 	auto framebuffer_texture_ws = new texture_2d();
 	framebuffer_texture_ws->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGB16F, GL_RGB, GL_FLOAT,GL_LINEAR);
 
+	//emissive
+	auto framebuffer_texture_emissive = new texture_2d();
+	framebuffer_texture_emissive->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGB16F, GL_RGB, GL_FLOAT,GL_LINEAR);
+
 	//g-buffer-flags
 	auto framebuffer_render_flags = new texture_2d();
 	framebuffer_render_flags->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT,GL_NEAREST);
@@ -361,6 +376,7 @@ int main()
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_albedo, 2);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_render_flags, 3);
 	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_roughness_metallic_ao, 4);
+	g_buffer.attach_texture_as_color_buffer(framebuffer_texture_emissive, 5);
 	g_buffer.attach_texture_as_depth_buffer(framebuffer_texture_depth);
 
 
@@ -412,6 +428,7 @@ int main()
 	pp_shader->addTexture(framebuffer_texture_ws, "gPos");
 	pp_shader->addTexture(framebuffer_texture_normal, "gNormal");
 	pp_shader->addTexture(framebuffer_texture_albedo, "gAlbedo");
+	pp_shader->addTexture(framebuffer_texture_emissive, "gEmissive");
 	pp_shader->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	pp_shader->addTexture(framebuffer_texture_roughness_metallic_ao, "gRoughnessMetallicAo");
 	pp_shader->addTexture(framebuffer_surfel_pass_color, "gSurfels");
@@ -430,6 +447,7 @@ int main()
 	lighting_pass->addTexture(framebuffer_texture_ws, "gPos");
 	lighting_pass->addTexture(framebuffer_texture_normal, "gNormal");
 	lighting_pass->addTexture(framebuffer_texture_albedo, "gAlbedo");
+	lighting_pass->addTexture(framebuffer_texture_emissive, "gEmissive");
 	lighting_pass->addTexture(framebuffer_texture_depth, "dpeth_framebuffer");
 	lighting_pass->addTexture(framebuffer_texture_roughness_metallic_ao, "gRoughnessMetallicAo");
 	lighting_pass->addTexture(framebuffer_surfel_pass_color, "gSurfels");
@@ -576,6 +594,13 @@ int main()
 		memset(mouseButtonsClicked, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 		memset(mouseButtonsReleased, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 
+		glFlush();
+		glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);;
+		GLenum result = glClientWaitSync(main_thread_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 1000000);
+		if (result == GL_ALREADY_SIGNALED || result == GL_CONDITION_SATISFIED) {
+			// Render thread has finished
+		}
+		glDeleteSync(main_thread_fence);
 		editorRenderContext->deltaTime = glfwGetTime() - renderFrameStart;
 		global_context.performance_metrics->stop_and_store_measuring(tick_cycle_time);
 

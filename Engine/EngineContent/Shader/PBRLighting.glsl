@@ -18,6 +18,7 @@ in vec2 TexCoords;
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
+uniform sampler2D gEmissive;
 uniform sampler2D dpeth_framebuffer;
 uniform sampler2D gRoughnessMetallicAo;
 uniform sampler2D light_pass_result;
@@ -310,7 +311,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-vec3 calculate_pbr_lighting (vec3 WorldPos, vec3 Normal, vec3 albedo, float roughness, float metallic, float ao, vec4 surfel_buffer) {
+vec3 calculate_pbr_lighting (vec3 WorldPos, vec3 Normal, vec3 albedo, float roughness, float metallic, float ao, vec3 emissive, vec4 surfel_buffer) {
     vec3 N = normalize(Normal);
     vec3 V = normalize(cameraPosWs - WorldPos);
 
@@ -350,7 +351,7 @@ vec3 calculate_pbr_lighting (vec3 WorldPos, vec3 Normal, vec3 albedo, float roug
     
     
     vec3 ambient = (vec3(0.00) * albedo + 0.9f*clamp(surfel_buffer.rgb, vec3(0.0), vec3(1.0)))* ao;
-    vec3 color = ambient + Lo;
+    vec3 color = ambient + Lo + emissive;
     return vec3( color);
 }
 
@@ -363,6 +364,7 @@ void main()
     vec3 albedo = texture(gAlbedo, TexCoords_scaled).rgb;
     vec3 normal_ws = vec3(texture(gNormal, TexCoords_scaled));
     vec3 pos_ws = vec3(texture(gPos, TexCoords_scaled));
+    vec3 emissive = vec3(texture(gEmissive, TexCoords_scaled));
     vec3 RoughnessMetallicAo = vec3(texture(gRoughnessMetallicAo, TexCoords_scaled));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
     float depth = texture(dpeth_framebuffer, TexCoords_scaled).x;
@@ -374,7 +376,7 @@ void main()
     if (flags == 0) {
         //final_color = phong(pos_ws, normal_ws, albedo, surfel_buffer.rgb, surfel_buffer.w > 0);
         //final_color = calculate_pbr_lighting(pos_ws, normal_ws, albedo, RoughnessMetallicAo.r, RoughnessMetallicAo.g, RoughnessMetallicAo.b, surfel_buffer);
-        final_color = calculate_pbr_lighting(pos_ws, normal_ws, albedo, 0.5, 0.0, 1.0, surfel_buffer);
+        final_color = calculate_pbr_lighting(pos_ws, normal_ws, albedo, 0.5, 0.0, 1.0,emissive, surfel_buffer);
     } else {
         final_color = albedo ;
     }

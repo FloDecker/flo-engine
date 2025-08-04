@@ -68,6 +68,7 @@ uniform sampler2D gPos;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gSurfels;
+uniform sampler2D gEmissive;
 
 uniform vec3 camera_position;
 uniform vec3 random_offset;
@@ -352,6 +353,7 @@ void main() {
     vec3 normal_ws = vec3(texture(gNormal, TexCoords));
     vec3 pos_ws = vec3(texture(gPos, TexCoords));
     vec3 albedo = vec3(texture(gAlbedo, TexCoords));
+    vec3 emissive = vec3(texture(gEmissive, TexCoords));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
     if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION))) {
@@ -422,7 +424,8 @@ void main() {
     vec3 direct_light = (in_light_map_shadow(pos_ws) ? vec3(0.0) : 
     direct_light_intensity * direct_light_color * albedo * diffuseIntensity);
     
-    s.radiance_direct_and_surface = vec4(direct_light ,1.0);
+    
+    s.radiance_direct_and_surface = vec4(direct_light + emissive,1.0);
     s.normal = vec4(normal_ws,0);
     
     

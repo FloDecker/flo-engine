@@ -18,6 +18,7 @@ in vec2 TexCoords;
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
+uniform sampler2D gEmissive;
 uniform sampler2D dpeth_framebuffer;
 uniform sampler2D gRoughnessMetallicAo;
 uniform sampler2D light_map;
@@ -169,6 +170,7 @@ void main()
     vec3 albedo = vec3(texture(gAlbedo, TexCoords_scaled));
     vec3 normal_ws = vec3(texture(gNormal, TexCoords_scaled));
     vec3 pos_ws = vec3(texture(gPos, TexCoords_scaled));
+    vec3 emissive = vec3(texture(gEmissive, TexCoords_scaled));
     vec3 RoughnessMetallicAo = vec3(texture(gRoughnessMetallicAo, TexCoords_scaled));
     vec3 LightPass = vec3(texture(light_pass_result, TexCoords_scaled));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords_scaled));
@@ -189,7 +191,7 @@ void main()
     vec3 bit_debug = debug_bits(x, TexCoords.xxx * 128.0);
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
-    FragColor = vec4(LightPass, 1.0);
+    FragColor = vec4(LightPass,  1.0);
     return;
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);

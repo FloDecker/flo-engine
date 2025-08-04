@@ -807,6 +807,7 @@
         <Content Include="EngineContent\Cube.fbx" />
         <Content Include="EngineContent\Cube.obj" />
         <Content Include="EngineContent\cubeArray.fbx" />
+        <Content Include="EngineContent\Shader\BasicEmissive.glsl" />
         <Content Include="EngineContent\Shader\BasicGreen.glsl" />
         <Content Include="EngineContent\Shader\BasicGrey.glsl" />
         <Content Include="EngineContent\Shader\GaussianGI.glsl" />

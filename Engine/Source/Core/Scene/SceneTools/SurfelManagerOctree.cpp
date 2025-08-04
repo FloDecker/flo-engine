@@ -1007,6 +1007,7 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, const framebuffe
 	auto t_pos = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
 	auto t_normal = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(1);
 	auto t_albedo = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(2);
+	auto t_emissive = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(5);
 
 	auto surfel_framebuffer_texture = surfel_framebuffer->get_color_attachment_at_index(0);
 	auto surfel_framebuffer_metadata_0_texture = surfel_framebuffer->get_color_attachment_at_index(1);
@@ -1015,6 +1016,7 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, const framebuffe
 	insert_surfel_compute_shader->addTexture(t_pos, "gPos");
 	insert_surfel_compute_shader->addTexture(t_normal, "gNormal");
 	insert_surfel_compute_shader->addTexture(t_albedo, "gAlbedo");
+	insert_surfel_compute_shader->addTexture(t_emissive, "gEmissive");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
 	insert_surfel_compute_shader->addTexture(camera->get_scene()->get_scene_direct_light()->light_map(), "direct_light_map_texture");
 
