@@ -38,15 +38,186 @@ layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
 	float direct_light_light_angle;
 	mat4 direct_light_light_space_matrix;
 };
+#define OCTREE_TOTOAL_EXTENSION 512
 
 uniform vec3 cameraPosWs;
 //surfels
+
+struct Surfel {
+    vec4 mean_r;
+    vec4 normal;
+    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
+};
+
+
+struct OctreeElement
+{
+    uint surfels_at_layer_amount;
+    uint surfels_at_layer_pointer;
+    uint next_layer_surfels_pointer[8];
+};
+
+struct Ray {
+    vec3 origin;
+    vec3 direction;
+    vec3 inverse_direction;
+};
+
+layout(std430, binding = 0) buffer SurfelBuffer {
+    Surfel surfels[];
+};
+
+layout(std430, binding = 1) buffer OctreeBuffer {
+    OctreeElement octreeElements[];
+};
+
+
+
+uint bitmask_surfel_amount = 0x00FFFFFF;
+
+bool intersect_AABB(vec3 bb_min, vec3 bb_max, Ray ray) {
+    vec3 t1 = (bb_min - ray.origin) * ray.inverse_direction;
+    vec3 t2 = (bb_max - ray.origin) * ray.inverse_direction;
+    vec3 tmin3 = min(t1, t2);
+    vec3 tmax3 = max(t1, t2);
+    float tmin = max(max(tmin3.x, tmin3.y), tmin3.z);
+    float tmax = min(min(tmax3.x, tmax3.y), tmax3.z);
+    return tmax >= tmin;
+}
+
+uint get_surfel_amount(uint i) {
+    return i & bitmask_surfel_amount;
+}
+
+bool is_child_octree_bit_set_at(uint i, uint pos)
+{
+    return (i & (1u << 31-pos)) != 0;
+}
+
+bool are_all_child_octree_bits_empty(uint i)
+{
+    return (bitmask_surfel_amount & i) == 0;
+}
+
+bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location) {
+    if (dot(s.normal.xyz, r.direction) > 0) return false;
+    float d = -dot(s.normal.xyz, s.mean_r.xyz);
+    float t = -((dot(s.normal.xyz, r.origin) + d) /
+    dot(s.normal.xyz, r.direction));
+    if (t <= 0) return false;
+    hit_location = r.origin + t * r.direction;
+    return distance(s.mean_r.xyz, hit_location) <= s.mean_r.w;
+}
+
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec2 rand2(vec2 co) {
+    return vec2(rand(co), rand(co + 1.23));// co + offset to get independent value
+}
+
+bool traverseHERO(Ray ray, out vec3 c, out float d) {
+    const int MAX_DEPTH = 8;
+    const int MAX_STACK = 32;
+
+    // Stack to simulate traversal
+    uint node_ids_stack[MAX_STACK];
+    float node_size_stack[MAX_STACK];
+    vec3 node_min_stack[MAX_STACK];
+    node_ids_stack[0] = 0;
+    node_size_stack[0] = OCTREE_TOTOAL_EXTENSION;
+    node_min_stack[0] = vec3(-OCTREE_TOTOAL_EXTENSION*0.5f);
+
+    int stackPtr = 0;
+
+    float closest_hit = 10000000;
+    vec3 current_best_hit;
+    bool has_hit = false;
+
+    for (int tries = 0; tries < 100; tries++) {
+        OctreeElement o = octreeElements[node_ids_stack[stackPtr]];
+        float current_bucket_size = node_size_stack[stackPtr];
+        vec3 current_bucket_min = node_min_stack[stackPtr];
+        if (stackPtr < 0) {
+            c = vec3(0, 0, 0);
+            return false;
+        }
+
+        //check if there are surfels hit on the current layer 
+        uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
+        if (surfels_amount > 0) {
+            uint surfle_data_pointer = o.surfels_at_layer_pointer;
+            for (int i = 0; i < surfels_amount; i++) {
+                Surfel s = surfels[surfle_data_pointer + i];
+                vec3 hit_location;
+                if (ray_surfel_intersection(s, ray, hit_location)) {
+                    has_hit =true;//remvoe
+                    c = s.radiance_direct_and_surface.xyz;
+                    d = distance(hit_location, ray.origin);
+                    return true;
+                    if (distance(hit_location, ray.origin) < closest_hit) {
+                        closest_hit = distance(hit_location, ray.origin);
+                        current_best_hit = hit_location;
+                        has_hit =true;
+                    }
+                }
+            }
+        }
+        stackPtr--;
+
+        //if there was an intersection and the current octree node doesent have children -> return
+        //if (are_all_child_octree_bits_empty(o.surfels_at_layer_amount) && has_hit)  {
+        //    return true;
+        //}
+
+
+        //if there are no intersections 
+
+
+        int xDir = ray.direction.x >= 0.0 ? 0 : 1;
+        int yDir = ray.direction.y >= 0.0 ? 0 : 1;
+        int zDir = ray.direction.z >= 0.0 ? 0 : 1;
+
+
+        float children_size = current_bucket_size * 0.5f;
+
+        for (int i = 0; i < 8; ++i) {
+            int morton = i;//^ (zDir | (yDir << 1) | (xDir << 2));
+            if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, morton)) continue;
+            uint childIndex = o.next_layer_surfels_pointer[morton];
+
+            vec3 offset = vec3(
+            (morton & (1<<2)) != 0 ? 1.0 : 0.0,
+            (morton & (1<<1)) != 0 ? 1.0 : 0.0,
+            (morton & (1<<0)) != 0 ? 1.0 : 0.0
+            );
+
+
+            // Descend into child
+            vec3 child_min = current_bucket_min + offset * children_size;
+
+            if (!intersect_AABB(child_min, child_min + vec3(children_size), ray)) continue;
+
+
+            // Push remaining children to stack
+            if (stackPtr < MAX_STACK) {
+                stackPtr++;
+                node_ids_stack[stackPtr] = childIndex;
+                node_size_stack[stackPtr] = children_size;
+                node_min_stack[stackPtr] = child_min;
+            }
+        }
+    }
+
+    return false;
+}
 
 
 #define PI 3.14159265359
 #define EXPOSURE 1.5
 
-uint bitmask_surfel_amount = 0x00FFFFFF;
 float total_extension = 512.0;
 
 float _diffuseMaterialConstant = 0.8;
@@ -192,7 +363,18 @@ void main()
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
+    vec3 ray_direction = normalize(pos_ws - cameraPosWs);
+    vec3 c = vec3(0.0f);
+    float d;
+    Ray r;
+    r.direction = ray_direction;
+    r.origin = cameraPosWs;
+    r.inverse_direction = 1.0f/ray_direction;
+    traverseHERO(r,c, d);
+    FragColor = vec4(d.rrr*0.01,  1.0);
+
     return;
+    
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);
         return;

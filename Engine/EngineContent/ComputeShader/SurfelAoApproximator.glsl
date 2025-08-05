@@ -118,6 +118,17 @@ vec3 sampleHemisphereUniform(vec2 uv) {
     return vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 }
 
+vec3 sampleHemisphereCosine(vec2 uv) {
+    float r = sqrt(uv.x);
+    float theta = 2.0 * PI * uv.y;
+
+    float x = r * cos(theta);
+    float y = r * sin(theta);
+    float z = sqrt(1.0 - uv.x);
+
+    return vec3(x, y, z);
+}
+
 
 bool traverseHERO(Ray ray, out vec3 c) {
     const int MAX_DEPTH = 8;
@@ -226,7 +237,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
     float sampled_pre = color_sampled_old.a;
     for (int i = 0; i < ITERATIONS; i++) {
         vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y;
-        vec3 d =sampleHemisphereUniform(random_seed);
+        vec3 d = sampleHemisphereCosine(random_seed);
         vec3 tangent;
         vec3 bitangent;
 
@@ -234,7 +245,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
         getTangentBasis(normal, tangent, bitangent);
 
         vec2 offset = sample_disk(rand2(random_seed)) * radius;
-        vec3 s = normalize(normal * d.b + d.r * tangent + d.g * bitangent);
+        vec3 s = normal;//normalize(normal * d.r + d.g * tangent + d.b * bitangent);
         s*= vec3(1.0);
         Ray r;
         r.origin = pos; //+ offset.x * tangent + offset.y * bitangent;
