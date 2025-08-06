@@ -1059,6 +1059,7 @@ void SurfelManagerOctree::tick()
 	{
 
 	case 0: //insert surfels
+		swap_surfel_buffers();//swap front and backbuffer
 		generate_surfels_via_compute_shader();
 		//std::printf("\n run generate_surfels_via_compute_shader");
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -1074,12 +1075,12 @@ void SurfelManagerOctree::tick()
 		//std::printf("\n run copy_data_from_compute_to_back_buffer");
 
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		manager_state_ = -1;
 		break;
-	case 3: //swap front and backbuffer
-		swap_surfel_buffers();
+	case 3: 
+		
 		//std::printf("\n run swap_surfel_buffers");
 
-		manager_state_ = -1;
 		break;
 	default:
 		manager_state_ = -1;

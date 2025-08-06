@@ -1,7 +1,7 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
-#define ITERATIONS 3
+#define ITERATIONS 1
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -69,16 +69,6 @@ bool are_all_child_octree_bits_empty(uint i)
     return (bitmask_surfel_amount & i) == 0;
 }
 
-bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location) {
-    if (dot(s.normal.xyz, r.direction) > 0) return false;
-    float d = -dot(s.normal.xyz, s.mean_r.xyz);
-    float t = -((dot(s.normal.xyz, r.origin) + d) /
-    dot(s.normal.xyz, r.direction));
-    if (t <= 0) return false;
-    hit_location = r.origin + t * r.direction;
-    return distance(s.mean_r.xyz, hit_location) <= s.mean_r.w;
-}
-
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -86,6 +76,25 @@ float rand(vec2 co) {
 vec2 rand2(vec2 co) {
     return vec2(rand(co), rand(co + 1.23));// co + offset to get independent value
 }
+
+vec3 sampleHemisphereUniform(vec2 uv) {
+    uv = rand2(uv);
+    float theta = acos(1 - uv.x);
+    float phi = 2.0f *  PI * uv.y;
+    return vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+}
+
+vec3 sampleHemisphereCosine(vec2 uv) {
+    float r = sqrt(uv.x);
+    float theta = 2.0 * PI * uv.y;
+
+    float x = r * cos(theta);
+    float y = r * sin(theta);
+    float z = sqrt(1.0 - uv.x);
+
+    return vec3(x, y, z);
+}
+
 
 vec2 sample_disk(vec2 u) {
     // Map uniform random point u from [0,1]^2 to [-1,1]^2
@@ -111,28 +120,107 @@ vec2 sample_disk(vec2 u) {
     return r * vec2(cos(theta), sin(theta));
 }
 
-vec3 sampleHemisphereUniform(vec2 uv) {
-    uv = rand2(uv);
-    float theta = acos(1 - uv.x);
-    float phi = 2.0f *  PI * uv.y;
-    return vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-}
+//from https://iquilezles.org/articles/intersectors/
+bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location)
+{
+    if (dot(s.normal.xyz, r.direction) > 0) return false;
 
-vec3 sampleHemisphereCosine(vec2 uv) {
-    float r = sqrt(uv.x);
-    float theta = 2.0 * PI * uv.y;
-
-    float x = r * cos(theta);
-    float y = r * sin(theta);
-    float z = sqrt(1.0 - uv.x);
-
-    return vec3(x, y, z);
+    vec3  o = r.origin - s.mean_r.xyz;
+    float t = -dot(s.normal.xyz,o)/dot(r.direction,s.normal.xyz);
+    if (t < 0 ) return false;
+    vec3  q = o + r.direction * t;
+    hit_location = r.origin + r.direction*t;
+    return (dot(q,q)<s.mean_r.w * s.mean_r.w);
 }
 
 
-bool traverseHERO(Ray ray, out vec3 c) {
+//adapted from https://iquilezles.org/articles/intersectors/
+// axis aligned box centered at the origin, with size boxSize
+bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distance, out float distanceNear)
+{
+
+    vec3 origin = r.origin - boxStartWS - boxSize; // transform the origin 
+    vec3 n = r.inverse_direction * origin;   // can precompute if traversing a set of aligned boxes
+    vec3 k = abs(r.inverse_direction)*boxSize;
+    vec3 t1 = -n - k;
+    vec3 t2 = -n + k;
+    float tN = max( max( t1.x, t1.y ), t1.z );
+    float tF = min( min( t2.x, t2.y ), t2.z );
+    if( tN>tF || tF<0.0){
+        return false;
+    }
+    distanceNear = tN;
+    if (tN < 0.0) {
+        distance = tF;
+    } else {
+        distance = tN;
+    }
+    return true;
+}
+
+void insertSorted(inout uint id_array[8], inout float distance_array[8], inout int count, uint new_id, float new_distance) {
+    // If array is full and new distance is greater than the largest, skip insert
+    if (count == 8 && new_distance >= distance_array[7]) {
+        return;
+    }
+
+    // Find insert position
+    int insert_pos = 0;
+    while (insert_pos < count && distance_array[insert_pos] < new_distance) {
+        insert_pos++;
+    }
+
+    // Shift values to the right
+    int limit = (count < 8) ? count : 7; // If full, drop the last element
+    for (int i = limit; i > insert_pos; --i) {
+        distance_array[i] = distance_array[i - 1];
+        id_array[i] = id_array[i - 1];
+    }
+
+    // Insert new value
+    distance_array[insert_pos] = new_distance;
+    id_array[insert_pos] = new_id;
+
+    // Increase count if not full
+    if (count < 8) {
+        count++;
+    }
+}
+
+int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, out uint[8] ordered_ids){
+
+    float child_size = extension_parent * 0.5f;
+    int length_ids = 0;
+
+    uint[8] id_array;
+    float[8] distance_array;
+
+    for (int i = 0; i < 8; i++) {
+
+        vec3 offset = vec3(
+        (i & (1<<2)) != 0 ? 1.0 : 0.0,
+        (i & (1<<1)) != 0 ? 1.0 : 0.0,
+        (i & (1<<0)) != 0 ? 1.0 : 0.0
+        );
+
+        vec3 child_min = parent_min + offset * child_size;
+        float d;
+        float _;
+        if (boxIntersection(r, child_size, child_min, d, _)){
+            //the ray intersects the aabb
+            //bubble sort distance
+            insertSorted(id_array, distance_array, length_ids, i, d);
+        }
+
+
+    }
+    ordered_ids = id_array;
+    return length_ids;
+}
+
+bool traverseHERO(Ray ray, out vec3 c, out float d) {
     const int MAX_DEPTH = 8;
-    const int MAX_STACK = 64;
+    const int MAX_STACK = 32;
 
     // Stack to simulate traversal
     uint node_ids_stack[MAX_STACK];
@@ -153,9 +241,23 @@ bool traverseHERO(Ray ray, out vec3 c) {
         float current_bucket_size = node_size_stack[stackPtr];
         vec3 current_bucket_min = node_min_stack[stackPtr];
         if (stackPtr < 0) {
-            c = vec3(0, 0, 0);
+            if (has_hit){
+                return true;
+            }
+            c = vec3(0, tries*0.001, 0);
             return false;
         }
+
+
+        float near_distance;
+        float _;
+        boxIntersection(ray, current_bucket_size, current_bucket_min, _, near_distance);
+        if (near_distance > closest_hit) {
+            return has_hit;
+        }
+
+
+
 
         //check if there are surfels hit on the current layer 
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
@@ -165,11 +267,10 @@ bool traverseHERO(Ray ray, out vec3 c) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 vec3 hit_location;
                 if (ray_surfel_intersection(s, ray, hit_location)) {
-                    has_hit =true;//remvoe
-                    c = s.radiance_direct_and_surface.xyz;
-                    return true;
-                    if (distance(hit_location, ray.origin) < closest_hit) {
-                        closest_hit = distance(hit_location, ray.origin);
+                    d = distance(hit_location, ray.origin);
+                    if (d < closest_hit) {
+                        c = s.radiance_direct_and_surface.xyz;
+                        closest_hit = d;
                         current_best_hit = hit_location;
                         has_hit =true;
                     }
@@ -178,52 +279,38 @@ bool traverseHERO(Ray ray, out vec3 c) {
         }
         stackPtr--;
 
-        //if there was an intersection and the current octree node doesent have children -> return
-        //if (are_all_child_octree_bits_empty(o.surfels_at_layer_amount) && has_hit)  {
-        //    return true;
-        //}
-
-
-        //if there are no intersections 
-
-
-        int xDir = ray.direction.x >= 0.0 ? 0 : 1;
-        int yDir = ray.direction.y >= 0.0 ? 0 : 1;
-        int zDir = ray.direction.z >= 0.0 ? 0 : 1;
-
-
         float children_size = current_bucket_size * 0.5f;
 
-        for (int i = 0; i < 8; ++i) {
-            int morton = i;//^ (zDir | (yDir << 1) | (xDir << 2));
+        uint[8]ordered_ids;
+
+        //returns sorting from lowest distance to hightest
+        int intersected_children = get_ordered_child_traversal(current_bucket_size, current_bucket_min, ray ,ordered_ids);
+        //for (uint morton = 0; morton < 8 ; morton++) {
+        for (int i = intersected_children - 1; i >= 0; i--) {
+            uint morton = ordered_ids[i];
+
             if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, morton)) continue;
             uint childIndex = o.next_layer_surfels_pointer[morton];
 
             vec3 offset = vec3(
-            (morton & (1<<2)) != 0 ? 1.0 : 0.0,
-            (morton & (1<<1)) != 0 ? 1.0 : 0.0,
-            (morton & (1<<0)) != 0 ? 1.0 : 0.0
+            (morton & (1u<<2)) != 0 ? 1.0 : 0.0,
+            (morton & (1u<<1)) != 0 ? 1.0 : 0.0,
+            (morton & (1u<<0)) != 0 ? 1.0 : 0.0
             );
-
-
-            // Descend into child
             vec3 child_min = current_bucket_min + offset * children_size;
-
-            if (!intersect_AABB(child_min, child_min + vec3(children_size), ray)) continue;
-
-
-            // Push remaining children to stack
             if (stackPtr < MAX_STACK) {
                 stackPtr++;
                 node_ids_stack[stackPtr] = childIndex;
                 node_size_stack[stackPtr] = children_size;
                 node_min_stack[stackPtr] = child_min;
             }
+
         }
     }
-
+    c = vec3(0,0,1);
     return false;
 }
+
 
 void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
     vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
@@ -237,7 +324,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
     float sampled_pre = color_sampled_old.a;
     for (int i = 0; i < ITERATIONS; i++) {
         vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.y;
-        vec3 d = sampleHemisphereCosine(random_seed);
+        vec3 d = sampleHemisphereUniform(random_seed);
         vec3 tangent;
         vec3 bitangent;
 
@@ -245,7 +332,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
         getTangentBasis(normal, tangent, bitangent);
 
         vec2 offset = sample_disk(rand2(random_seed)) * radius;
-        vec3 s = normal;//normalize(normal * d.r + d.g * tangent + d.b * bitangent);
+        vec3 s = normalize(normal * d.b + d.r * tangent + d.g * bitangent);
         s*= vec3(1.0);
         Ray r;
         r.origin = pos; //+ offset.x * tangent + offset.y * bitangent;
@@ -253,7 +340,8 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
         r.inverse_direction = 1.0f/s;
 
         vec3 c;
-        if (!traverseHERO(r, c)) {
+        float dist;
+        if (!traverseHERO(r, c,dist)) {
             color_out+=get_ao_color(); //no object intersected -> skycolor
         } else {
             color_out+=c; //object intersected -> return object color;
@@ -262,7 +350,6 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
     return vec4((color_out + color_pre * sampled_pre) / (ITERATIONS + sampled_pre)
     , sampled_pre + ITERATIONS);
 }
-
 
 
 uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
