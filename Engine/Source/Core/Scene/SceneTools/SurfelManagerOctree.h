@@ -61,6 +61,7 @@ public:
 
 	unsigned int samples_per_meter = 2;
 	int update_surfels_per_tick = 1;
+	int surfel_gi_updates_per_tick = 64;
 	float surface_attachment_radius = 1.0f;
 	int gi_primary_rays = 10;
 	float illumination_derivative_threshold = 0.1f;
@@ -73,7 +74,8 @@ public:
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(surfel* surfel);
 	void generate_surfels_via_compute_shader() const;
-	void update_surfel_ao_via_compute_shader();
+	void find_surfels_to_update();
+	bool update_surfels_in_update_queue(int amount);
 	void find_best_world_positions_to_update_lighting() const;
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
 	bool remove_surfel(const surfel* surfel);
@@ -102,6 +104,8 @@ public:
 	//copy the new data from the surfel compute buffer to the backbuffer of the consumer ssbo
 	void copy_data_from_compute_to_back_buffer() const;
 	void swap_surfel_buffers() const;
+
+	int get_manager_state() const;
 
 private:
 	Scene* scene_;
@@ -206,6 +210,8 @@ private:
 	glm::vec2 get_surfel_illumination_gradient(surfel* s);
 	void create_packed_circles(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color);
 
+	std::vector<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons_ = {};
+
 	/*current state
 	//states:
 	0 -> inserting surfels
@@ -213,5 +219,5 @@ private:
 	2 -> copying from compute buffer to backbuffer
 
 	*/
-	int manager_state_ = -1;
+	int manager_state_ = 0;
 };

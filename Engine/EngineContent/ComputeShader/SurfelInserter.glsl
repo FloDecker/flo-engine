@@ -192,7 +192,7 @@ bool in_light_map_shadow(vec3 vertexPosWs) {
 
 
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
-bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
+bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octree_node_index, out uint final_surfel_index) {
     uint current_element_index = 0;
     uvec3 last_min = uvec3(0);
     uint last_size = 1 << level;
@@ -282,6 +282,8 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos) {
     if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
         uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + get_surfel_amount(insert_at_local);
+        octree_node_index = current_element_index;
+        final_surfel_index = insert_at_global;
         memoryBarrierBuffer();
         surfels[insert_at_global] = s;
     } else {
@@ -302,6 +304,16 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 
 vec3 project_normal_onto_plane(vec3 v, vec3 plane_normal){
     return v- dot(v,plane_normal)* plane_normal;
+}
+
+vec4 get_average_color_of_bucket(uint octree_index_of_bucket) {
+    vec4 avg = vec4(0.0);
+    uint amount = get_surfel_amount(octreeElements[octree_index_of_bucket].surfels_at_layer_amount);
+    uint index = octreeElements[octree_index_of_bucket].surfels_at_layer_pointer;
+    for (uint i = 0; i < amount; i++){
+        avg+=surfels[index + i].radiance_ambient;
+    }
+    return avg/float(amount);
 }
 
 
@@ -431,8 +443,9 @@ void main() {
     
     
     //octreeElements[0].surfels_at_layer_amount = get_pos_of_next_surfel_index_(uvec3(256,256,256), pos);
-
-    if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x])){
+    uint octree_index_of_bucket;
+    uint final_surfel_index;
+    if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x],octree_index_of_bucket, final_surfel_index)){
         atomicAdd(allocationMetadata[0].debug_int_32,1);
         return;
     }

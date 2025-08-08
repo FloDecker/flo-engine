@@ -64,6 +64,7 @@ struct Ray {
     vec3 direction;
     vec3 inverse_direction;
 };
+//#define DEBUG_SURFELS
 #ifdef DEBUG_SURFELS
 //front buffers
 layout(std430, binding = 4) readonly buffer SurfelBuffer {
@@ -124,7 +125,7 @@ bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distanc
     }
     distanceNear = tN;
     if (tN < 0.0) {
-        distance = tF;
+        distance = 0.0;
     } else {
         distance = tN;
     }
@@ -214,11 +215,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
         float current_bucket_size = node_size_stack[stackPtr];
         vec3 current_bucket_min = node_min_stack[stackPtr];
         if (stackPtr < 0) {
-            if (has_hit){
-                return true;
-            }
-            c = vec3(0, tries*0.001, 0);
-            return false;
+            return has_hit;
         }
 
 
@@ -226,7 +223,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
         float _;
         boxIntersection(ray, current_bucket_size, current_bucket_min, _, near_distance);
         if (near_distance > closest_hit) {
-            return has_hit;
+            return true;
         }
 
 
@@ -434,7 +431,6 @@ void main()
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
-    return;
     
     #ifdef DEBUG_SURFELS
     vec3 ray_direction = normalize(pos_ws - cameraPosWs);
@@ -451,10 +447,10 @@ void main()
     //c = vec3(float(ray_surfel_intersection(s, r, hit_location)));
     
     bool b= traverseHERO(r,c, d);
-    FragColor = vec4(float(b) * c * 1.0f + LightPass * 0.0f,  1.0);
+    FragColor = vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
 
     #endif 
-
+    return;
     if(TexCoords.y < 0.1f) {
         FragColor = vec4(bit_debug, 1.0);
         return;

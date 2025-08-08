@@ -75,6 +75,7 @@ void SurfelManagerOctree::draw_ui()
 
 	ImGui::Checkbox("Update Surfels", &update_surfels_next_tick);
 	ImGui::Checkbox("Draw boxes on update nodes", &draw_debug_boxes_);
+	ImGui::DragInt("Surfel GI updates per tick", &surfel_gi_updates_per_tick);
 }
 
 
@@ -140,13 +141,8 @@ void SurfelManagerOctree::generate_surfels_via_compute_shader() const
 	}
 }
 
-void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
+void SurfelManagerOctree::find_surfels_to_update()
 {
-	std::random_device rd; // Seed the random number generator
-	std::mt19937 gen(rd()); // Mersenne Twister PRNG
-	std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
-	
-	std::set<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons = {};
 	find_best_world_positions_to_update_lighting();
 	
 	GLsync computeFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -164,6 +160,9 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 32) + 1;
 	
 	least_shaded_regions->unmap();
+
+	std::set<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons_set = {};
+
 	for (int j = 0; j < width * height; j++)
 	{
 		
@@ -177,12 +176,19 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 		int level = c.w;
 		auto b = get_bucket_coordinates_from_ws(glm::vec3(c), level);
 		auto g = std::pair<unsigned, std::array<unsigned, 3>>(static_cast<unsigned>(level),{b.x,b.y,b.z});
-		sample_positons.insert(g);
-		
+		sample_positons_set.insert(g);
 	}
+	sample_positons_ = std::vector(sample_positons_set.begin(), sample_positons_set.end()); 
+}
 
-	for (auto sample_positon : sample_positons)
+bool SurfelManagerOctree::update_surfels_in_update_queue(int amount)
+{
+	auto queue_size = static_cast<int>(sample_positons_.size());
+	amount = std::min(amount, queue_size);
+	
+	for (int i = 0; i < amount; i++)
 	{
+		auto sample_positon = sample_positons_.back();
 		unsigned int level = sample_positon.first;
 		glm::uvec3 coordinates = {sample_positon.second[0],sample_positon.second[1],sample_positon.second[2]};
 		auto b = StructBoundingBox();
@@ -190,10 +196,10 @@ void SurfelManagerOctree::update_surfel_ao_via_compute_shader()
 		b.max = b.min + node_size_at_level(level);
 		if (draw_debug_boxes_) scene_->get_debug_tools()->draw_debug_cube(&b);
 		compute_shader_ao_approximation(level, coordinates);
-	}
-	
 
-	
+		sample_positons_.pop_back();
+	}
+	return sample_positons_.empty();
 }
 
 void SurfelManagerOctree::find_best_world_positions_to_update_lighting() const
@@ -1053,37 +1059,36 @@ void SurfelManagerOctree::tick()
 			return;
 		}
 	}
-	manager_state_++;
-	
 	switch (manager_state_)
 	{
-
 	case 0: //insert surfels
 		swap_surfel_buffers();//swap front and backbuffer
 		generate_surfels_via_compute_shader();
 		//std::printf("\n run generate_surfels_via_compute_shader");
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		manager_state_ = 1;
 		break;
 	case 1: //compute ao
-		update_surfel_ao_via_compute_shader();
+		find_surfels_to_update();
 		//std::printf("\n run update_surfel_ao_via_compute_shader");
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-
+		manager_state_ = 2;
+	case 2:  // FALLTHROUGH_
+		if (update_surfels_in_update_queue(surfel_gi_updates_per_tick))
+		{
+			manager_state_ = 3;
+		}
+		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		break;
-	case 2: //copying from compute buffer to backbuffer
+	case 3: //copying from compute buffer to backbuffer
 		copy_data_from_compute_to_back_buffer();
 		//std::printf("\n run copy_data_from_compute_to_back_buffer");
 
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		manager_state_ = -1;
-		break;
-	case 3: 
-		
-		//std::printf("\n run swap_surfel_buffers");
-
+		manager_state_ = 0;
 		break;
 	default:
-		manager_state_ = -1;
+		manager_state_ = 0;
 	}
 }
 
@@ -1097,6 +1102,11 @@ void SurfelManagerOctree::swap_surfel_buffers() const
 {
 	surfel_ssbo_consumer_->swap();
 	surfels_octree_consumer_->swap();
+}
+
+int SurfelManagerOctree::get_manager_state() const
+{
+	return manager_state_;
 }
 
 bool SurfelManagerOctree::is_child_octree_bit_set_at_(const surfel_octree_element* surfel_octree_element,

@@ -2,6 +2,7 @@
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
 #define ITERATIONS 1
+
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -151,7 +152,7 @@ bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distanc
     }
     distanceNear = tN;
     if (tN < 0.0) {
-        distance = tF;
+        distance = 0.0;
     } else {
         distance = tN;
     }
@@ -269,7 +270,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
                 if (ray_surfel_intersection(s, ray, hit_location)) {
                     d = distance(hit_location, ray.origin);
                     if (d < closest_hit) {
-                        c = s.radiance_direct_and_surface.xyz;
+                        c = s.radiance_direct_and_surface.xyz + ((s.radiance_ambient.w > 100) ? s.radiance_ambient.xyz : vec3(0.0));
                         closest_hit = d;
                         current_best_hit = hit_location;
                         has_hit =true;
