@@ -249,6 +249,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug_data) {
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 vec3 hit_location;
+                debug_data.g++;
                 if (ray_surfel_intersection(s, ray, hit_location)) {
                     d = distance(hit_location, ray.origin);
                     if (d < closest_hit) {
@@ -454,7 +455,7 @@ void main()
     r.direction = ray_direction;
     r.origin = cameraPosWs;
     r.inverse_direction = 1.0f/ray_direction;
-    r.max_length = 4;
+    r.max_length = 100;
     vec3 hit_location;
     Surfel s;
     s.normal = vec4(normalize(vec3(1,0,0)),0);
@@ -463,7 +464,7 @@ void main()
     vec4 debug_data;
     bool b= traverseHERO(r,c, d,debug_data);
     FragColor = float(b)*vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
-    //FragColor = debug_data/100.0f;
+    FragColor = debug_data.gggg/1000.0f;
 
     #endif 
     return;

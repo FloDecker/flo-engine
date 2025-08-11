@@ -48,7 +48,7 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	insert_surfel_compute_shader->compileShader();
 
 	compute_shader_approxmiate_ao = new compute_shader();
-	compute_shader_approxmiate_ao->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximator.glsl");
+	compute_shader_approxmiate_ao->loadFromFile("EngineContent/ComputeShader/SurfelAoApproximatorParallelized.glsl");
 	compute_shader_approxmiate_ao->compileShader();
 
 	compute_shader_find_least_shaded_pos = new compute_shader();
