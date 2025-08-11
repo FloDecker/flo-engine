@@ -9,6 +9,7 @@ struct Surfel {
     vec4 normal;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
+    uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
 

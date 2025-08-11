@@ -216,7 +216,7 @@ void SurfelManagerOctree::compute_shader_ao_approximation(uint32_t level, glm::u
 		compute_shader_approxmiate_ao->setUniformInt("offset_id", 0);
 		compute_shader_approxmiate_ao->setUniformInt("calculation_level", level);
 		compute_shader_approxmiate_ao->set_uniform_vec3_u("pos_ws_start", value_ptr(pos_in_octree));
-		glDispatchCompute(3, 3, 3);
+		glDispatchCompute(128, 1, 1);
 	
 }
 

@@ -33,6 +33,7 @@ struct surfel_gpu
 	glm::vec4 normal = {};
 	glm::vec4 radiance_ambient = {}; //radiance_ambient(frist bounce) + sample amout
 	glm::vec4 radiance_direct_and_surface = {};
+	uint32_t copy_locations[8];
 };
 
 struct surfel_allocation_metadata

@@ -13,6 +13,7 @@ struct Surfel {
     vec4 normal;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
+    uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
 
@@ -336,6 +337,8 @@ uvec3(0, 0, 1),
 uvec3(0, 0, 0),
 };
 
+shared uint[8] temp_copy_locations;
+
 void main() {
     
     uvec2 sizeTex = textureSize(gNormal, 0);
@@ -447,8 +450,12 @@ void main() {
     uint final_surfel_index;
     if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x],octree_index_of_bucket, final_surfel_index)){
         atomicAdd(allocationMetadata[0].debug_int_32,1);
-        return;
     }
+    temp_copy_locations[gl_LocalInvocationID.x] = final_surfel_index;
+    barrier();
     
+    for (int i = 0; i < 8; i++) {
+        surfels[final_surfel_index].copy_locations[i] = temp_copy_locations[i];
+    }
 
 }

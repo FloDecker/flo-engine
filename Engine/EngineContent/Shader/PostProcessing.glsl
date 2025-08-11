@@ -49,6 +49,7 @@ struct Surfel {
     vec4 normal;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
+    uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
 
@@ -63,6 +64,7 @@ struct Ray {
     vec3 origin;
     vec3 direction;
     vec3 inverse_direction;
+    float max_length;
 };
 //#define DEBUG_SURFELS
 #ifdef DEBUG_SURFELS
@@ -110,7 +112,7 @@ bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location)
 
 //adapted from https://iquilezles.org/articles/intersectors/
 // axis aligned box centered at the origin, with size boxSize
-bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distance, out float distanceNear)
+bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distance, out float distanceNear, out float distanceFar)
 {
     
     vec3 origin = r.origin - boxStartWS - boxSize; // transform the origin 
@@ -124,6 +126,7 @@ bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distanc
         return false;
     }
     distanceNear = tN;
+    distanceFar = tF;
     if (tN < 0.0) {
         distance = 0.0;
     } else {
@@ -180,7 +183,8 @@ int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, 
         vec3 child_min = parent_min + offset * child_size;
         float d;
         float _;
-        if (boxIntersection(r, child_size, child_min, d, _)){
+        float _1;
+        if (boxIntersection(r, child_size, child_min, d, _, _1)){
             //the ray intersects the aabb
             //bubble sort distance
             insertSorted(id_array, distance_array, length_ids, i, d);
@@ -192,8 +196,8 @@ int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, 
     return length_ids;
 }
 
-bool traverseHERO(Ray ray, out vec3 c, out float d) {
-    const int MAX_DEPTH = 8;
+bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug_data) {
+    const int MAX_DEPTH = 3;
     const int MAX_STACK = 32;
 
     // Stack to simulate traversal
@@ -215,15 +219,24 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
         float current_bucket_size = node_size_stack[stackPtr];
         vec3 current_bucket_min = node_min_stack[stackPtr];
         if (stackPtr < 0) {
+            debug_data.r = tries;
             return has_hit;
         }
 
 
         float near_distance;
+        float far_distance;
         float _;
-        boxIntersection(ray, current_bucket_size, current_bucket_min, _, near_distance);
+        boxIntersection(ray, current_bucket_size, current_bucket_min, _, near_distance, far_distance);
         if (near_distance > closest_hit) {
+            debug_data.r = tries;
             return true;
+        }
+        
+        if (near_distance > ray.max_length) {
+            debug_data.r = tries;
+
+            return has_hit;
         }
 
 
@@ -304,6 +317,7 @@ struct Surfel {
     vec4 normal;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
+    uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
 
@@ -440,14 +454,16 @@ void main()
     r.direction = ray_direction;
     r.origin = cameraPosWs;
     r.inverse_direction = 1.0f/ray_direction;
+    r.max_length = 4;
     vec3 hit_location;
     Surfel s;
     s.normal = vec4(normalize(vec3(1,0,0)),0);
     s.mean_r = vec4(10.0,10.0,10.0,1.0);
     //c = vec3(float(ray_surfel_intersection(s, r, hit_location)));
-    
-    bool b= traverseHERO(r,c, d);
-    FragColor = vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
+    vec4 debug_data;
+    bool b= traverseHERO(r,c, d,debug_data);
+    FragColor = float(b)*vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
+    //FragColor = debug_data/100.0f;
 
     #endif 
     return;

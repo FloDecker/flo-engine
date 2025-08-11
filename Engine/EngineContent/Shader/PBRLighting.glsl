@@ -67,6 +67,7 @@ struct Surfel {
     vec4 normal;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
+    uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
 
@@ -350,7 +351,7 @@ vec3 calculate_pbr_lighting (vec3 WorldPos, vec3 Normal, vec3 albedo, float roug
     Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     
     
-    vec3 ambient = (vec3(0.00) * albedo + 0.9f*clamp(surfel_buffer.rgb, vec3(0.0), vec3(1.0)))* ao;
+    vec3 ambient = clamp(surfel_buffer.rgb, vec3(0.0), vec3(1.0))* ao * albedo;
     vec3 color = ambient + Lo + emissive;
     return vec3( color);
 }

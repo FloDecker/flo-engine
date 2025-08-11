@@ -234,6 +234,9 @@ int main()
 
 	auto me_simple_building = loadModel("EngineContent/SimpleBuilding.fbx");
 	me_simple_building->initializeVertexArrays();
+	
+	auto me_brutalist = loadModel("EngineContent/brutalist.fbx");
+	me_brutalist->initializeVertexArrays();
 
 	//init shaders
 
@@ -314,6 +317,12 @@ int main()
 	object_landscape->set_material(green_shader);
 	object_landscape->set_position_global(-12,-1.7,0);
 	object_landscape->setRotationLocal(-90,0,0);
+
+	auto object_brutalist = new Mesh3D(scene->get_root(), me_brutalist);
+	object_brutalist->name = "object_brutalist";
+	object_brutalist->set_material(grey_shader);
+	object_brutalist->set_position_global(-12,-40,40);
+	object_brutalist->setRotationLocal(-90,0,0);
 
 	
 	auto object_simple_building = new Mesh3D(scene->get_root(), me_simple_building);
