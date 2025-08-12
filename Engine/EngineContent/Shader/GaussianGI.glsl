@@ -182,24 +182,11 @@ bool is_child_octree_bit_set_at(uint i, uint pos)
     return (i & (1u << 31-pos)) != 0;
 }
 
-uint get_pos_of_next_surfel_index_(vec3 pos_relative)
+uint get_next_octree_index_(vec3 pos_relative)
 {
-    uint r = 0u;
-    if (pos_relative.x >= 0)
-    {
-        r |= (1u << 2);
-    }
-
-    if (pos_relative.y >= 0)
-    {
-        r |= (1u << 1);
-    }
-
-    if (pos_relative.z >= 0)
-    {
-        r |= (1u << 0);
-    }
-    return r;
+    return (uint(pos_relative.x >= 0.0) << 2) |
+    (uint(pos_relative.y >= 0.0) << 1) |
+    (uint(pos_relative.z >= 0.0) << 0);
 }
 
 vec3 get_next_center(vec3 current_center, vec3 pos_relative, int current_layer) {
@@ -259,7 +246,7 @@ vec3 get_color_from_octree(vec3 pos) {
             }
         }
         vec3 pos_relative = pos - current_center;
-        uint index_of_next_pointer = get_pos_of_next_surfel_index_(pos_relative);
+        uint index_of_next_pointer = get_next_octree_index_(pos_relative);
         if (is_child_octree_bit_set_at(bucket_info, int(index_of_next_pointer))) {
             //there is another child octree containing information for this texel
             index = o.next_layer_surfels_pointer[index_of_next_pointer];

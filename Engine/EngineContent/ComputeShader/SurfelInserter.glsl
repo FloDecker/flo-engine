@@ -126,24 +126,11 @@ void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
     bitangent = cross(normal, tangent);
 }
 
-uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
+uint get_next_octree_index_(uvec3 center, uvec3 pos)
 {
-    uint r = 0u;
-    if (pos.x >= center.x)
-    {
-        r |= (1u << 2);
-    }
-
-    if (pos.y >= center.y)
-    {
-        r |= (1u << 1);
-    }
-
-    if (pos.z >= center.z)
-    {
-        r |= (1u << 0);
-    }
-    return r;
+    return (uint(pos.x >= center.x) << 2) |
+    (uint(pos.y >= center.y) << 1) |
+    (uint(pos.z >= center.z) << 0);
 }
 
 uvec3 get_cell_size_at_level(uint level) {
@@ -203,7 +190,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         last_size = last_size >> 1;// integer divison by 2
         uvec3 center = last_min + last_size;
 
-        uint index = get_pos_of_next_surfel_index_(center, pos);
+        uint index = get_next_octree_index_(center,pos);
         
         //atomic read -> if mem != 0u dont exchange, if mem == 0u its replaced by 0u -> idempotent
         uint cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, 0u);
@@ -445,7 +432,6 @@ void main() {
     
     
     
-    //octreeElements[0].surfels_at_layer_amount = get_pos_of_next_surfel_index_(uvec3(256,256,256), pos);
     uint octree_index_of_bucket;
     uint final_surfel_index;
     if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x],octree_index_of_bucket, final_surfel_index)){

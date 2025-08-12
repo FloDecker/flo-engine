@@ -26,9 +26,10 @@ uniform sampler2D gNormal;
 
 #define PI 3.14159265359
 #define AREA_UNIT_SPHERE (4.0*PI)
-#define FLOAT_MAX 200000.0
+#define FLOAT_MAX 2000000.0
+#define MAX_LIGHT_SAMPLES FLOAT_MAX
 #define GAUSSIAN_SAMPLES 512
-
+#define MAX_LAYERS 9
 uint bitmask_surfel_amount = 0x00FFFFFF;
 float total_extension = 512.0;
 
@@ -189,24 +190,11 @@ bool is_child_octree_bit_set_at(uint i, uint pos)
     return (i & (1u << 31-pos)) != 0;
 }
 
-uint get_pos_of_next_surfel_index_(vec3 pos_relative)
+uint get_next_octree_index_(vec3 pos_relative)
 {
-    uint r = 0u;
-    if (pos_relative.x >= 0)
-    {
-        r |= (1u << 2);
-    }
-
-    if (pos_relative.y >= 0)
-    {
-        r |= (1u << 1);
-    }
-
-    if (pos_relative.z >= 0)
-    {
-        r |= (1u << 0);
-    }
-    return r;
+    return (uint(pos_relative.x >= 0.0) << 2) |
+    (uint(pos_relative.y >= 0.0) << 1) |
+    (uint(pos_relative.z >= 0.0) << 0);
 }
 
 vec3 get_next_center(vec3 current_center, vec3 pos_relative, int current_layer) {
@@ -234,28 +222,30 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 
-vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center) {
+vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center) {
     surfel_coverage = 0;
-    min_samples = 10000000.0f;
+    min_samples = MAX_LIGHT_SAMPLES;
     min_sample_level = 0;
     if (!is_ws_pos_contained_in_bb(pos, vec3(- total_extension * 0.5f), vec3(total_extension))) {
         return vec3(0.0);
     }
     vec3 final_color = vec3(0.0);
+    vec3 color_radius_indipendend = vec3(0.0);
+    int samples_radus_independend = 0;
     vec3 debug_color = vec3(0.0);
     uint index = 0;
-    amount_texture_fetches = 0;//amount of texture fetches
-    int amount_contribution = 0;//count the amount of correct hits 
+    amount_texture_fetches = 0; //amount of texture fetches
+    int amount_contribution = 0; //count the amount of correct hits 
 
     vec3 current_center = vec3(0, 0, 0);
     float feched_samples = 0;
-    for (int current_layer = 0; current_layer < 100; current_layer++) {
+    for (int current_layer = 0; current_layer < MAX_LAYERS; current_layer++) {
         OctreeElement o = octreeElements[index];
         uint bucket_info = o.surfels_at_layer_amount;
         amount_texture_fetches++;
         //bucket contains surfels 
         uint surfels_amount = get_surfel_amount(bucket_info);
-        //TODO: sample surfels
+
         
         //sample surfles from bucket:
         uint surfle_data_pointer;
@@ -265,46 +255,51 @@ vec3 get_color_from_octree(vec3 pos, vec3 normalWS, out int amount_texture_fetch
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 amount_texture_fetches++;
-
-                float d = distance(pos, s.mean_r.xyz);
-
-                if (d < s.mean_r.w ) {
-                    if (dot(s.normal.xyz, normalWS) > 0.1) {
-                        debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f;
-                        
-                        float attenuation = 1.0f - d / s.mean_r.w;
-                        final_color+=s.radiance_ambient.rgb*attenuation;
-                        amount_contribution++;
-                        feched_samples+=attenuation;
-                        surfel_coverage += attenuation;
-                        
-                        
-                        //use this to prioiritize surfels that havent been sampled a lot
-                        if (s.radiance_ambient.w < min_samples) {
-                            min_samples = s.radiance_ambient.w;
-                            min_sample_level = float(current_layer);
-                            min_sample_center = s.mean_r.xyz;
-                        }
-                    }
-                } else {
-                    amount_innceseary_fetches++;
+                
+                color_radius_indipendend+=s.radiance_ambient.rgb;
+                samples_radus_independend++;
+                
+                float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w,0.0);
+                float normal_difference = smoothstep(0.6,0.8,abs(dot(s.normal.xyz, normal_ws)));
+                float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)),0.0);
+               
+                debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f;
+                
+                float attenuation =  distance_difference * normal_difference  * distance_to_surfel;
+                
+                final_color+=s.radiance_ambient.rgb*attenuation;
+                amount_contribution++;
+                
+                feched_samples+= attenuation;
+                surfel_coverage += attenuation;
+                
+                
+                //use this to prioiritize surfels that havent been sampled a lot
+                if (attenuation > 0 && s.radiance_ambient.w < min_samples) {
+                    min_samples = s.radiance_ambient.w;
+                    min_sample_level = float(current_layer);
+                    min_sample_center = s.mean_r.xyz;
                 }
+                
             }
         }
         vec3 pos_relative = pos - current_center;
-        uint index_of_next_pointer = get_pos_of_next_surfel_index_(pos_relative);
+        uint index_of_next_pointer = get_next_octree_index_(pos_relative);
         if (is_child_octree_bit_set_at(bucket_info, int(index_of_next_pointer))) {
             //there is another child octree containing information for this texel
             index = o.next_layer_surfels_pointer[index_of_next_pointer];
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            return final_color/feched_samples;
-            //return float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
-            //return float_to_heat_map(1.0 - amount_texture_fetches/amount_contribution * 0.01);
+            if (feched_samples > 0) {
+                return final_color/feched_samples;
+            } else {
+                return color_radius_indipendend / (samples_radus_independend + 0.01);
+            }
+
         }
     }
-    return vec3(0, 0, 0);
+    return color_radius_indipendend / (samples_radus_independend + 0.01);
 }
 
 void main()

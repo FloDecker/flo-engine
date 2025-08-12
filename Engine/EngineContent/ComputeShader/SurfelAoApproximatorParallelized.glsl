@@ -362,7 +362,7 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
 }
 
 
-uint get_pos_of_next_surfel_index_(uvec3 center, uvec3 pos)
+uint get_next_octree_index_(uvec3 center, uvec3 pos)
 {
     uint r = 0u;
     if (pos.x >= center.x)
@@ -394,7 +394,7 @@ bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, ou
 
         uvec3 center = last_min + last_size;
 
-        uint index = get_pos_of_next_surfel_index_(center, pos);
+        uint index = get_next_octree_index_(center, pos);
 
         if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, index)) {
             return false;

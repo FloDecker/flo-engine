@@ -92,7 +92,7 @@ static uint32_t combine(const uint32_t a, const uint32_t b, const uint32_t mask)
 	return (a & ~mask) | (b & mask);
 }
 
-static uint8_t get_pos_of_next_surfel_index_(glm::vec3 pos_relative)
+static uint8_t get_next_octree_index_(glm::vec3 pos_relative)
 {
 	uint8_t r = 0b00000000;
 	if (pos_relative.x >= 0)
@@ -437,7 +437,7 @@ bool SurfelManagerOctree::insert_surfel_into_octree_recursive(surfel* surfel_to_
 	}
 
 	auto pos_relative = target_pos - current_center;
-	auto next_index = get_pos_of_next_surfel_index_(pos_relative);
+	auto next_index = get_next_octree_index_(pos_relative);
 	uint32_t next_octree_index;
 	if (is_child_octree_bit_set_at_(current_octree_element, next_index))
 	{
@@ -499,7 +499,7 @@ void SurfelManagerOctree::get_surfels_in_radius_recursive(glm::vec3 ws_pos, floa
 
 	for (auto to_check : centers_to_check)
 	{
-		auto next_index = get_pos_of_next_surfel_index_(to_check - current_center);
+		auto next_index = get_next_octree_index_(to_check - current_center);
 		if (is_child_octree_bit_set_at_(o, next_index))
 		{
 			auto next_surfel = o->next_layer_surfels_pointer[next_index];
