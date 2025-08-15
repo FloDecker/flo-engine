@@ -446,6 +446,7 @@ void main()
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
+    //FragColor = vec4(surfel_metadata_0.rgb,  1.0);
     
     #ifdef DEBUG_SURFELS
     vec3 ray_direction = normalize(pos_ws - cameraPosWs);
@@ -478,7 +479,7 @@ void main()
 
             FragColor = vec4(clamp(normal_ws.rgb, vec3(0),vec3(1)) , 1.0);
         } else {
-            FragColor = vec4(surfel_metadata_0.ggg*0.01,1.0);
+            FragColor = vec4(surfel_metadata_0.www*0.01,1.0);
         }
     } else {
         if (TexCoords_scaled.y > 1.0) {

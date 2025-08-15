@@ -4,6 +4,7 @@
 #define MAX_SAMPLES_PER_SURFEL 60000
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
+uniform sampler2D surfel_framebuffer;
 uniform sampler2D surfel_framebuffer_metadata_0;
 uniform sampler2D surfel_framebuffer_metadata_1;
 uniform sampler2D gPos;
@@ -39,9 +40,10 @@ void main() {
     vec2 TexCoords = local_zero_index + vec2(gl_LocalInvocationID.xy) * single_pixel_offset;
     
     vec4 surfel_metadata_0 = vec4(texture(surfel_framebuffer_metadata_0, TexCoords));
-    int coverage_at_pixel = int(surfel_metadata_0.a);
+    vec4 surfel_buffer = vec4(texture(surfel_framebuffer, TexCoords));
+    int coverage_at_pixel = int(surfel_buffer.a);
     
-    int samples_at_pixel = coverage_at_pixel>0 ? int(surfel_metadata_0.g) : MAX_VALUE;
+    int samples_at_pixel = coverage_at_pixel>0 ? int(surfel_metadata_0.w) : MAX_VALUE;
 
     float pre = atomicMin(min_value,samples_at_pixel);
     //previous value was higher -> this is the new min 
@@ -72,7 +74,7 @@ void main() {
         
         vec4 surfel_metadata_1 = vec4(texture(surfel_framebuffer_metadata_1, TexCoords));
         vec3 ws_pos_of_min = surfel_metadata_1.rgb;
-        int level_of_min = int(surfel_metadata_0.b);
+        int level_of_min = int(surfel_metadata_1.w);
         
         //level of min is set to -1 of the sampling threshold is reached 
         least_shaded_regions[flat_index_global] = vec4(ws_pos_of_min,level_of_min);

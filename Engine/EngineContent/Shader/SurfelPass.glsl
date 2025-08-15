@@ -48,9 +48,9 @@ float bias = 0.01;
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
-    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
-    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
-    uint[8] copy_locations; //global adresses where this exact surfel can be found
+    vec4 radiance_ambient;//radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface;//radiance contribution from direct light and surface
+    uint[8] copy_locations;//global adresses where this exact surfel can be found
 };
 
 struct OctreeElement
@@ -222,7 +222,7 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 }
 
 
-vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center) {
+vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center, out vec3 avg_octree_color) {
     surfel_coverage = 0;
     min_samples = MAX_LIGHT_SAMPLES;
     min_sample_level = 0;
@@ -230,15 +230,12 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
         return vec3(0.0);
     }
     vec3 final_color = vec3(0.0);
-    vec3 color_radius_indipendend = vec3(0.0);
+    avg_octree_color  = vec3(0.0);
     int samples_radus_independend = 0;
-    vec3 debug_color = vec3(0.0);
     uint index = 0;
-    amount_texture_fetches = 0; //amount of texture fetches
-    int amount_contribution = 0; //count the amount of correct hits 
+    amount_texture_fetches = 0;//amount of texture fetches
 
     vec3 current_center = vec3(0, 0, 0);
-    float feched_samples = 0;
     for (int current_layer = 0; current_layer < MAX_LAYERS; current_layer++) {
         OctreeElement o = octreeElements[index];
         uint bucket_info = o.surfels_at_layer_amount;
@@ -246,7 +243,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
         //bucket contains surfels 
         uint surfels_amount = get_surfel_amount(bucket_info);
 
-        
+
         //sample surfles from bucket:
         uint surfle_data_pointer;
         if (surfels_amount > 0) {
@@ -255,32 +252,29 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
             for (int i = 0; i < surfels_amount; i++) {
                 Surfel s = surfels[surfle_data_pointer + i];
                 amount_texture_fetches++;
-                
-                color_radius_indipendend+=s.radiance_ambient.rgb;
-                samples_radus_independend++;
-                
-                float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w,0.0);
-                float normal_difference = smoothstep(0.6,0.8,abs(dot(s.normal.xyz, normal_ws)));
-                float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)),0.0);
-               
-                debug_color+=random(s.mean_r.xy, abs(s.mean_r.z) + 1.0f) * 0.1f;
-                
+
+
+                float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w, 0.0);
+                float normal_difference = smoothstep(0.6, 0.8, abs(dot(s.normal.xyz, normal_ws)));
+                float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)), 0.0);
+
+
                 float attenuation =  distance_difference * normal_difference  * distance_to_surfel;
                 
+                avg_octree_color+=s.radiance_ambient.rgb;
                 final_color+=s.radiance_ambient.rgb*attenuation;
-                amount_contribution++;
-                
-                feched_samples+= attenuation;
                 surfel_coverage += attenuation;
                 
-                
+                samples_radus_independend++;
+
+
                 //use this to prioiritize surfels that havent been sampled a lot
                 if (attenuation > 0 && s.radiance_ambient.w < min_samples) {
                     min_samples = s.radiance_ambient.w;
                     min_sample_level = float(current_layer);
                     min_sample_center = s.mean_r.xyz;
                 }
-                
+
             }
         }
         vec3 pos_relative = pos - current_center;
@@ -291,15 +285,20 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
-            if (feched_samples > 0) {
-                return final_color/feched_samples;
+            avg_octree_color/=float(samples_radus_independend + 0.01);
+            if (surfel_coverage > 0) {
+                return final_color/surfel_coverage;
             } else {
-                return color_radius_indipendend / (samples_radus_independend + 0.01);
+                return avg_octree_color;
             }
 
         }
     }
-    return color_radius_indipendend / (samples_radus_independend + 0.01);
+
+    avg_octree_color/=float(samples_radus_independend + 0.01);
+    avg_octree_color = vec3(0.0);
+
+    return avg_octree_color;
 }
 
 void main()
@@ -310,10 +309,11 @@ void main()
     int amount_texture_fetches;
     int amount_innceseary_fetches;
     float surfel_coverage = 0.0;
-    float min_samples; //returns the minimal amount of surfle samples at this fragments location
-    float min_sample_level; //returns the octree level of the minimal level surfel
+    float min_samples;//returns the minimal amount of surfle samples at this fragments location
+    float min_sample_level;//returns the octree level of the minimal level surfel
     vec3 min_sample_center;
-    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches,surfel_coverage,min_samples,min_sample_level, min_sample_center);
+    vec3 avg_octree_color;
+    vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches, surfel_coverage, min_samples, min_sample_level, min_sample_center, avg_octree_color);
 
 
     OctreeElement f;
@@ -321,8 +321,8 @@ void main()
     //uint x = octreeElements[7].surfels_at_layer_pointer;
 
     gSurfel = vec4(d, surfel_coverage);
-    surfel_metadata_0 = vec4(amount_texture_fetches,min_samples,min_sample_level,surfel_coverage);
-    surfel_metadata_1 = vec4(min_sample_center,surfel_coverage);
-    
-    
+    surfel_metadata_0 = vec4(avg_octree_color, min_samples);
+    surfel_metadata_1 = vec4(min_sample_center, min_sample_level);
+
+
 }

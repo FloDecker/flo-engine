@@ -70,6 +70,7 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gSurfels;
 uniform sampler2D gEmissive;
+uniform sampler2D surfel_framebuffer_metadata_0;
 
 uniform vec3 camera_position;
 uniform vec3 random_offset;
@@ -413,12 +414,13 @@ void main() {
     offset_vector.x = offset_from_cell_center.x < 0.5f ? -1 : 1;
     offset_vector.y = offset_from_cell_center.y < 0.5f ? -1 : 1;
     offset_vector.z = offset_from_cell_center.z < 0.5f ? -1 : 1;
-    
-    
-    
+
+    vec3 surfel_metadata_0 = vec3(texture(surfel_framebuffer_metadata_0, TexCoords));
+
+
     Surfel s;
     s.mean_r = vec4(pos_ws, radius);
-    s.radiance_ambient = vec4(0.2,0.2,0.2,0.0);
+    s.radiance_ambient = vec4(surfel_metadata_0.rgb,16.0);
 
     float NdotL = dot(normal_ws, normalize(direct_light_direction));
     float diffuseIntensity = clamp(NdotL,0,1);

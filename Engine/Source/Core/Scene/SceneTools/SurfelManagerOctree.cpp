@@ -1024,12 +1024,14 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, const framebuffe
 	insert_surfel_compute_shader->addTexture(t_albedo, "gAlbedo");
 	insert_surfel_compute_shader->addTexture(t_emissive, "gEmissive");
 	insert_surfel_compute_shader->addTexture(surfel_framebuffer_texture, "gSurfels");
+	insert_surfel_compute_shader->addTexture(surfel_framebuffer_metadata_0_texture, "surfel_framebuffer_metadata_0");
 	insert_surfel_compute_shader->addTexture(camera->get_scene()->get_scene_direct_light()->light_map(), "direct_light_map_texture");
 
 	
 	compute_shader_find_least_shaded_pos->addTexture(t_pos, "gPos");
 	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_metadata_0_texture, "surfel_framebuffer_metadata_0");
 	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_metadata_1_texture, "surfel_framebuffer_metadata_1");
+	compute_shader_find_least_shaded_pos->addTexture(surfel_framebuffer_texture, "surfel_framebuffer");
 	
 }
 
