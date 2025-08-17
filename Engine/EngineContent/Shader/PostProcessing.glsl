@@ -441,6 +441,8 @@ void main()
     int amount_innceseary_fetches;
    // vec3 d = get_color_from_octree(pos_ws, normal_ws, amount_texture_fetches, amount_innceseary_fetches);
     vec3 heat_map_texture_fetches = float_to_heat_map(1.0 - amount_texture_fetches * 0.01);
+    
+    vec2 sizeTex = vec2(textureSize(gNormal, 0));
 
 
     uint x = allocationMetadata[0].debug_int_32;
@@ -448,11 +450,14 @@ void main()
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
+
     //FragColor+= vec4(surfel_buffer.www,  1.0);
+    return;
+
+    FragColor+= vec4(TexCoords.rg * (sizeTex/128.0) - floor(TexCoords.rg * (sizeTex/128.0)), 0.0,  1.0);
     if (TexCoords.y < 0.1) {
         FragColor = vec4(bit_debug, 1.0);
     }
-    return;
     ////TEST
     
     vec2 test_coords_og = vec2(0.9,0.9);
@@ -465,10 +470,7 @@ void main()
     float FOV = 90.00;
     float target_radius_pixels = 128.0;//real_world_size.x;
     float fov_rad = FOV * PI / 180.0f;
-
-    uvec2 sizeTex = textureSize(gNormal, 0);
-
-  
+    
 
     vec2 real_world_size = 2.0 * d_camera_pos * tan(fov_rad*0.5) * (target_radius_pixels/sizeTex.xy);
 

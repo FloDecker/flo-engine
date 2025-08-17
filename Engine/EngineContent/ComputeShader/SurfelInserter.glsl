@@ -331,25 +331,29 @@ void main() {
 
     float d_camera_pos = -(view_matrix * vec4(pos_ws_original,1.0)).z;//distance(camera_position,pos_ws_original);
     
-    float target_radius_pixels = 128.0;
+    float target_diameters_pixels = 128.0;
     
+    //FOV is defined in the y direction 
     float fov_rad = FOV * PI / 180.0;
     float ws_radius_min = 1.0f;
 
 
     //TODO: could be replaced by the projection matrix
-    
+    float near = 0.01;
+    float camera_width = sizeTex.y;
+    float height_camera = 2.0 * tan(fov_rad*0.5f) * near;
+    float surfel_radius_on_camera_plane = height_camera / ((camera_width / target_diameters_pixels));
 
-    float real_world_radius = 2.0 * d_camera_pos * tan(fov_rad*0.5f) * (target_radius_pixels/sizeTex.x);
+    float real_world_diameter = (d_camera_pos / near) * surfel_radius_on_camera_plane ;
 
-    real_world_radius = max(ws_radius_min, real_world_radius);
+    real_world_diameter = max(ws_radius_min * 2.0, real_world_diameter);
 
-    float acutal_pixel_radius = ((real_world_radius * sizeTex.x) / (2.0 * d_camera_pos * tan(fov_rad*0.5f)));
+    float acutal_pixel_diameter = (real_world_diameter / (d_camera_pos / near) );
 
     
     
     vec2 ndc = TexCoords_original * 2.0 - 1.0f;
-    ndc*=acutal_pixel_radius/target_radius_pixels;
+    ndc*=acutal_pixel_diameter/surfel_radius_on_camera_plane;
     
     vec2 TexCoords = (ndc.rg + 1.0) * 0.5f;
     
@@ -394,7 +398,7 @@ void main() {
     
     
     
-    float radius = real_world_radius;
+    float radius = (real_world_diameter * 0.5f)*1.0f;
 
     uint level = get_octree_level_for_surfel(radius);
     
