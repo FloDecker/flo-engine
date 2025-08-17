@@ -7,6 +7,7 @@
 #define SURFEL_OCTREE_SIZE 100000
 #define MAX_OCTREE_LEVEL 9
 #define FOV 90
+#define MAX_TRIES_INSERTION 10000
 
 struct Surfel {
     vec4 mean_r;
@@ -74,6 +75,9 @@ uniform sampler2D surfel_framebuffer_metadata_0;
 
 uniform vec3 camera_position;
 uniform vec3 random_offset;
+
+uniform mat4 projection_matrix;
+uniform mat4 view_matrix;
 
 const uint LOCK_SENTINAL = 0xFFFFFFFFu;
 
@@ -185,12 +189,10 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
     uint current_element_index = 0;
     uvec3 last_min = uvec3(0);
     uint last_size = 1 << level;
-
-
+    
     for (int i = 0; i < level; i ++) {
         last_size = last_size >> 1;// integer divison by 2
         uvec3 center = last_min + last_size;
-
         uint index = get_next_octree_index_(center,pos);
         
         //atomic read -> if mem != 0u dont exchange, if mem == 0u its replaced by 0u -> idempotent
@@ -202,28 +204,27 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
             if (prev == 0u) {
                 uint p;
                 if (create_new_surfel_node(p)) {
-                    
-                    memoryBarrierBuffer();
                     //set child octree bit
                     atomicOr(octreeElements[current_element_index].surfels_at_layer_amount, (1u << (31u - index)));
                     //set pointer to next node
                     atomicExchange(octreeElements[current_element_index].next_layer_surfels_pointer[index], p);
+                    memoryBarrierBuffer();
                 } else {
                     return false;
                 }
-            } else {
-                //TODO: implement this case
-                
             }
         }
         
-        // wait if needed
+        uint tries = 0;
         do {
             cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index],0u,0u);
-        } while (cur == LOCK_SENTINAL || cur == 0u);
+            tries++;
+            if (tries > MAX_TRIES_INSERTION){
+                return false;
+            }
+        } while (cur == LOCK_SENTINAL);
         
         current_element_index = cur;
-
         
         uvec3 offset = uvec3(
         (index & uint(1<<2)) != 0 ? 1 : 0,
@@ -244,30 +245,22 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
             uint bucket_pointer;
             if (!create_new_bucket(bucket_pointer)) {
                 atomicAdd(allocationMetadata[0].debug_int_32,1);
-
                 return false;
             }
-            
-            memoryBarrierBuffer();
             atomicExchange(octreeElements[current_element_index].surfels_at_layer_pointer, bucket_pointer);
-        } else {
-            
+            memoryBarrierBuffer();
         }
     }
 
     uint tries = 0;
     do {
-        tries++;
         cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
-
-        if (tries > 10000){
-
+        tries++;
+        if (tries > MAX_TRIES_INSERTION){
             return false;
         }
-    } while (cur == LOCK_SENTINAL || cur == 0u);
+    } while (cur == LOCK_SENTINAL);
     
-    
-
     if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
         uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + get_surfel_amount(insert_at_local);
@@ -276,7 +269,6 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         memoryBarrierBuffer();
         surfels[insert_at_global] = s;
     } else {
-
         return false;
     }
     return true;
@@ -329,8 +321,37 @@ shared uint[8] temp_copy_locations;
 
 void main() {
     
+    float pixels_per_surfel = 128.0;//real_world_size.x;
+
     uvec2 sizeTex = textureSize(gNormal, 0);
-    vec2 TexCoords = vec2(gl_WorkGroupID.xy) / sizeTex;
+    vec2 TexCoords_original = (vec2(gl_WorkGroupID.xy * pixels_per_surfel)) / sizeTex;
+    TexCoords_original+=random_offset.xy * (pixels_per_surfel / sizeTex); 
+    vec3 pos_ws_original = vec3(texture(gPos, TexCoords_original));
+
+
+    float d_camera_pos = -(view_matrix * vec4(pos_ws_original,1.0)).z;//distance(camera_position,pos_ws_original);
+    
+    float target_radius_pixels = 128.0;
+    
+    float fov_rad = FOV * PI / 180.0;
+    float ws_radius_min = 1.0f;
+
+
+    //TODO: could be replaced by the projection matrix
+    
+
+    float real_world_radius = 2.0 * d_camera_pos * tan(fov_rad*0.5f) * (target_radius_pixels/sizeTex.x);
+
+    real_world_radius = max(ws_radius_min, real_world_radius);
+
+    float acutal_pixel_radius = ((real_world_radius * sizeTex.x) / (2.0 * d_camera_pos * tan(fov_rad*0.5f)));
+
+    
+    
+    vec2 ndc = TexCoords_original * 2.0 - 1.0f;
+    ndc*=acutal_pixel_radius/target_radius_pixels;
+    
+    vec2 TexCoords = (ndc.rg + 1.0) * 0.5f;
     
     const float edge_distance = 0.05;
     
@@ -364,44 +385,19 @@ void main() {
     }
 
 
-    float d_camera_pos = distance(camera_position,pos_ws);
-    vec3 view_direction = normalize(pos_ws - camera_position);
-
-
-    float target_distance = 5.0;
-    float target_radius_pixels = 128.0;//real_world_size.x;
-    float fov_rad = FOV * PI / 180.0;
     
 
-    
-    float ws_radius_min = 1.0f;
-    
-
-    //TODO: could be replaced by the projection matrix
-    
-    vec2 real_world_size = 2.0 * d_camera_pos * tan(fov_rad*0.5f) * (target_radius_pixels/sizeTex.xy);
-
-    real_world_size = max(vec2(ws_radius_min), real_world_size);
-    
-    target_radius_pixels = ((real_world_size * sizeTex.xy) / (2.0 * d_camera_pos * tan(fov_rad*0.5f))).x;
-    
-    
-    uvec2 required_pixel_interval = uvec2(target_radius_pixels);
-
-    if (surfel_buffer.a > 0.1) {
+    if (surfel_buffer.a > 0.4) {
         return;
     }
     
-    uvec2 random_pos_in_intervall = uvec2(vec2(required_pixel_interval) * random_offset.xy);
-    
-    if(mod(gl_WorkGroupID.xy, required_pixel_interval) != uvec2(random_pos_in_intervall) ) {
-        return;
-    };
     
     
-    float radius = real_world_size.x;
+    
+    float radius = real_world_radius;
 
     uint level = get_octree_level_for_surfel(radius);
+    
     
     //calculate overlap
     uvec3 cell_index = get_surfel_cell_index_from_ws(pos_ws, level);

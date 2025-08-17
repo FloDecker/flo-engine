@@ -42,6 +42,8 @@ layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
 #define OCTREE_TOTOAL_EXTENSION 512
 
 uniform vec3 cameraPosWs;
+uniform mat4 projection_matrix;
+uniform mat4 view_matrix;
 //surfels
 
 struct Surfel {
@@ -446,8 +448,59 @@ void main()
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
-    //FragColor = vec4(surfel_metadata_0.rgb,  1.0);
+    //FragColor+= vec4(surfel_buffer.www,  1.0);
+    if (TexCoords.y < 0.1) {
+        FragColor = vec4(bit_debug, 1.0);
+    }
+    return;
+    ////TEST
     
+    vec2 test_coords_og = vec2(0.9,0.9);
+    vec3 pos_ws_test_coords = vec3(texture(gPos, test_coords_og));
+
+    float d_camera_pos = distance(cameraPosWs,pos_ws_test_coords);
+    vec3 view_direction = normalize(pos_ws_test_coords - cameraPosWs);
+    float ws_radius_min = 1.0f;
+
+    float FOV = 90.00;
+    float target_radius_pixels = 128.0;//real_world_size.x;
+    float fov_rad = FOV * PI / 180.0f;
+
+    uvec2 sizeTex = textureSize(gNormal, 0);
+
+  
+
+    vec2 real_world_size = 2.0 * d_camera_pos * tan(fov_rad*0.5) * (target_radius_pixels/sizeTex.xy);
+
+    real_world_size = max(vec2(ws_radius_min), real_world_size);
+
+    float target_radius_pixels_adjusted = ((real_world_size * sizeTex.xy) / (2.0 *  d_camera_pos * tan(fov_rad*0.5))).x;
+    float target_radius = 2.0 * target_radius_pixels_adjusted;
+
+
+    dvec2 size_scaled =  dvec2(sizeTex * TexCoords);
+    dvec2 required_pixel_interval = dvec2(size_scaled/target_radius);
+  
+    required_pixel_interval = required_pixel_interval - floor(required_pixel_interval);
+ 
+    vec4 clip = projection_matrix * view_matrix * vec4(pos_ws_test_coords, 1.0);
+    vec3 ndc = vec3(clip) / clip.w;
+    
+
+    //ndc = ndc * 0.5f+0.5f;
+    ndc*=target_radius_pixels_adjusted/target_radius_pixels; 
+    //FragColor= vec4((sizeTex/target_diameter).g,0,  0.0,  1.0);
+    //FragColor= vec4(sizeTex.g/target_radius_pixels_adjusted,0,  0.0,  1.0);
+    if (distance(((ndc.rg + 1.0) * 0.5f ) ,TexCoords.xy) < 0.05) {
+        FragColor = vec4(ndc.z,0.0,0,1);
+    } else {
+       //FragColor = vec4(0.0,0.0,0,1);
+
+    }
+    return;
+
+
+
     #ifdef DEBUG_SURFELS
     vec3 ray_direction = normalize(pos_ws - cameraPosWs);
     vec3 c = vec3(0.0f);

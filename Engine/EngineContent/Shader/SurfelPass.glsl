@@ -255,7 +255,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
 
 
                 float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w, 0.0);
-                float normal_difference = smoothstep(0.6, 0.8, abs(dot(s.normal.xyz, normal_ws)));
+                float normal_difference = smoothstep(0.2, 0.8, abs(dot(s.normal.xyz, normal_ws)));
                 float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)), 0.0);
 
 
@@ -296,8 +296,6 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
     }
 
     avg_octree_color/=float(samples_radus_independend + 0.01);
-    avg_octree_color = vec3(0.0);
-
     return avg_octree_color;
 }
 

@@ -129,13 +129,15 @@ void SurfelManagerOctree::generate_surfels_via_compute_shader() const
 			std::random_device rd; // Seed the random number generator
 			std::mt19937 gen(rd()); // Mersenne Twister PRNG
 			std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
-			
+			int pixels_per_surfel = 128;
 			insert_surfel_compute_shader->use();
 			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",
 			                                                 glm::value_ptr(camera_->getWorldPosition()));
 			insert_surfel_compute_shader->set_uniform_vec3_f("random_offset", glm::value_ptr(glm::vec3(float_dist_0_1(gen), float_dist_0_1(gen),0.0 )));
+			insert_surfel_compute_shader->setUniformMatrix4("projection_matrix", glm::value_ptr(*camera_->get_camera()->getProjection()));
+			insert_surfel_compute_shader->setUniformMatrix4("view_matrix", glm::value_ptr(*camera_->get_camera()->getView()));
 
-			glDispatchCompute(t->width(), t->height(), 1);
+			glDispatchCompute(t->width() / pixels_per_surfel + 1, t->height() / pixels_per_surfel + 1, 1);
 			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		}
 	}
@@ -617,11 +619,18 @@ void SurfelManagerOctree::remove_surfel_from_bucket_on_gpu(unsigned int bucket_s
 	surfel_ssbo_producer_->move_data(from, to, length);
 }
 
-void SurfelManagerOctree::clear_surfels_on_gpu_() const
+void SurfelManagerOctree::clear_surfels_on_gpu_()
 {
 	surfel_allocation_metadata->insert_data(new struct surfel_allocation_metadata(1, 1), 0);
+
 	surfel_ssbo_producer_->clear_data();
 	surfels_octree_producer_->clear_data();
+	
+	surfel_ssbo_consumer_->clear();
+	surfels_octree_consumer_->clear();
+
+	manager_state_ = 0;
+	
 }
 
 
@@ -1064,7 +1073,6 @@ void SurfelManagerOctree::tick()
 	switch (manager_state_)
 	{
 	case 0: //insert surfels
-		swap_surfel_buffers();//swap front and backbuffer
 		generate_surfels_via_compute_shader();
 		//std::printf("\n run generate_surfels_via_compute_shader");
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -1087,6 +1095,10 @@ void SurfelManagerOctree::tick()
 		//std::printf("\n run copy_data_from_compute_to_back_buffer");
 
 		compute_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		manager_state_ = 4;
+		break;
+	case 4:
+		swap_surfel_buffers();//swap front and backbuffer
 		manager_state_ = 0;
 		break;
 	default:

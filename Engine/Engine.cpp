@@ -238,6 +238,9 @@ int main()
 	auto me_brutalist = loadModel("EngineContent/brutalist.fbx");
 	me_brutalist->initializeVertexArrays();
 
+	auto me_city = loadModel("EngineContent/city.fbx");
+	me_city->initializeVertexArrays();
+
 	//init shaders
 
 	//auto* gaussian_gi_shader = new ShaderProgram();
@@ -322,7 +325,13 @@ int main()
 	object_brutalist->name = "object_brutalist";
 	object_brutalist->set_material(grey_shader);
 	object_brutalist->set_position_global(-12,-40,40);
-	object_brutalist->setRotationLocal(-90,0,0);
+	object_brutalist->setRotationLocal(0,0,0);
+
+	auto object_city = new Mesh3D(scene->get_root(), me_city);
+	object_city->name = "object_city";
+	object_city->set_material(grey_shader);
+	object_city->set_position_global(-12,-20,40);
+	object_city->setRotationLocal(-90,0,0);
 
 	
 	auto object_simple_building = new Mesh3D(scene->get_root(), me_simple_building);
@@ -584,6 +593,8 @@ int main()
 
 		pp_shader->use();
 		pp_shader->set_uniform_vec3_f("cameraPosWs", value_ptr(*editorRenderContext->camera->getWorldPosition()));
+		pp_shader->setUniformMatrix4("projection_matrix", value_ptr(*editorRenderContext->camera->getProjection()));
+		pp_shader->setUniformMatrix4("view_matrix", value_ptr(*editorRenderContext->camera->getView()));
 		quad_screen->draw();
 		glEnable(GL_DEPTH_TEST);
 		global_context.performance_metrics->stop_and_store_measuring(pass_g_buffer);
