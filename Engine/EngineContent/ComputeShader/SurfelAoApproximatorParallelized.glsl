@@ -11,10 +11,6 @@ struct Surfel {
     uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
-
-
-
-
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
@@ -29,12 +25,28 @@ struct Ray {
     float max_length;
 };
 
-layout(std430, binding = 0) buffer SurfelBuffer {
-    Surfel surfels[];
+struct AllocationMetadata{
+    uint surfel_bucket_pointer;
+    uint surfel_octree_pointer;
+    uint octree_pointer_update_index;
+    uint debug_int_32;
 };
 
-layout(std430, binding = 1) buffer OctreeBuffer {
+//SURFEL BACKBUFFER
+layout(std430, binding = 3) buffer SurfelBuffer {
+    Surfel surfels[];
+};
+//OCTREE BACKBUFFER
+layout(std430, binding = 5) buffer OctreeBuffer {
     OctreeElement octreeElements[];
+};
+
+layout(std430, binding = 8) buffer UpdatedOctreeElements {
+    uint updatedIds[];
+};
+
+layout(std430, binding = 2) buffer AllocationMetadataBuffer {
+    AllocationMetadata allocationMetadata[];
 };
 
 layout (local_size_x = ITERATIONS, local_size_y = 1, local_size_z = 1) in;
@@ -423,6 +435,13 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 
 }
 
+//this method inserts the poitner of th updated octree node into the update array
+void insert_update_info(uint p) {
+    uint p_copy = p;
+    uint free_spot = atomicAdd(allocationMetadata[0].octree_pointer_update_index, 1);
+    atomicExchange(updatedIds[free_spot],p_copy);
+}
+
 void main() {
     uint p;
     vec3 metadata = vec3(0.0);
@@ -439,7 +458,10 @@ void main() {
 
     if (get_surfe_pointer_at_octree_pos(level, center, p, metadata)){
         OctreeElement o = octreeElements[p];
-
+        
+        //insert this pointer into the list of changed surfels
+        insert_update_info(p);
+        
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
         if (id < surfels_amount) {
             uint surfle_data_pointer = o.surfels_at_layer_pointer;

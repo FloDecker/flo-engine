@@ -17,7 +17,6 @@ struct Surfel {
     uint[8] copy_locations; //global adresses where this exact surfel can be found
 };
 
-
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
@@ -28,6 +27,7 @@ struct OctreeElement
 struct AllocationMetadata{
     uint surfel_bucket_pointer;
     uint surfel_octree_pointer;
+    uint octree_pointer_update_index;
     uint debug_int_32;
 };
 
@@ -37,17 +37,24 @@ struct Ray {
     vec3 inverse_direction;
 };
 
-layout(std430, binding = 0) buffer SurfelBuffer {
+//SURFEL BACKBUFFER
+layout(std430, binding = 3) buffer SurfelBuffer {
     Surfel surfels[];
 };
-
-layout(std430, binding = 1) buffer OctreeBuffer {
+//OCTREE BACKBUFFER
+layout(std430, binding = 5) buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
 layout(std430, binding = 2) buffer AllocationMetadataBuffer {
     AllocationMetadata allocationMetadata[];
 };
+
+layout(std430, binding = 8) buffer UpdatedOctreeElements {
+    uint updatedIds[];
+};
+
+
 
 float bias = 0.01;
 layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
@@ -78,7 +85,6 @@ uniform vec3 random_offset;
 
 uniform mat4 projection_matrix;
 uniform mat4 view_matrix;
-
 const uint LOCK_SENTINAL = 0xFFFFFFFFu;
 
 uint bitmask_surfel_amount = 0x00FFFFFF;
@@ -159,6 +165,13 @@ bool create_new_bucket(out uint pointer) {
     return pointer < BUCKET_SIZE * SURFELS_BUCKET_AMOUNT;
 }
 
+//this method inserts the poitner of th updated octree node into the update array
+void insert_update_info(uint p) {
+    uint p_copy = p;
+    uint free_spot = atomicAdd(allocationMetadata[0].octree_pointer_update_index, 1);
+    atomicExchange(updatedIds[free_spot],p_copy);
+}
+
 
 //LIGTMAPPING
 
@@ -166,7 +179,6 @@ float light_map_at(vec2 coords) {
     float a = texture(direct_light_map_texture, coords.xy).r;
     return a;
 }
-
 
 
 bool in_light_map_shadow(vec3 vertexPosWs) {
@@ -208,6 +220,8 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
                     atomicOr(octreeElements[current_element_index].surfels_at_layer_amount, (1u << (31u - index)));
                     //set pointer to next node
                     atomicExchange(octreeElements[current_element_index].next_layer_surfels_pointer[index], p);
+                    insert_update_info(current_element_index);
+                    insert_update_info(p);
                     memoryBarrierBuffer();
                 } else {
                     return false;
@@ -268,6 +282,9 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         final_surfel_index = insert_at_global;
         memoryBarrierBuffer();
         surfels[insert_at_global] = s;
+        
+        insert_update_info(current_element_index);
+        
     } else {
         return false;
     }

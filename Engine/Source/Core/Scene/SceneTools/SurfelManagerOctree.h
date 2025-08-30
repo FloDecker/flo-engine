@@ -40,6 +40,7 @@ struct surfel_allocation_metadata
 {
 	uint32_t surfel_bucket_pointer = 0; 
 	uint32_t surfel_octree_pointer = 0;
+	uint32_t octree_pointer_update_index = 0;
 	uint32_t debug_int_32 = 0;
 };
 
@@ -70,7 +71,7 @@ public:
 	bool update_surfels_next_tick = false;
 
 	float octree_total_extension = 512.0;
-	int octree_levels = 9;
+	int max_octree_depth = 9;
 
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(surfel* surfel);
@@ -79,6 +80,7 @@ public:
 	bool update_surfels_in_update_queue(int amount);
 	void find_best_world_positions_to_update_lighting() const;
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
+	void sync_buffers() const;
 	bool remove_surfel(const surfel* surfel);
 
 
@@ -99,11 +101,10 @@ public:
 	compute_shader *insert_surfel_compute_shader;
 	compute_shader* compute_shader_approxmiate_ao;
 	compute_shader* compute_shader_find_least_shaded_pos;
+	compute_shader* compute_shader_sync_buffers;
 
 	void tick();
 
-	//copy the new data from the surfel compute buffer to the backbuffer of the consumer ssbo
-	void copy_data_from_compute_to_back_buffer() const;
 	void swap_surfel_buffers() const;
 
 	int get_manager_state() const;
@@ -134,8 +135,8 @@ private:
 
 	std::bitset<SURFEL_BUCKET_TOTAL_MEMORY> allocation_bitmap;
 
-	ssbo<surfel_gpu>* surfel_ssbo_producer_;
-	ssbo<surfel_octree_element>* surfels_octree_producer_;
+	//this array contains the indices of octree nodes that have been updated
+	ssbo<glm::uint>* updated_octree_positions_;
 
 	ssbo_double_buffer<surfel_gpu>* surfel_ssbo_consumer_;
 	ssbo_double_buffer<surfel_octree_element>* surfels_octree_consumer_;
