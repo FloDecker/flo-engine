@@ -415,7 +415,7 @@ void main() {
     
     
     
-    float radius = (real_world_diameter * 0.5f)*1.0f;
+    float radius = (real_world_diameter * 0.5f)*1.5f;
 
     uint level = get_octree_level_for_surfel(radius);
     

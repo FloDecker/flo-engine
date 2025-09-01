@@ -2,7 +2,7 @@
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
 #define ITERATIONS 1
-
+#define MAX_OCTREE_RAYTRACING_STEPS 1024
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -253,7 +253,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
     vec3 current_best_hit;
     bool has_hit = false;
 
-    for (int tries = 0; tries < 100; tries++) {
+    for (int tries = 0; tries < MAX_OCTREE_RAYTRACING_STEPS; tries++) {
         OctreeElement o = octreeElements[node_ids_stack[stackPtr]];
         float current_bucket_size = node_size_stack[stackPtr];
         vec3 current_bucket_min = node_min_stack[stackPtr];
