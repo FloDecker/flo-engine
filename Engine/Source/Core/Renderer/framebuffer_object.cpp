@@ -23,7 +23,7 @@ void framebuffer_object::render_to_framebuffer() const
 
 	if (clear_before_rendering)
 	{
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(clear_color.r,clear_color.g,clear_color.b,clear_color.a);
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear color buffer
 	}
 

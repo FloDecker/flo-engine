@@ -149,14 +149,12 @@ void SurfelManagerOctree::find_surfels_to_update()
 {
 	find_best_world_positions_to_update_lighting();
 	
-	GLsync computeFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-
+	GLsync compute_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	GLenum result;
 	do {
-		result = glClientWaitSync(computeFence, GL_SYNC_FLUSH_COMMANDS_BIT, 1'000'000); // timeout in nanoseconds
+		result = glClientWaitSync(compute_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 1000000); // timeout in nanoseconds -> 0.001 seconds
 	} while (result == GL_TIMEOUT_EXPIRED);
-
-	glDeleteSync(computeFence);
+	glDeleteSync(compute_fence);
 	
 	auto p = static_cast<glm::vec4*>(least_shaded_regions->write_ssbo_to_cpu());
 
@@ -208,8 +206,9 @@ bool SurfelManagerOctree::update_surfels_in_update_queue(int amount)
 
 void SurfelManagerOctree::find_best_world_positions_to_update_lighting() const
 {
-	auto width = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / 32);
-	auto height = static_cast<int>(camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / 32);
+	constexpr int update_patch_dimension = 32;
+	const int width = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->width() / update_patch_dimension + 1;
+	const int height = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0)->height() / update_patch_dimension + 1;
 	compute_shader_find_least_shaded_pos->use();
 	glDispatchCompute(width, height, 1);
 }

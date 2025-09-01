@@ -1,7 +1,6 @@
 ﻿#version 430 core
 
-#define MAX_VALUE 50000000
-#define MAX_SAMPLES_PER_SURFEL 60000
+#define MAX_SAMPLES_PER_SURFEL 500
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 uniform sampler2D surfel_framebuffer;
@@ -13,71 +12,74 @@ layout(std430, binding = 7) buffer LeastShaded {
     vec4 least_shaded_regions[];
 };
 
+bool texcoords_in_bounds(vec2 coords) {
+    return coords.x >= 0.0 && coords.x <= 1.0 && coords.y >= 0.0 && coords.y <= 1.0;
+}
 
-
+//variables shared within the thread group to find the minimal sampling position 
 shared int min_value;
-
 shared uint flatted_index_of_best_pixel;
+
 void main() {
-    
+    bool is_first_thread = (gl_LocalInvocationID.x == 0u) && (gl_LocalInvocationID.y == 0u);
     //thread 0,0  initalizes varaibles 
-    if (gl_LocalInvocationID.xy != uvec2(0)) {
-        min_value  = MAX_VALUE;
+    if (is_first_thread) {
+        min_value  = MAX_SAMPLES_PER_SURFEL;
         flatted_index_of_best_pixel = 0u;
     }
     barrier();
-    
 
-    uvec2 size_texutre = uvec2(textureSize(surfel_framebuffer_metadata_0,0).xy);
-    
-    float scaling_factor = 1.0f;
-    //4 = scaling factor 
-    vec2 single_pixel_offset = 1.0f/vec2(size_texutre) * scaling_factor;
-    
-    vec2 local_zero_index = vec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy * scaling_factor) / vec2(size_texutre) ;
-    
-    
+    //geather screen size in pixels
+    uvec2 size_texutre = uvec2(textureSize(surfel_framebuffer_metadata_0, 0).xy);
+
+    //size of single pixel increment in screen space
+    vec2 single_pixel_offset = 1.0f/vec2(size_texutre);
+
+    //postion of the starting index for this work group in screen space
+    vec2 local_zero_index = vec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy) / vec2(size_texutre);
+
+    //screen space coordinate for this thread to work on
     vec2 TexCoords = local_zero_index + vec2(gl_LocalInvocationID.xy) * single_pixel_offset;
-    
+
+
+    //texture samples
     vec4 surfel_metadata_0 = vec4(texture(surfel_framebuffer_metadata_0, TexCoords));
     vec4 surfel_buffer = vec4(texture(surfel_framebuffer, TexCoords));
-    int coverage_at_pixel = int(surfel_buffer.a);
-    
-    int samples_at_pixel = coverage_at_pixel>0 ? int(surfel_metadata_0.w) : MAX_VALUE;
 
-    float pre = atomicMin(min_value,samples_at_pixel);
-    //previous value was higher -> this is the new min 
-    
+    //read the sample amout at this pixels location, if there is no surfel write MAX_VALUE
+    int coverage_at_pixel = int(surfel_buffer.a);
+    int samples_at_pixel = coverage_at_pixel>0 && texcoords_in_bounds(TexCoords) ? int(surfel_metadata_0.w) : MAX_SAMPLES_PER_SURFEL;
+
+    //check ccsamples_at_pixel against the current minimal sample value of the thread group 
+    int pre = atomicMin(min_value, samples_at_pixel);
+
+    //if previous value was higher, the values are swapped -> this is the new min value 
     if (pre > samples_at_pixel) {
-        atomicCompSwap(flatted_index_of_best_pixel, gl_LocalInvocationID.x * gl_WorkGroupSize.y + gl_LocalInvocationID.y, 0u);
-        //ws_pos_of_min = texture(gPos, TexCoords).rgb;
-        //level_of_min = int(vec4(texture(surfel_framebuffer_metadata, TexCoords)).b);
+        uint local_flatted_index = gl_LocalInvocationID.x + gl_LocalInvocationID.y * gl_WorkGroupSize.x;
+        atomicExchange(flatted_index_of_best_pixel, local_flatted_index);
     }
-    
+
+    //wait for all threads to finish
     barrier();
-    if (gl_LocalInvocationID.xy != uvec2(0)) {
+    if (!is_first_thread) {
         return;
     }
-    //last thread writes value at index
-    
+    //first thread advances
+
     uint flat_index_global = gl_WorkGroupID.x * gl_NumWorkGroups.y + gl_WorkGroupID.y;
 
-    if (min_value > MAX_SAMPLES_PER_SURFEL) {
-        least_shaded_regions[flat_index_global] = vec4(-1);
-    } else {
+    uint y = flatted_index_of_best_pixel / gl_WorkGroupSize.x;
+    uint x = flatted_index_of_best_pixel % gl_WorkGroupSize.x;
 
-        uint x = flatted_index_of_best_pixel / gl_WorkGroupSize.y;
-        uint y = flatted_index_of_best_pixel % gl_WorkGroupSize.y;
+    TexCoords = local_zero_index + vec2(x, y) * single_pixel_offset;
 
+    vec4 surfel_metadata_1 = vec4(texture(surfel_framebuffer_metadata_1, TexCoords));
+    vec3 ws_pos_of_min = surfel_metadata_1.rgb;
+    int level_of_min = int(surfel_metadata_1.w);
+    //set to -1 if the sampling threshold is reached
+    least_shaded_regions[flat_index_global] = (min_value < MAX_SAMPLES_PER_SURFEL)?
+    vec4(ws_pos_of_min, level_of_min) :
+    vec4(-1);
 
-        TexCoords = local_zero_index + vec2(x,y) * single_pixel_offset;
-        
-        vec4 surfel_metadata_1 = vec4(texture(surfel_framebuffer_metadata_1, TexCoords));
-        vec3 ws_pos_of_min = surfel_metadata_1.rgb;
-        int level_of_min = int(surfel_metadata_1.w);
-        
-        //level of min is set to -1 of the sampling threshold is reached 
-        least_shaded_regions[flat_index_global] = vec4(ws_pos_of_min,level_of_min);
-    }
 
 }

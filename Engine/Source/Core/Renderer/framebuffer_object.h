@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <vec2.hpp>
+#include <vec4.hpp>
+
 #include "../../Engine/Source/External/eventpp/include/eventpp/eventqueue.h"
 
 #include "Texture/texture_2d.h"
@@ -18,6 +20,8 @@ public:
 	void add_size_change_listener(eventpp::CallbackList<void (glm::ivec2)>* texture_change_dispatcher) const;
 	void read_pixel(unsigned int x, unsigned int y, unsigned int color_attachment_id, void* pixel_out) const;
 	void read_pixel(float x, float y, unsigned int color_attachment_id, void* pixel_out) const;
+
+	glm::vec4 clear_color = glm::vec4(1.0f);
 
 private:
 	void generate_framebuffer();

@@ -198,6 +198,9 @@ int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, 
     return length_ids;
 }
 
+
+
+
 bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug_data) {
     const int MAX_DEPTH = 3;
     const int MAX_STACK = 32;
@@ -369,6 +372,13 @@ vec3 debug_bits(uint i, vec3 vertexPosWs) {
     return vec3(s, t/32.0, 0.0);
 }
 
+bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
+    vec3 bb_max = bb_min + extension;
+    return
+    pos.x <= bb_max.x && pos.x >= bb_min.x &&
+    pos.y <= bb_max.y && pos.y >= bb_min.y &&
+    pos.z <= bb_max.z && pos.z >= bb_min.z;
+}
 
 //post processing
 
@@ -451,7 +461,13 @@ void main()
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
 
-    //FragColor+= vec4(surfel_buffer.www,  1.0);
+    //FragColor= vec4(surfel_metadata_0.www - vec3(33.0),  1.0);
+    //FragColor= vec4(surfel_metadata_1.rgb * 00.01,  1.0);
+    //FragColor= vec4((surfel_metadata_1-6).aaa,  1.0);
+    //bool b = is_ws_pos_contained_in_bb(surfel_metadata_1.rgb, vec3(-64.0,-32.0,-32.0),vec3(-32.0,0.0,0.0));
+    //f (b) {
+    //   FragColor= vec4(1.0);
+    //
     return;
 
     FragColor+= vec4(TexCoords.rg * (sizeTex/128.0) - floor(TexCoords.rg * (sizeTex/128.0)), 0.0,  1.0);

@@ -1,5 +1,7 @@
 ﻿#include "Scene.h"
 
+#include <gtx/string_cast.hpp>
+
 #include "Handle.h"
 #include "../../Util/BoundingBoxHelper.h"
 #include "Lighting/SkyBox/sky_box.h"
@@ -134,7 +136,7 @@ ray_cast_result Scene::ray_cast_in_scene_unoptimized(glm::vec3 origin, glm::vec3
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end - start;
-	auto time_string = "ray cast in " + std::to_string(elapsed_seconds.count()) + "seconds\n";
+	auto time_string = "raycast time:" + std::to_string(elapsed_seconds.count()) + "seconds, hit pos ws: " + (result.hit?glm::to_string(result.hit_world_space).c_str():"no hit") + "\n";
 	get_global_context()->logger->print_info(time_string);
 	return result;
 }

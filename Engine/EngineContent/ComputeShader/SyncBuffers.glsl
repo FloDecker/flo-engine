@@ -77,7 +77,12 @@ void main() {
     //update surfels of octree element
     uint surfel_pointer = octree_front.surfels_at_layer_pointer;
     for (uint i = 0; i < get_surfel_amount(octree_front.surfels_at_layer_amount); i++) {
-        surfels_back[surfel_pointer + i] = surfels_front[surfel_pointer + i];
+        Surfel surfel_front = surfels_front[surfel_pointer + i];
+        surfels_back[surfel_pointer + i] = surfel_front;
+        for (uint j = 0; j < 8; j++) {
+            uint copy_location_pointer = surfel_front.copy_locations[j];
+            surfels_back[copy_location_pointer] = surfel_front;
+        }
     }
     
     //clear update buffer

@@ -404,7 +404,7 @@ int main()
 	auto framebuffer_surfel_pass_color = new texture_2d();
 	framebuffer_surfel_pass_color->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
-	//stores r,g,b surfel radiance_ambient a = 0 no surfel a = 1 surfel 
+
 	auto framebuffer_surfel_pass_metadata_0 = new texture_2d();
 	framebuffer_surfel_pass_metadata_0->initialize_as_frame_buffer(windowSize.x, windowSize.y, GL_RGBA16F, GL_RGBA, GL_FLOAT,GL_LINEAR);
 
