@@ -88,6 +88,28 @@ vec3 sample_hemisphere_uniform(vec2 uv) {
     return vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 }
 
+#define Inv4Pi   0.07957747154594766788f
+#define PiOver2  1.57079632679489661923f
+#define PiOver4  0.78539816339744830961f
+#define Sqrt2    1.41421356237309504880f
+
+//from https://www.pbr-book.org/3ed-2018/Monte_Carlo_Integration/2D_Sampling_with_Multidimensional_Transformations#ConcentricSampleDisk
+vec2 ConcentricSampleDisk(vec2 u) {
+    vec2 uOffset = 2.f * u - vec2(1.0f);
+    if (uOffset.x == 0f && uOffset.y == 0f) return vec2(0f);
+    float theta, r;
+    bool x_over_y = abs(uOffset.x) > abs(uOffset.y);
+    r = x_over_y?uOffset.x:uOffset.y;
+    theta = x_over_y ? (PiOver4 * (uOffset.y / uOffset.x)) : (PiOver2 - PiOver4 * (uOffset.x / uOffset.y));
+    return r * vec2(cos(theta), sin(theta));
+}
+
+vec3 CosineSampleHemisphere(vec2 u) {
+    vec2 d = ConcentricSampleDisk(u);
+    float z = sqrt(max(0.0f, 1.0f - d.x * d.x - d.y * d.y));
+    return vec3(d.x, d.y, z);
+}
+
 //from https://iquilezles.org/articles/intersectors/
 bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location)
 {
@@ -227,7 +249,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
             if (ray_surfel_intersection(s, ray, hit_location)) {
                 d = distance(hit_location, ray.origin);
                 if (d < closest_hit) {
-                    c = s.radiance_direct_and_surface.xyz + ((s.radiance_ambient.w > 100) ? s.radiance_ambient.xyz : vec3(0.0));
+                    c = s.radiance_direct_and_surface.xyz + smoothstep(150,250,s.radiance_ambient.w) * s.radiance_ambient.xyz;
                     closest_hit = d;
                     current_best_hit = hit_location;
                     has_hit =true;
@@ -273,20 +295,21 @@ void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
     bitangent = cross(normal, tangent);
 }
 
-vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sampled_old) {
+vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sampled_old, vec3 albedo) {
     vec3 color_out = vec3(0.0f);
     vec3 color_pre = color_sampled_old.rgb;
     float sampled_pre = color_sampled_old.a;
     for (int i = 0; i < ITERATIONS; i++) {
         vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.x;
-        vec3 d = sample_hemisphere_uniform(random_seed);
+        vec3 d = CosineSampleHemisphere(rand2(random_seed));
+        //vec3 d = sample_hemisphere_uniform(random_seed);
         vec3 tangent;
         vec3 bitangent;
 
 
         getTangentBasis(normal, tangent, bitangent);
 
-        vec3 s = normalize(normal * d.b + d.r * tangent + d.g * bitangent);
+        vec3 s = normalize(normal * d.z  + d.y * bitangent + d.x * tangent);
         s*= vec3(1.0);
         Ray r;
         r.origin = pos;
@@ -296,11 +319,13 @@ vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
         
         vec3 c;
         float dist;
-        if (!traverseHERO(r, c,dist)) {
-            color_out+=get_ao_color(); //no object intersected -> skycolor
-        } else {
-            color_out+=c; //object intersected -> return object color;
-        }
+
+        float angle_attenuation = max(dot(s, normal), 0.001);
+        float pdf = angle_attenuation/PI;
+        //float pdf = 1.0/(2.0*PI);
+        vec3 brdf_lambert = albedo/PI;
+        
+        color_out+=(traverseHERO(r, c,dist)? c : get_ao_color()) * brdf_lambert * angle_attenuation / pdf;
     }
     return vec4((color_out + color_pre * sampled_pre) / (ITERATIONS + sampled_pre)
     , sampled_pre + ITERATIONS);
@@ -402,7 +427,7 @@ void main() {
             vec3 surfel_pos = s.mean_r.xyz;
             if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
                 //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
-                vec4 final_ao_color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.mean_r.w,s.normal.xyz, s.radiance_ambient);
+                vec4 final_ao_color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.mean_r.w,s.normal.xyz, s.radiance_ambient, vec3(1.0));
                 for (int i  = 0; i < 8; i++) {
                     uint location = s.copy_locations[i];
                     surfels[location].radiance_ambient = final_ao_color;
