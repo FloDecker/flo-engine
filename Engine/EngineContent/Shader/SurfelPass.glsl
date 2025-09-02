@@ -220,7 +220,11 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
     pos.z <= bb_max.z && pos.z >= bb_min.z;
 
 }
+#define ICLINATION_MAX 0.8f
+#define ICLINATION_MIN 0.2f
+#define DISTANCE_MAX 1.0f 
 
+const float distance_reciprocal = 1.0f / DISTANCE_MAX;
 
 vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center, out vec3 avg_octree_color) {
     surfel_coverage = 0;
@@ -255,8 +259,8 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
 
 
                 float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w, 0.0);
-                float normal_difference = smoothstep(0.2, 0.8, abs(dot(s.normal.xyz, normal_ws)));
-                float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)), 0.0);
+                float normal_difference = smoothstep(ICLINATION_MIN, ICLINATION_MAX, abs(dot(s.normal.xyz, normal_ws)));
+                float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)) * distance_reciprocal, 0.0);
 
 
                 float attenuation =  distance_difference * normal_difference  * distance_to_surfel;
