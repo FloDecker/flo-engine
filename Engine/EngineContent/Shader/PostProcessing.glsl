@@ -79,6 +79,7 @@ layout(std430, binding = 6) readonly buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
+#define MAX_OCTREE_RAYTRACING_STEPS 1024
 
 
 uint bitmask_surfel_amount = 0x00FFFFFF;
@@ -105,75 +106,69 @@ bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location)
 
     vec3  o = r.origin - s.mean_r.xyz;
     float t = -dot(s.normal.xyz,o)/dot(r.direction,s.normal.xyz);
-    if (t < 0 ) return false;
     vec3  q = o + r.direction * t;
     hit_location = r.origin + r.direction*t;
-    return (dot(q,q)<s.mean_r.w * s.mean_r.w);
+    return (dot(q,q)<s.mean_r.w * s.mean_r.w) && (t >= 0 );
 }
 
 
 //adapted from https://iquilezles.org/articles/intersectors/
 // axis aligned box centered at the origin, with size boxSize
-bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distance, out float distanceNear, out float distanceFar)
+bool boxIntersection(in Ray r, float boxSize, vec3 boxStartWS, out float distance, out float distanceNear)
 {
-    
-    vec3 origin = r.origin - boxStartWS - boxSize; // transform the origin 
+
+    vec3 origin = r.origin - boxStartWS - boxSize * 0.5f; // transform the origin 
     vec3 n = r.inverse_direction * origin;   // can precompute if traversing a set of aligned boxes
-    vec3 k = abs(r.inverse_direction)*boxSize;
+    vec3 k = abs(r.inverse_direction)*boxSize * 0.5f;
     vec3 t1 = -n - k;
     vec3 t2 = -n + k;
     float tN = max( max( t1.x, t1.y ), t1.z );
     float tF = min( min( t2.x, t2.y ), t2.z );
-    if( tN>tF || tF<0.0){
-        return false;
-    }
+
     distanceNear = tN;
-    distanceFar = tF;
-    if (tN < 0.0) {
-        distance = 0.0;
-    } else {
-        distance = tN;
-    }
-    return true;
+    distance = (tN < 0.0) ? 0.0 : tN;
+    return  tN<tF && tF>0.0;
 }
 
-void insertSorted(inout uint id_array[8], inout float distance_array[8], inout int count, uint new_id, float new_distance) {
-    // If array is full and new distance is greater than the largest, skip insert
-    if (count == 8 && new_distance >= distance_array[7]) {
-        return;
-    }
+void insert_sorted(inout uint id_array[8], inout float distance_array[8], inout int count, uint new_id, float new_distance) {
+    
+    distance_array[7] = new_distance;
+    id_array[7] = new_id;
 
-    // Find insert position
-    int insert_pos = 0;
-    while (insert_pos < count && distance_array[insert_pos] < new_distance) {
-        insert_pos++;
-    }
+    #pragma unroll
+    for (int x = 7; x > 0 ; x--) {
+        float value_right = distance_array[x];
+        float value_left = distance_array[x-1];
+        uint id_right = id_array[x];
+        uint id_left = id_array[x-1];
+        //right value should be larger than left one
+        
+        //float smaller = min(value_left,value_right);
+        
+        bool swap_values = value_left >= value_right; //repace if to reduce branching
 
-    // Shift values to the right
-    int limit = (count < 8) ? count : 7; // If full, drop the last element
-    for (int i = limit; i > insert_pos; --i) {
-        distance_array[i] = distance_array[i - 1];
-        id_array[i] = id_array[i - 1];
-    }
+        distance_array[x] = swap_values?value_left:distance_array[x];
+        distance_array[x-1] = swap_values?value_right:distance_array[x-1];
 
-    // Insert new value
-    distance_array[insert_pos] = new_distance;
-    id_array[insert_pos] = new_id;
-
-    // Increase count if not full
-    if (count < 8) {
-        count++;
+        //also swap ids
+        id_array[x] = swap_values?id_left:id_array[x];
+        id_array[x - 1] = swap_values?id_right:id_array[x - 1];
     }
+    count++;
+    
 }
+
+#define MAX_VALUE 10000000.0f
 
 int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, out uint[8] ordered_ids){
-    
+
     float child_size = extension_parent * 0.5f;
     int length_ids = 0;
-    
-    uint[8] id_array;
-    float[8] distance_array;
-    
+
+    uint[8] id_array = uint[8](0u,0u,0u,0u,0u,0u,0u,0u);
+    float[8] distance_array = float[8](MAX_VALUE,MAX_VALUE,MAX_VALUE,MAX_VALUE,MAX_VALUE,MAX_VALUE,MAX_VALUE,MAX_VALUE);
+
+    #pragma unroll
     for (int i = 0; i < 8; i++) {
 
         vec3 offset = vec3(
@@ -181,124 +176,105 @@ int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, 
         (i & (1<<1)) != 0 ? 1.0 : 0.0,
         (i & (1<<0)) != 0 ? 1.0 : 0.0
         );
-
         vec3 child_min = parent_min + offset * child_size;
         float d;
         float _;
-        float _1;
-        if (boxIntersection(r, child_size, child_min, d, _, _1)){
+        if (boxIntersection(r, child_size, child_min, d, _)){
             //the ray intersects the aabb
             //bubble sort distance
-            insertSorted(id_array, distance_array, length_ids, i, d);
+            insert_sorted(id_array, distance_array, length_ids, i, d);
         }
-        
-   
+
+
     }
     ordered_ids = id_array;
     return length_ids;
 }
 
+struct stack_item {
+    uint id;
+    float extension;
+    vec3 min_pos;
+};
 
+bool traverseHERO(Ray ray, out vec3 c, out float d) {
+    const int MAX_STACK = 64;
+    stack_item stack[MAX_STACK];
 
-
-bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug_data) {
-    const int MAX_DEPTH = 3;
-    const int MAX_STACK = 32;
-
-    // Stack to simulate traversal
-    uint node_ids_stack[MAX_STACK];
-    float node_size_stack[MAX_STACK];
-    vec3 node_min_stack[MAX_STACK];
-    node_ids_stack[0] = 0;
-    node_size_stack[0] = OCTREE_TOTOAL_EXTENSION;
-    node_min_stack[0] = vec3(-OCTREE_TOTOAL_EXTENSION*0.5f);
+    stack[0].id = 0;
+    stack[0].extension = OCTREE_TOTOAL_EXTENSION;
+    stack[0].min_pos = vec3(-OCTREE_TOTOAL_EXTENSION*0.5f);
 
     int stackPtr = 0;
 
-    float closest_hit = 10000000;
+    float closest_hit = MAX_VALUE;
     vec3 current_best_hit;
     bool has_hit = false;
 
-    for (int tries = 0; tries < 1000; tries++) {
-        OctreeElement o = octreeElements[node_ids_stack[stackPtr]];
-        float current_bucket_size = node_size_stack[stackPtr];
-        vec3 current_bucket_min = node_min_stack[stackPtr];
-        if (stackPtr < 0) {
-            debug_data.r = tries;
-            return has_hit;
-        }
-
+    for (int tries = 0; tries < MAX_OCTREE_RAYTRACING_STEPS; tries++) {
+        
+        OctreeElement o = octreeElements[stack[stackPtr].id];
+        float current_bucket_size = stack[stackPtr].extension;
+        vec3 current_bucket_min = stack[stackPtr].min_pos;
+        
 
         float near_distance;
-        float far_distance;
-        float _;
-        boxIntersection(ray, current_bucket_size, current_bucket_min, _, near_distance, far_distance);
-        if (near_distance > closest_hit) {
-            debug_data.r = tries;
-            return true;
-        }
-        
-        if (near_distance > ray.max_length) {
-            debug_data.r = tries;
+        float dist;
+        boxIntersection(ray, current_bucket_size, current_bucket_min, dist, near_distance);
 
-            return has_hit;
-        }
-
-
+        bool abort_iteration = stackPtr < 0 || dist > closest_hit;
+        tries = abort_iteration ? MAX_OCTREE_RAYTRACING_STEPS : tries;
         
 
         //check if there are surfels hit on the current layer 
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
-        if (surfels_amount > 0) {
-            uint surfle_data_pointer = o.surfels_at_layer_pointer;
-            for (int i = 0; i < surfels_amount; i++) {
-                Surfel s = surfels[surfle_data_pointer + i];
-                vec3 hit_location;
-                debug_data.g++;
-                if (ray_surfel_intersection(s, ray, hit_location)) {
-                    d = distance(hit_location, ray.origin);
-                    if (d < closest_hit) {
-                        c = s.radiance_direct_and_surface.xyz;
-                        closest_hit = d;
-                        current_best_hit = hit_location;
-                        has_hit =true;
-                    }
+        
+        uint surfle_data_pointer = o.surfels_at_layer_pointer;
+        for (int i = 0; i < surfels_amount; i++) {
+            Surfel s = surfels[surfle_data_pointer + i];
+            vec3 hit_location;
+            if (ray_surfel_intersection(s, ray, hit_location)) {
+                d = distance(hit_location, ray.origin);
+                if (d < closest_hit) {
+                    c = s.radiance_direct_and_surface.xyz + ((s.radiance_ambient.w > 100) ? s.radiance_ambient.xyz : vec3(0.0));
+                    closest_hit = d;
+                    current_best_hit = hit_location;
+                    has_hit =true;
                 }
             }
         }
+        
         stackPtr--;
 
         float children_size = current_bucket_size * 0.5f;
 
         uint[8]ordered_ids;
-        
+
         //returns sorting from lowest distance to hightest
         int intersected_children = get_ordered_child_traversal(current_bucket_size, current_bucket_min, ray ,ordered_ids);
-        //for (uint morton = 0; morton < 8 ; morton++) {
         for (int i = intersected_children - 1; i >= 0; i--) {
-            uint morton = ordered_ids[i];
-            
-            if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, morton)) continue;
-            uint childIndex = o.next_layer_surfels_pointer[morton];
-            
+            uint id = ordered_ids[i];
+
+            if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, id)) continue;
+            uint childIndex = o.next_layer_surfels_pointer[id];
+
             vec3 offset = vec3(
-            (morton & (1u<<2)) != 0 ? 1.0 : 0.0,
-            (morton & (1u<<1)) != 0 ? 1.0 : 0.0,
-            (morton & (1u<<0)) != 0 ? 1.0 : 0.0
+            (id & (1u<<2)) != 0 ? 1.0 : 0.0,
+            (id & (1u<<1)) != 0 ? 1.0 : 0.0,
+            (id & (1u<<0)) != 0 ? 1.0 : 0.0
             );
             vec3 child_min = current_bucket_min + offset * children_size;
             if (stackPtr < MAX_STACK) {
                 stackPtr++;
-                node_ids_stack[stackPtr] = childIndex;
-                node_size_stack[stackPtr] = children_size;
-                node_min_stack[stackPtr] = child_min;
+                stack[stackPtr].id = childIndex;
+                stack[stackPtr].extension = children_size;
+                stack[stackPtr].min_pos = child_min;
             }
-
         }
     }
-    c = vec3(0,0,1);
-    return false;
+    return has_hit;
 }
+
 
 #endif
 
@@ -515,11 +491,8 @@ void main()
        //FragColor = vec4(0.0,0.0,0,1);
 
     }
-    return;
-
-
-
     #ifdef DEBUG_SURFELS
+
     vec3 ray_direction = normalize(pos_ws - cameraPosWs);
     vec3 c = vec3(0.0f);
     float d;
@@ -528,16 +501,20 @@ void main()
     r.origin = cameraPosWs;
     r.inverse_direction = 1.0f/ray_direction;
     r.max_length = 100;
+
     vec3 hit_location;
     Surfel s;
     s.normal = vec4(normalize(vec3(1,0,0)),0);
     s.mean_r = vec4(10.0,10.0,10.0,1.0);
-    //c = vec3(float(ray_surfel_intersection(s, r, hit_location)));
+   
     vec4 debug_data;
-    bool b= traverseHERO(r,c, d,debug_data);
-    FragColor = float(b)*vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
-    FragColor = debug_data.gggg/1000.0f;
 
+     bool b= traverseHERO(r,c, d);
+        
+    
+    FragColor = float(b)*vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
+    //FragColor = debug_data.gggg/1000.0f;
+    
     #endif 
     return;
     if(TexCoords.y < 0.1f) {
