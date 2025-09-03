@@ -444,9 +444,8 @@ void main()
     //f (b) {
     //   FragColor= vec4(1.0);
     //
-    return;
 
-    FragColor+= vec4(TexCoords.rg * (sizeTex/128.0) - floor(TexCoords.rg * (sizeTex/128.0)), 0.0,  1.0);
+    /*FragColor+= vec4(TexCoords.rg * (sizeTex/128.0) - floor(TexCoords.rg * (sizeTex/128.0)), 0.0,  1.0);
     if (TexCoords.y < 0.1) {
         FragColor = vec4(bit_debug, 1.0);
     }
@@ -479,7 +478,7 @@ void main()
  
     vec4 clip = projection_matrix * view_matrix * vec4(pos_ws_test_coords, 1.0);
     vec3 ndc = vec3(clip) / clip.w;
-    
+   
 
     //ndc = ndc * 0.5f+0.5f;
     ndc*=target_radius_pixels_adjusted/target_radius_pixels; 
@@ -490,9 +489,11 @@ void main()
     } else {
        //FragColor = vec4(0.0,0.0,0,1);
 
-    }
+    } 
+    */
+    
     #ifdef DEBUG_SURFELS
-
+    
     vec3 ray_direction = normalize(pos_ws - cameraPosWs);
     vec3 c = vec3(0.0f);
     float d;
@@ -514,7 +515,6 @@ void main()
     
     FragColor = float(b)*vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
     //FragColor = debug_data.gggg/1000.0f;
-    
     #endif 
     return;
     if(TexCoords.y < 0.1f) {

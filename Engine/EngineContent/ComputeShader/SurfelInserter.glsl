@@ -337,7 +337,6 @@ uvec3(0, 0, 0),
 shared uint[8] temp_copy_locations;
 
 void main() {
-    
     float pixels_per_surfel = 128.0;//real_world_size.x;
 
     uvec2 sizeTex = textureSize(gNormal, 0);
@@ -348,26 +347,18 @@ void main() {
 
     float d_camera_pos = -(view_matrix * vec4(pos_ws_original,1.0)).z;//distance(camera_position,pos_ws_original);
     
-    float target_diameters_pixels = 128.0;
-    
     //FOV is defined in the y direction 
     float fov_rad = FOV * PI / 180.0;
     float ws_radius_min = 1.0f;
+    
+    float height_camera = 2.0 * tan(fov_rad*0.5f);
+    float surfel_radius_on_camera_plane = height_camera / (( sizeTex.y/ pixels_per_surfel));
 
-
-    //TODO: could be replaced by the projection matrix
-    float near = 0.01;
-    float camera_width = sizeTex.y;
-    float height_camera = 2.0 * tan(fov_rad*0.5f) * near;
-    float surfel_radius_on_camera_plane = height_camera / ((camera_width / target_diameters_pixels));
-
-    float real_world_diameter = (d_camera_pos / near) * surfel_radius_on_camera_plane ;
+    float real_world_diameter = (d_camera_pos) * surfel_radius_on_camera_plane ;
 
     real_world_diameter = max(ws_radius_min * 2.0, real_world_diameter);
 
-    float acutal_pixel_diameter = (real_world_diameter / (d_camera_pos / near) );
-
-    
+    float acutal_pixel_diameter = (real_world_diameter / (d_camera_pos) );
     
     vec2 ndc = TexCoords_original * 2.0 - 1.0f;
     ndc*=acutal_pixel_diameter/surfel_radius_on_camera_plane;
@@ -375,20 +366,11 @@ void main() {
     vec2 TexCoords = (ndc.rg + 1.0) * 0.5f;
     
     const float edge_distance = 0.05;
-    
-    if(TexCoords.x < edge_distance) {
-        return;
-    }
 
-    if(TexCoords.y < edge_distance) {
-        return;
-    }
-
-    if(TexCoords.x > 1-edge_distance) {
-        return;
-    }
-
-    if(TexCoords.y > 1-edge_distance) {
+    if (TexCoords.y < edge_distance ||
+    TexCoords.x < edge_distance ||
+    TexCoords.x > 1-edge_distance
+    || TexCoords.y > 1-edge_distance) {
         return;
     }
 
@@ -401,17 +383,10 @@ void main() {
     vec3 emissive = vec3(texture(gEmissive, TexCoords));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
-    if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION))) {
+    if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION)) ||
+    surfel_buffer.a > 0.4) {
         return;
     }
-
-
-    
-
-    if (surfel_buffer.a > 0.4) {
-        return;
-    }
-    
     
     
     

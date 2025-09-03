@@ -1,7 +1,7 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
-#define ITERATIONS 4
+#define ITERATIONS 128
 #define MAX_OCTREE_RAYTRACING_STEPS 1024
 struct Surfel {
     vec4 mean_r;
@@ -37,7 +37,7 @@ layout(std430, binding = 3) buffer SurfelBuffer {
     Surfel surfels[];
 };
 //OCTREE BACKBUFFER
-layout(std430, binding = 5) buffer OctreeBuffer {
+layout(std430, binding = 5) readonly buffer OctreeBuffer {
     OctreeElement octreeElements[];
 };
 
@@ -55,11 +55,13 @@ uniform int offset_id;
 uniform int calculation_level;
 uniform uvec3 pos_ws_start;
 
+shared vec3 ray_trace_results[ITERATIONS];
+shared Surfel surfel; 
+shared bool has_surfel;
+shared uint surfel_pointer;
 vec3 get_ao_color(){
-    return vec3(80.0/255.0,156.0/255.0,250.0/255.0) * 0.5;
+    return vec3(80.0/255.0,156.0/255.0,250.0/255.0) * 0.7;
 }
-
-
 
 uint bitmask_surfel_amount = 0x00FFFFFF;
 
@@ -205,7 +207,7 @@ int get_ordered_child_traversal(float extension_parent, vec3 parent_min, Ray r, 
 }
 
 struct stack_item {
-    uint id;
+    uint octree_pointer;
     float extension;
     vec3 min_pos;
 };
@@ -214,7 +216,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
     const int MAX_STACK = 64;
     stack_item stack[MAX_STACK];
 
-    stack[0].id = 0;
+    stack[0].octree_pointer = 0;
     stack[0].extension = OCTREE_TOTOAL_EXTENSION;
     stack[0].min_pos = vec3(-OCTREE_TOTOAL_EXTENSION*0.5f);
 
@@ -226,7 +228,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
 
     for (int tries = 0; tries < MAX_OCTREE_RAYTRACING_STEPS; tries++) {
 
-        OctreeElement o = octreeElements[stack[stackPtr].id];
+        OctreeElement o = octreeElements[stack[stackPtr].octree_pointer];
         float current_bucket_size = stack[stackPtr].extension;
         vec3 current_bucket_min = stack[stackPtr].min_pos;
 
@@ -249,7 +251,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
             if (ray_surfel_intersection(s, ray, hit_location)) {
                 d = distance(hit_location, ray.origin);
                 if (d < closest_hit) {
-                    c = s.radiance_direct_and_surface.xyz + smoothstep(150,250,s.radiance_ambient.w) * s.radiance_ambient.xyz;
+                    c = s.radiance_direct_and_surface.xyz + smoothstep(2500,4000,s.radiance_ambient.w) * s.radiance_ambient.xyz;
                     closest_hit = d;
                     current_best_hit = hit_location;
                     has_hit =true;
@@ -279,7 +281,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
             vec3 child_min = current_bucket_min + offset * children_size;
             if (stackPtr < MAX_STACK) {
                 stackPtr++;
-                stack[stackPtr].id = childIndex;
+                stack[stackPtr].octree_pointer = childIndex;
                 stack[stackPtr].extension = children_size;
                 stack[stackPtr].min_pos = child_min;
             }
@@ -295,40 +297,36 @@ void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
     bitangent = cross(normal, tangent);
 }
 
-vec4 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sampled_old, vec3 albedo) {
-    vec3 color_out = vec3(0.0f);
+vec3 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sampled_old, vec3 albedo) {
     vec3 color_pre = color_sampled_old.rgb;
     float sampled_pre = color_sampled_old.a;
-    for (int i = 0; i < ITERATIONS; i++) {
-        vec2 random_seed = pos.xy*pos.z + i + sampled_pre + gl_LocalInvocationID.x;
-        vec3 d = CosineSampleHemisphere(rand2(random_seed));
-        //vec3 d = sample_hemisphere_uniform(random_seed);
-        vec3 tangent;
-        vec3 bitangent;
+    vec2 random_seed = pos.xy*pos.z + sampled_pre + gl_LocalInvocationID.x;
+    vec3 d = CosineSampleHemisphere(rand2(random_seed));
+    //vec3 d = sample_hemisphere_uniform(random_seed);
+    vec3 tangent;
+    vec3 bitangent;
 
 
-        getTangentBasis(normal, tangent, bitangent);
+    getTangentBasis(normal, tangent, bitangent);
 
-        vec3 s = normalize(normal * d.z  + d.y * bitangent + d.x * tangent);
-        s*= vec3(1.0);
-        Ray r;
-        r.origin = pos;
-        r.direction = s;
-        r.inverse_direction = 1.0f/s;
-        r.max_length = 0.0f;
-        
-        vec3 c;
-        float dist;
+    vec3 s = normalize(normal * d.z  + d.y * bitangent + d.x * tangent);
+    s*= vec3(1.0);
+    Ray r;
+    r.origin = pos;
+    r.direction = s;
+    r.inverse_direction = 1.0f/s;
+    r.max_length = 0.0f;
+    
+    vec3 c;
+    float dist;
 
-        float angle_attenuation = max(dot(s, normal), 0.001);
-        float pdf = angle_attenuation/PI;
-        //float pdf = 1.0/(2.0*PI);
-        vec3 brdf_lambert = albedo/PI;
-        
-        color_out+=(traverseHERO(r, c,dist)? c : get_ao_color()) * brdf_lambert * angle_attenuation / pdf;
-    }
-    return vec4((color_out + color_pre * sampled_pre) / (ITERATIONS + sampled_pre)
-    , sampled_pre + ITERATIONS);
+    float incidence_angle = max(dot(s, normal), 0.001);
+    float pdf = incidence_angle/PI;
+    //float pdf = 1.0/(2.0*PI);
+    vec3 brdf_lambert = albedo/PI;
+    
+    vec3 final_sample_color = (traverseHERO(r, c,dist)? c : get_ao_color());
+    return final_sample_color * brdf_lambert * incidence_angle / pdf;
 }
 
 
@@ -401,6 +399,7 @@ void insert_update_info(uint p) {
 }
 
 void main() {
+    bool is_leader = gl_LocalInvocationID.x == 0u;
     uint p;
     vec3 metadata = vec3(0.0);
 
@@ -412,27 +411,75 @@ void main() {
     vec3 bb_min = vec3(-OCTREE_TOTOAL_EXTENSION * 0.5f) + center * node_size_at_level;
     vec3 bb_extension = vec3(node_size_at_level);
     
-    uint id = gl_GlobalInvocationID.x;
+    
+    if(is_leader) {
+        has_surfel = false;
+    }
 
-    if (get_surfe_pointer_at_octree_pos(level, center, p, metadata)){
+    //only the leader looks if the surfel exisit
+    if (is_leader && get_surfe_pointer_at_octree_pos(level, center, p, metadata)){
         OctreeElement o = octreeElements[p];
         
         //insert this pointer into the list of changed surfels
-        insert_update_info(p);
-        
+        uint id = gl_WorkGroupID.x;
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
         if (id < surfels_amount) {
             uint surfle_data_pointer = o.surfels_at_layer_pointer;
-            Surfel s = surfels[surfle_data_pointer + id];
-            vec3 surfel_pos = s.mean_r.xyz;
-            if (is_ws_pos_contained_in_bb(surfel_pos ,bb_min,bb_extension)) {
-                //surfels[surfle_data_pointer + i].color = vec4(0,1,float(gl_LocalInvocationID.x == 0),1);
-                vec4 final_ao_color = approx_lighting_for_pos(s.mean_r.xyz + s.normal.xyz * 0.1f, s.mean_r.w,s.normal.xyz, s.radiance_ambient, vec3(1.0));
-                for (int i  = 0; i < 8; i++) {
-                    uint location = s.copy_locations[i];
-                    surfels[location].radiance_ambient = final_ao_color;
-                }
+            surfel_pointer = surfle_data_pointer + id;
+            surfel = surfels[surfel_pointer];
+            vec3 surfel_pos = surfel.mean_r.xyz;
+            if (is_ws_pos_contained_in_bb(surfel_pos, bb_min, bb_extension)) {
+                has_surfel = true;
+                insert_update_info(p);
             }
         }
+    }
+    //wait for leader thread to find surfel
+    barrier();
+    
+    if(has_surfel) {
+        vec3 ray_trace_result = approx_lighting_for_pos(surfel.mean_r.xyz + surfel.normal.xyz * 0.1f, surfel.mean_r.w,surfel.normal.xyz, surfel.radiance_ambient, vec3(1.0));
+        ray_trace_results[gl_LocalInvocationID.x] = ray_trace_result;
+    } else {
+        return;
+    }
+    
+    //wait for all threads to run ray tracing
+    barrier();
+    
+    //leader thread continious
+    if(!is_leader) {
+        return;
+    }
+    vec3 result_accumuluation = vec3(0.0);
+    
+    #pragma unroll
+    for (int i = 0; i < ITERATIONS; i++) {
+        result_accumuluation+=ray_trace_results[i];
+    }
+    vec3 old_estimate = surfel.radiance_ambient.rgb;
+    vec3 current_estimate = result_accumuluation / ITERATIONS;
+    
+    float old_estimate_samples = surfel.radiance_ambient.w;
+    
+    const float delta = 0.5;
+    float estimate_delta = distance(old_estimate,current_estimate);
+    float  iteration_weigth = 1.0 - min(estimate_delta,1.0) * 0.8f;
+
+    
+    float total_samples = max(ITERATIONS + old_estimate_samples, 1);
+    
+    float current_estimate_weight = ITERATIONS / total_samples;
+    float old_estimate_weigth = old_estimate_samples / total_samples;
+    
+    vec3 new_estimate =  old_estimate * old_estimate_weigth + current_estimate * current_estimate_weight;
+
+    
+    vec4 final_ao_color = vec4(new_estimate, total_samples);
+    surfels[surfel_pointer].radiance_ambient = final_ao_color;
+    
+    for (int i  = 0; i < 8; i++) {
+        uint location = surfel.copy_locations[i];
+        surfels[location].radiance_ambient = final_ao_color;
     }
 }

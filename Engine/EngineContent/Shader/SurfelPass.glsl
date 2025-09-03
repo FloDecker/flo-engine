@@ -220,6 +220,12 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
     pos.z <= bb_max.z && pos.z >= bb_min.z;
 
 }
+
+vec3 get_ao_color(){
+    return vec3(80.0/255.0,156.0/255.0,250.0/255.0) * 0.5;
+}
+
+
 #define ICLINATION_MAX 0.8f
 #define ICLINATION_MIN 0.2f
 #define DISTANCE_MAX 1.0f 
@@ -228,6 +234,7 @@ const float distance_reciprocal = 1.0f / DISTANCE_MAX;
 
 vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetches, out int amount_innceseary_fetches, out float surfel_coverage, out float min_samples, out float min_sample_level, out vec3 min_sample_center, out vec3 avg_octree_color) {
     surfel_coverage = 0;
+    float surfel_total_attenuation = 0;
     min_samples = MAX_LIGHT_SAMPLES;
     min_sample_level = 0;
     if (!is_ws_pos_contained_in_bb(pos, vec3(- total_extension * 0.5f), vec3(total_extension))) {
@@ -259,16 +266,19 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
 
 
                 float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w, 0.0);
-                float normal_difference = smoothstep(ICLINATION_MIN, ICLINATION_MAX, abs(dot(s.normal.xyz, normal_ws)));
+                float normal_difference = smoothstep(ICLINATION_MIN, ICLINATION_MAX, max(dot(s.normal.xyz, normal_ws),0.0));
                 float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)) * distance_reciprocal, 0.0);
+                float surfel_sample_attenuation = smoothstep(0,1500,s.radiance_ambient.w);
 
 
                 float attenuation =  distance_difference * normal_difference  * distance_to_surfel;
                 
+
                 avg_octree_color+=s.radiance_ambient.rgb;
-                final_color+=s.radiance_ambient.rgb*attenuation;
+                final_color+=s.radiance_ambient.rgb*attenuation * surfel_sample_attenuation;
+                surfel_total_attenuation += attenuation * surfel_sample_attenuation;
+
                 surfel_coverage += attenuation;
-                
                 samples_radus_independend++;
 
 
@@ -290,8 +300,8 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {
             avg_octree_color/=float(samples_radus_independend + 0.01);
-            if (surfel_coverage > 0) {
-                return final_color/surfel_coverage;
+            if (surfel_total_attenuation > 0) {
+                return final_color/surfel_total_attenuation;
             } else {
                 return avg_octree_color;
             }

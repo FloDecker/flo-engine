@@ -1,6 +1,6 @@
 ﻿#version 430 core
 
-#define MAX_SAMPLES_PER_SURFEL 5000
+#define MAX_SAMPLES_PER_SURFEL 10000
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 uniform sampler2D surfel_framebuffer;
