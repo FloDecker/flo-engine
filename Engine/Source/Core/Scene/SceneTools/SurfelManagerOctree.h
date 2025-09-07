@@ -31,6 +31,7 @@ struct surfel_gpu
 {
 	glm::vec4 position_r = {}; //position + radius 
 	glm::vec4 normal = {};
+	glm::vec4 albedo = {};
 	glm::vec4 radiance_ambient = {}; //radiance_ambient(frist bounce) + sample amout
 	glm::vec4 radiance_direct_and_surface = {};
 	uint32_t copy_locations[8];
@@ -82,7 +83,9 @@ public:
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
 	void sync_buffers() const;
 	bool remove_surfel(const surfel* surfel);
-
+	bool record_surfel_metadata = false;
+	float sample_interval = 0.1;
+	double last_sample;
 
 	void generate_surfels();
 	void recalculate_surfels();
@@ -103,11 +106,13 @@ public:
 	compute_shader* compute_shader_find_least_shaded_pos;
 	compute_shader* compute_shader_sync_buffers;
 
-	void tick();
+	void tick(double time_stamp);
 
 	void swap_surfel_buffers() const;
 
 	int get_manager_state() const;
+
+	
 
 private:
 	Scene* scene_;
@@ -149,7 +154,13 @@ private:
 	
 
 	//a vector that holds all surfels currently used
+	//deprecated
 	std::vector<std::unique_ptr<surfel>> surfels_ = std::vector<std::unique_ptr<surfel>>();
+
+	//for debugging and statistics
+	std::vector<std::pair<double, ::surfel_allocation_metadata>> meta_data_history = std::vector<std::pair<double, ::surfel_allocation_metadata>>();
+	double recording_start = 0.0;
+	void dump_metadata_history() const;
 
 	void clear_samples();
 	bool draw_debug_tools_ = false;

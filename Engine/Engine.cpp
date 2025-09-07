@@ -304,7 +304,7 @@ int main()
 
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
-	//object_plane->set_material(gaussian_gi_shader);
+	object_plane->set_material(grey_shader);
 	object_plane->set_position_global(0, -4, 0);
 	object_plane->setRotationLocal(-90, 0, 0);
 	object_plane->setScale(50, 50, 1);
@@ -569,7 +569,7 @@ int main()
 		global_context.performance_metrics->stop_and_store_measuring(pass_surfels);
 
 		global_context.performance_metrics->start_measuring(surfels_tick);
-		scene->get_surfel_manager()->tick();
+		scene->get_surfel_manager()->tick(renderFrameStart);
 		global_context.performance_metrics->stop_and_store_measuring(surfels_tick);
 
 		//////////  FINAL LIGHT PASS AND POST PROCESSING

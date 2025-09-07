@@ -1,8 +1,10 @@
 ﻿#include "SurfelManagerOctree.h"
 
+#include <fstream>
 #include <numbers>
 #include <random>
 #include <utility>
+#include <GLFW/glfw3.h>
 #include <gtx/string_cast.hpp>
 
 #include "../Camera3D.h"
@@ -57,6 +59,23 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	compute_shader_sync_buffers->compileShader();
 }
 
+void SurfelManagerOctree::dump_metadata_history() const
+{
+	std::ofstream outFile("output.txt");
+	if (!outFile) {
+		std::cerr << "Error opening file!\n";
+		return;
+	}
+
+	// Dump vector contents
+	for (const auto& value : meta_data_history) {
+		outFile << value.first << "|" << value.second.debug_int_32 << "\n";  // one element per line
+	}
+
+	outFile.close();
+	return;
+}
+
 void SurfelManagerOctree::clear_samples()
 {
 	surfels_.clear();
@@ -68,15 +87,42 @@ void SurfelManagerOctree::draw_ui()
 	if (ImGui::Button("Clear Surfels on GPU"))
 	{
 		clear_surfels_on_gpu_();
+		recording_start = glfwGetTime();
+		meta_data_history.clear();
+		last_sample = glfwGetTime() - sample_interval - 100;
 	}
 	if (ImGui::Button("Generate surfels vis compute shader"))
 	{
 		generate_surfels_via_compute_shader();
 	}
+	if (ImGui::Button("Dump metadata"))
+	{
+		dump_metadata_history();
+	}
 
-	ImGui::Checkbox("Update Surfels", &update_surfels_next_tick);
+	if (ImGui::Checkbox("Update Surfels", &update_surfels_next_tick))
+	{
+		if(update_surfels_next_tick)
+		{
+			recording_start = glfwGetTime();
+			last_sample = glfwGetTime() - sample_interval - 100;
+			meta_data_history.clear();
+		}
+	}
+
+	
+	
 	ImGui::Checkbox("Draw boxes on update nodes", &draw_debug_boxes_);
+	ImGui::Checkbox("Record surfel metadata", &record_surfel_metadata);
 	ImGui::DragInt("Surfel GI updates per tick", &surfel_gi_updates_per_tick);
+	ImGui::DragFloat("Meta data sample interval", &sample_interval);
+
+	::surfel_allocation_metadata allocation_metadata;
+	if (meta_data_history.size() > 0) {
+		allocation_metadata = meta_data_history.back().second;
+	}
+	ImGui::Text("allocation metadata %d", allocation_metadata.debug_int_32);
+
 }
 
 
@@ -1051,11 +1097,19 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, const framebuffe
 	
 }
 
-void SurfelManagerOctree::tick()
+void SurfelManagerOctree::tick(double time_stamp)
 {
 	if (!update_surfels_next_tick)
 	{
 		return;
+	}
+
+	if (record_surfel_metadata && time_stamp - last_sample  > sample_interval)
+	{
+		last_sample = time_stamp;
+		struct::surfel_allocation_metadata* allocation_metadata = static_cast<struct::surfel_allocation_metadata*>(surfel_allocation_metadata->write_ssbo_to_cpu());
+		meta_data_history.emplace_back(time_stamp-recording_start, *allocation_metadata);
+		ssbo<::surfel_allocation_metadata>::unmap();
 	}
 
 
