@@ -79,6 +79,8 @@ GUIManager* guiManager = nullptr;
 //TEST: REMOVE ME
 static rigid_body* rigid_body_mod;
 
+bool show_engine_ui = true;
+
 //fence to sync CPU and GPU after each tick cycle
 GLsync main_thread_fence;
 
@@ -486,13 +488,17 @@ int main()
 		glfwPollEvents(); //input events
 		processInput(editor3DCamera, scene, window); //low level input processing
 
-		//IMGUI 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		//IMGUI
+		if (show_engine_ui)
+		{
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
 
-		//draw engine UI
-		guiManager->tickGUI();
+			//draw engine UI
+			guiManager->tickGUI();
+		}
+
 
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear radiance_ambient buffer
@@ -599,8 +605,11 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 		global_context.performance_metrics->stop_and_store_measuring(pass_g_buffer);
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		if (show_engine_ui)
+		{
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		}
 
 		//swap front and back buffer
 		glfwSwapBuffers(window);
@@ -626,9 +635,13 @@ int main()
 
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	if (show_engine_ui)
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+        	ImGui_ImplGlfw_Shutdown();
+        	ImGui::DestroyContext();
+	}
+	
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -770,6 +783,9 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 			}
 		}
 	}
+
+	if (keyClicked[GLFW_KEY_H]) show_engine_ui = !show_engine_ui;
+	
 	auto cameraInput = glm::vec2(0, 0);
 	if (keyPressed[GLFW_KEY_W]) cameraInput += glm::vec2(1, 0);
 	if (keyPressed[GLFW_KEY_S]) cameraInput += glm::vec2(-1, 0);

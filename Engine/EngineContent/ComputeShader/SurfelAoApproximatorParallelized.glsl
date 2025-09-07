@@ -1,7 +1,7 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
-#define ITERATIONS 32
+#define ITERATIONS 64
 #define MAX_OCTREE_RAYTRACING_STEPS 1024
 struct Surfel {
     vec4 mean_r;
