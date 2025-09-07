@@ -414,6 +414,7 @@ void main() {
     Surfel s;
     s.mean_r = vec4(pos_ws, radius);
     s.radiance_ambient = vec4(surfel_metadata_0.rgb,16.0);
+    s.albedo = vec4(albedo,0.0);
 
     float NdotL = dot(normal_ws, normalize(direct_light_direction));
     float diffuseIntensity = clamp(NdotL,0,1);
