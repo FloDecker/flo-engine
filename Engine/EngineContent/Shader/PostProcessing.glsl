@@ -49,6 +49,7 @@ uniform mat4 view_matrix;
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
+    vec4 albedo;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
     uint[8] copy_locations; //global adresses where this exact surfel can be found
@@ -297,6 +298,7 @@ float bias = 0.01;
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
+    vec4 albedo;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
     uint[8] copy_locations; //global adresses where this exact surfel can be found
@@ -306,6 +308,7 @@ struct Surfel {
 struct AllocationMetadata{
     uint surfel_bucket_pointer;
     uint surfel_octree_pointer;
+    uint octree_pointer_update_index;
     uint debug_int_32;
 
 };

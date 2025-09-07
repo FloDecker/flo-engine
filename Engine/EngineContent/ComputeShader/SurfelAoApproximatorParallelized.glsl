@@ -1,11 +1,12 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
-#define ITERATIONS 128
+#define ITERATIONS 32
 #define MAX_OCTREE_RAYTRACING_STEPS 1024
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
+    vec4 albedo;
     vec4 radiance_ambient; //radiance without surface irradiance and direct light 
     vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
     uint[8] copy_locations; //global adresses where this exact surfel can be found
@@ -251,7 +252,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
             if (ray_surfel_intersection(s, ray, hit_location)) {
                 d = distance(hit_location, ray.origin);
                 if (d < closest_hit) {
-                    c = s.radiance_direct_and_surface.xyz + smoothstep(2500,4000,s.radiance_ambient.w) * s.radiance_ambient.xyz;
+                    c = s.radiance_direct_and_surface.xyz + smoothstep(2500,4000,s.radiance_ambient.w) * s.radiance_ambient.xyz * s.albedo.rgb;
                     closest_hit = d;
                     current_best_hit = hit_location;
                     has_hit =true;
@@ -326,28 +327,15 @@ vec3 approx_lighting_for_pos(vec3 pos, float radius, vec3 normal, vec4 color_sam
     vec3 brdf_lambert = albedo/PI;
     
     vec3 final_sample_color = (traverseHERO(r, c,dist)? c : get_ao_color());
-    return final_sample_color * brdf_lambert * incidence_angle / pdf;
+    return final_sample_color;
 }
 
 
 uint get_next_octree_index_(uvec3 center, uvec3 pos)
 {
-    uint r = 0u;
-    if (pos.x >= center.x)
-    {
-        r |= (1u << 2);
-    }
-
-    if (pos.y >= center.y)
-    {
-        r |= (1u << 1);
-    }
-
-    if (pos.z >= center.z)
-    {
-        r |= (1u << 0);
-    }
-    return r;
+    return (uint(pos.x >= center.x) << 2) |
+    (uint(pos.y >= center.y) << 1) |
+    (uint(pos.z >= center.z) << 0);
 }
 
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
@@ -438,7 +426,7 @@ void main() {
     barrier();
     
     if(has_surfel) {
-        vec3 ray_trace_result = approx_lighting_for_pos(surfel.mean_r.xyz + surfel.normal.xyz * 0.1f, surfel.mean_r.w,surfel.normal.xyz, surfel.radiance_ambient, vec3(1.0));
+        vec3 ray_trace_result = approx_lighting_for_pos(surfel.mean_r.xyz + surfel.normal.xyz * 0.1f, surfel.mean_r.w,surfel.normal.xyz, surfel.radiance_ambient, surfel.albedo.rgb);
         ray_trace_results[gl_LocalInvocationID.x] = ray_trace_result;
     } else {
         return;
@@ -464,7 +452,7 @@ void main() {
     
     const float delta = 0.5;
     float estimate_delta = distance(old_estimate,current_estimate);
-    float  iteration_weigth = 1.0 - min(estimate_delta,1.0) * 0.8f;
+    float iteration_weigth = 1.0 - min(estimate_delta,1.0) * 0.8f;
 
     
     float total_samples = max(ITERATIONS + old_estimate_samples, 1);
