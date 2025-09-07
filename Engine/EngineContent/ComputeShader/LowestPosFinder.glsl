@@ -47,8 +47,7 @@ void main() {
     vec4 surfel_buffer = vec4(texture(surfel_framebuffer, TexCoords));
 
     //read the sample amout at this pixels location, if there is no surfel write MAX_VALUE
-    int coverage_at_pixel = int(surfel_buffer.a);
-    int samples_at_pixel = coverage_at_pixel>0 && texcoords_in_bounds(TexCoords) ? int(surfel_metadata_0.w) : MAX_SAMPLES_PER_SURFEL;
+    int samples_at_pixel = surfel_buffer.a>0 && texcoords_in_bounds(TexCoords) ? int(surfel_metadata_0.w) : MAX_SAMPLES_PER_SURFEL;
 
     //check ccsamples_at_pixel against the current minimal sample value of the thread group 
     int pre = atomicMin(min_value, samples_at_pixel);
