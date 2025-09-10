@@ -21,7 +21,6 @@ class Camera3D;
 class compute_shader;
 class SurfelManagerOctree;
 class texture_buffer_object;
-struct surfel;
 class mesh_collider;
 class collider_modifier;
 class PhysicsEngine;
@@ -59,9 +58,6 @@ public:
 	void draw_debug_tools(const RenderContext* render_context) const;
 	void light_pass(camera* current_camera) const;
 	void custom_pass(RenderContext* render_context) const;
-
-	//this is called after drawing the current frame
-	void post_draw() const;
 
 
 	void select_object(Object3D* object);

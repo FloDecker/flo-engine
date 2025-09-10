@@ -547,7 +547,7 @@ int main()
 		pp_shader->recompile_if_changed();
 		surfel_buffer_shader->recompile_if_changed();
 		lighting_pass->recompile_if_changed();
-		scene->get_surfel_manager()->compute_shader_approxmiate_ao->recompile_if_changed();
+		scene->get_surfel_manager()->compute_shader_approximate_gi->recompile_if_changed();
 		scene->get_surfel_manager()->insert_surfel_compute_shader->recompile_if_changed();
 		scene->get_surfel_manager()->compute_shader_find_least_shaded_pos->recompile_if_changed();
 
@@ -621,9 +621,6 @@ int main()
 
 		//swap front and back buffer
 		glfwSwapBuffers(window);
-
-		//POST DRAW:
-		scene->post_draw();
 
 		//clear clicked / released arrays
 		memset(keyClicked, 0, KEY_AMOUNT * sizeof(bool));

@@ -299,11 +299,6 @@ void Scene::deselect()
 	handle_->detach();
 }
 
-void Scene::post_draw() const
-{
-	surfel_manager_->update_surfels();
-}
-
 void Scene::select_object(Object3D* object)
 {
 	handle_->attach_to_object(object);

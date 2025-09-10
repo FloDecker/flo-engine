@@ -585,7 +585,6 @@
         <ClCompile Include="Source\Core\Scene\Object3D.cpp" />
         <ClCompile Include="Source\Core\Scene\RayCast.cpp" />
         <ClCompile Include="Source\Core\Scene\Scene.cpp" />
-        <ClCompile Include="Source\Core\Scene\SceneTools\surfel.cpp" />
         <ClCompile Include="Source\Core\Scene\SceneTools\SurfelManagerOctree.cpp">
             <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
             <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -753,7 +752,6 @@
         <ClInclude Include="Source\Core\Scene\Primitive3D\plane_3d.h" />
         <ClInclude Include="Source\Core\Scene\RayCast.h" />
         <ClInclude Include="Source\Core\Scene\Scene.h" />
-        <ClInclude Include="Source\Core\Scene\SceneTools\surfel.h" />
         <ClInclude Include="Source\Core\Scene\SceneTools\SurfelManagerOctree.h" />
         <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\AbstractVoxelizer.h" />
         <ClInclude Include="Source\Core\Scene\SceneTools\VoxelizerTools\Voxelizer.h" />
