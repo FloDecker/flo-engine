@@ -8,14 +8,17 @@
 #define MAX_OCTREE_LEVEL 9
 #define FOV 90
 #define MAX_TRIES_INSERTION 10000
+#define BITMASK_SURFEL_AMOUNT 0x00FFFFFFu
+#define BIAS_SHADOW_MAPPING 0.01f
+#define LOCK_SENTINAL 0xFFFFFFFFu
 
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
     vec4 albedo;
-    vec4 radiance_ambient; //radiance without surface irradiance and direct light 
-    vec4 radiance_direct_and_surface; //radiance contribution from direct light and surface
-    uint[8] copy_locations; //global adresses where this exact surfel can be found
+    vec4 radiance_ambient;//radiance without surface irradiance and direct light 
+    vec4 radiance_direct_and_surface;//radiance contribution from direct light and surface
+    uint[8] copy_locations;//global adresses where this exact surfel can be found
 };
 
 struct OctreeElement
@@ -38,6 +41,8 @@ struct Ray {
     vec3 inverse_direction;
 };
 
+layout (local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
+
 //SURFEL BACKBUFFER
 layout(std430, binding = 3) buffer SurfelBuffer {
     Surfel surfels[];
@@ -55,10 +60,7 @@ layout(std430, binding = 8) buffer UpdatedOctreeElements {
     uint updatedIds[];
 };
 
-
-
-float bias = 0.01;
-layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
+layout (std140, binding = 1) uniform DIRECT_LIGHT_UNIFORMS
 {
     vec3 direct_light_direction;
     float direct_light_intensity;
@@ -68,7 +70,6 @@ layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
 };
 
 
-layout (local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
 uniform sampler2D direct_light_map_texture;
 
 uniform int offset_id;
@@ -88,13 +89,8 @@ uniform sampler2D gSurfels;
 uniform sampler2D gEmissive;
 uniform sampler2D surfel_framebuffer_metadata_0;
 
-
-
 uniform mat4 projection_matrix;
 uniform mat4 view_matrix;
-const uint LOCK_SENTINAL = 0xFFFFFFFFu;
-
-uint bitmask_surfel_amount = 0x00FFFFFF;
 
 bool intersect_AABB(vec3 bb_min, vec3 bb_max, Ray ray) {
     vec3 t1 = (bb_min - ray.origin) * ray.inverse_direction;
@@ -107,41 +103,11 @@ bool intersect_AABB(vec3 bb_min, vec3 bb_max, Ray ray) {
 }
 
 uint get_surfel_amount(uint i) {
-    return i & bitmask_surfel_amount;
-}
-
-bool is_child_octree_bit_set_at(uint i, uint pos)
-{
-    return (i & (1u << 31-pos)) != 0;
-}
-
-bool are_all_child_octree_bits_empty(uint i)
-{
-    return (bitmask_surfel_amount & i) == 0;
-}
-
-bool ray_surfel_intersection(Surfel s, Ray r, out vec3 hit_location) {
-    if (dot(s.normal.xyz, r.direction) > 0) return false;
-    float d = -dot(s.normal.xyz, s.mean_r.xyz);
-    float t = -((dot(s.normal.xyz, r.origin) + d) /
-    dot(s.normal.xyz, r.direction));
-    if (t <= 0) return false;
-    hit_location = r.origin + t * r.direction;
-    return distance(s.mean_r.xyz, hit_location) <= s.mean_r.w;
+    return i & BITMASK_SURFEL_AMOUNT;
 }
 
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
-vec2 rand2(vec2 co) {
-    return vec2(rand(co), rand(co + 1.23));// co + offset to get independent value
-}
-
-void getTangentBasis(vec3 normal, out vec3 tangent, out vec3 bitangent) {
-    vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-    tangent = normalize(cross(up, normal));
-    bitangent = cross(normal, tangent);
 }
 
 uint get_next_octree_index_(uvec3 center, uvec3 pos)
@@ -154,7 +120,7 @@ uint get_next_octree_index_(uvec3 center, uvec3 pos)
 uvec3 get_cell_size_at_level(uint level) {
     uint buckets = 1 << level;
     return uvec3(vec3(OCTREE_TOTOAL_EXTENSION) / buckets);
-    
+
 }
 
 uvec3 get_surfel_cell_index_from_ws(vec3 ws, uint level) {
@@ -176,17 +142,14 @@ bool create_new_bucket(out uint pointer) {
 void insert_update_info(uint p) {
     uint p_copy = p;
     uint free_spot = atomicAdd(allocationMetadata[0].octree_pointer_update_index, 1);
-    atomicExchange(updatedIds[free_spot],p_copy);
+    atomicExchange(updatedIds[free_spot], p_copy);
 }
 
-
 //LIGTMAPPING
-
 float light_map_at(vec2 coords) {
     float a = texture(direct_light_map_texture, coords.xy).r;
     return a;
 }
-
 
 bool in_light_map_shadow(vec3 vertexPosWs) {
     vec4 frag_in_light_space = direct_light_light_space_matrix * vec4(vertexPosWs, 1.0);
@@ -195,25 +158,20 @@ bool in_light_map_shadow(vec3 vertexPosWs) {
 
     float currentDepth = projCoords.z;
     float lm_depth = light_map_at(projCoords.xy);
-    if (currentDepth - bias > lm_depth) {
-        return true;
-    }
-    return false;
+    return (currentDepth - BIAS_SHADOW_MAPPING > lm_depth);
 }
-
-
 
 //returns the pointer to the surfels in octree node at pos x,y,z and level 
 bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octree_node_index, out uint final_surfel_index) {
     uint current_element_index = 0;
     uvec3 last_min = uvec3(0);
     uint last_size = 1 << level;
-    
+
     for (int i = 0; i < level; i ++) {
         last_size = last_size >> 1;// integer divison by 2
         uvec3 center = last_min + last_size;
-        uint index = get_next_octree_index_(center,pos);
-        
+        uint index = get_next_octree_index_(center, pos);
+
         //atomic read -> if mem != 0u dont exchange, if mem == 0u its replaced by 0u -> idempotent
         uint cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, 0u);
         if (cur == 0u) {
@@ -235,18 +193,18 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
                 }
             }
         }
-        
+
         uint tries = 0;
         do {
-            cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index],0u,0u);
+            cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, 0u);
             tries++;
             if (tries > MAX_TRIES_INSERTION){
                 return false;
             }
         } while (cur == LOCK_SENTINAL);
-        
+
         current_element_index = cur;
-        
+
         uvec3 offset = uvec3(
         (index & uint(1<<2)) != 0 ? 1 : 0,
         (index & uint(1<<1)) != 0 ? 1 : 0,
@@ -254,9 +212,9 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         );
         last_min += offset * last_size;
     }
-    
+
     //insert if reached target level
-    
+
     //check if a bucket exists
     uint cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
     if (cur == 0u) {
@@ -280,7 +238,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
             return false;
         }
     } while (cur == LOCK_SENTINAL);
-    
+
     if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
         uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + get_surfel_amount(insert_at_local);
@@ -288,9 +246,9 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         final_surfel_index = insert_at_global;
         memoryBarrierBuffer();
         surfels[insert_at_global] = s;
-        
+
         insert_update_info(current_element_index);
-        
+
     } else {
         return false;
     }
@@ -303,30 +261,14 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
     pos.x <= bb_max.x && pos.x >= bb_min.x &&
     pos.y <= bb_max.y && pos.y >= bb_min.y &&
     pos.z <= bb_max.z && pos.z >= bb_min.z;
-
 }
-
-vec3 project_normal_onto_plane(vec3 v, vec3 plane_normal){
-    return v- dot(v,plane_normal)* plane_normal;
-}
-
-vec4 get_average_color_of_bucket(uint octree_index_of_bucket) {
-    vec4 avg = vec4(0.0);
-    uint amount = get_surfel_amount(octreeElements[octree_index_of_bucket].surfels_at_layer_amount);
-    uint index = octreeElements[octree_index_of_bucket].surfels_at_layer_pointer;
-    for (uint i = 0; i < amount; i++){
-        avg+=surfels[index + i].radiance_ambient;
-    }
-    return avg/float(amount);
-}
-
 
 uint get_octree_level_for_surfel(float radius)
 {
-float d = radius * 2.0f;
-int level_surfel = int(ceil(log2(d)));
-int level_bounds = int(ceil(log2(OCTREE_TOTOAL_EXTENSION)));
-return min(level_bounds - level_surfel, MAX_OCTREE_LEVEL);
+    float d = radius * 2.0f;
+    int level_surfel = int(ceil(log2(d)));
+    int level_bounds = int(ceil(log2(OCTREE_TOTOAL_EXTENSION)));
+    return min(level_bounds - level_surfel, MAX_OCTREE_LEVEL);
 }
 
 const uvec3 component_multiplier[8] = {
@@ -346,29 +288,29 @@ void main() {
     float pixels_per_surfel_f = float(pixels_per_surfel);
     uvec2 sizeTex = textureSize(gNormal, 0);
     vec2 TexCoords_original = (vec2(gl_WorkGroupID.xy * pixels_per_surfel_f)) / sizeTex;
-    TexCoords_original+=random_offset.xy * (pixels_per_surfel_f / sizeTex); 
+    TexCoords_original+=random_offset.xy * (pixels_per_surfel_f / sizeTex);
     vec3 pos_ws_original = vec3(texture(gPos, TexCoords_original));
 
 
-    float d_camera_pos = -(view_matrix * vec4(pos_ws_original,1.0)).z;//distance(camera_position,pos_ws_original);
-    
+    float d_camera_pos = -(view_matrix * vec4(pos_ws_original, 1.0)).z;//distance(camera_position,pos_ws_original);
+
     //FOV is defined in the y direction 
     float fov_rad = FOV * PI / 180.0;
-    
-    float height_camera = 2.0 * tan(fov_rad*0.5f);
-    float surfel_radius_on_camera_plane = height_camera / (( sizeTex.y/ pixels_per_surfel_f));
 
-    float real_world_diameter = (d_camera_pos) * surfel_radius_on_camera_plane ;
+    float height_camera = 2.0 * tan(fov_rad*0.5f);
+    float surfel_radius_on_camera_plane = height_camera / ((sizeTex.y/ pixels_per_surfel_f));
+
+    float real_world_diameter = (d_camera_pos) * surfel_radius_on_camera_plane;
 
     real_world_diameter = max(minimal_surfel_radius * 2.0, real_world_diameter);
 
-    float acutal_pixel_diameter = (real_world_diameter / (d_camera_pos) );
-    
+    float acutal_pixel_diameter = (real_world_diameter / (d_camera_pos));
+
     vec2 ndc = TexCoords_original * 2.0 - 1.0f;
     ndc*=acutal_pixel_diameter/surfel_radius_on_camera_plane;
-    
+
     vec2 TexCoords = (ndc.rg + 1.0) * 0.5f;
-    
+
     const float edge_distance = 0.01;
 
     if (TexCoords.y < edge_distance ||
@@ -391,21 +333,21 @@ void main() {
     surfel_buffer.a > surfel_insertion_threshold) {
         return;
     }
-    
-    
-    
+
+
+
     float radius = (real_world_diameter * 0.5f)*surfel_insert_size_multiplier;
 
     uint level = get_octree_level_for_surfel(radius);
-    
-    
+
+
     //calculate overlap
     uvec3 cell_index = get_surfel_cell_index_from_ws(pos_ws, level);
-    
+
     //local offset inside cell
     vec3 cell_size = get_cell_size_at_level(level);
     vec3 offset_from_cell_center = mod(pos_ws, cell_size) / cell_size;
-    
+
     uvec3 offset_vector = uvec3(0);
     offset_vector.x = offset_from_cell_center.x < 0.5f ? -1 : 1;
     offset_vector.y = offset_from_cell_center.y < 0.5f ? -1 : 1;
@@ -416,29 +358,29 @@ void main() {
 
     Surfel s;
     s.mean_r = vec4(pos_ws, radius);
-    s.radiance_ambient = vec4(surfel_metadata_0.rgb,16.0);
-    s.albedo = vec4(albedo,0.0);
+    s.radiance_ambient = vec4(surfel_metadata_0.rgb, 16.0);
+    s.albedo = vec4(albedo, 0.0);
 
     float NdotL = dot(normal_ws, normalize(direct_light_direction));
-    float diffuseIntensity = clamp(NdotL,0,1);
-    
-    vec3 direct_light = (in_light_map_shadow(pos_ws) ? vec3(0.0) : 
+    float diffuseIntensity = clamp(NdotL, 0, 1);
+
+    vec3 direct_light = (in_light_map_shadow(pos_ws) ? vec3(0.0) :
     direct_light_intensity * direct_light_color * albedo * diffuseIntensity);
-    
-    
-    s.radiance_direct_and_surface = vec4(direct_light + emissive,1.0);
-    s.normal = vec4(normal_ws,0);
-    
-    
-    
+
+
+    s.radiance_direct_and_surface = vec4(direct_light + emissive, 1.0);
+    s.normal = vec4(normal_ws, 0);
+
+
+
     uint octree_index_of_bucket;
     uint final_surfel_index;
-    if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x],octree_index_of_bucket, final_surfel_index)){
-        atomicAdd(allocationMetadata[0].debug_int_32,1);
+    if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x], octree_index_of_bucket, final_surfel_index)){
+        atomicAdd(allocationMetadata[0].debug_int_32, 1);
     }
     temp_copy_locations[gl_LocalInvocationID.x] = final_surfel_index;
     barrier();
-    
+
     for (int i = 0; i < 8; i++) {
         surfels[final_surfel_index].copy_locations[i] = temp_copy_locations[i];
     }

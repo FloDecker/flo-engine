@@ -1,9 +1,9 @@
 ﻿#version 430 core
+#define BITMASK_SURFEL_AMOUNT 0x00FFFFFFu
 
 /*
 This compute shader copys the data that has changed from the frontbuffer to the backbuffer
 */
-
 
 //STRUCT DEFINITIONS
 struct Surfel {
@@ -29,6 +29,7 @@ struct AllocationMetadata{
     uint debug_int_32;
 };
 
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 // BACKBUFFERS
 layout(std430, binding = 3) buffer SurfelBufferBack {
@@ -58,11 +59,8 @@ layout(std430, binding = 2) buffer AllocationMetadataBuffer {
     AllocationMetadata allocationMetadata[];
 };
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-
-const uint bitmask_surfel_amount = 0x00FFFFFF;
 uint get_surfel_amount(uint i) {
-    return i & bitmask_surfel_amount;
+    return i & BITMASK_SURFEL_AMOUNT;
 }
 
 void main() {
@@ -73,7 +71,6 @@ void main() {
     
     //update octree element
     octreeElements_back[pointer_to_update] = octree_front;
-    
     
     //update surfels of octree element
     uint surfel_pointer = octree_front.surfels_at_layer_pointer;
@@ -89,6 +86,5 @@ void main() {
     //clear update buffer
     updatedIds[id_in_update_array] = 0;
     
-    //
     atomicExchange(allocationMetadata[0].octree_pointer_update_index,0);
 }

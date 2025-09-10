@@ -1,24 +1,23 @@
 ﻿#version 430 core
-
 #define MAX_SAMPLES_PER_SURFEL 10000
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+layout(std430, binding = 7) buffer LeastShaded {
+    vec4 least_shaded_regions[];
+};
 
 uniform sampler2D surfel_framebuffer;
 uniform sampler2D surfel_framebuffer_metadata_0;
 uniform sampler2D surfel_framebuffer_metadata_1;
 uniform sampler2D gPos;
 
-layout(std430, binding = 7) buffer LeastShaded {
-    vec4 least_shaded_regions[];
-};
+//variables shared within the thread group to find the minimal sampling position 
+shared int min_value;
+shared uint flatted_index_of_best_pixel;
 
 bool texcoords_in_bounds(vec2 coords) {
     return coords.x >= 0.0 && coords.x <= 1.0 && coords.y >= 0.0 && coords.y <= 1.0;
 }
-
-//variables shared within the thread group to find the minimal sampling position 
-shared int min_value;
-shared uint flatted_index_of_best_pixel;
 
 void main() {
     bool is_first_thread = (gl_LocalInvocationID.x == 0u) && (gl_LocalInvocationID.y == 0u);
