@@ -181,7 +181,8 @@ int main()
 		.light_pass_depth_only_shader = light_pass_shader,
 	};
 	editorRenderContext->pass = render_pass_main;
-	
+
+	glfwSwapInterval(0);//disable v sync
 
 	//register interaction callbacks
 	glfwSetKeyCallback(window, key_callback);
@@ -348,6 +349,13 @@ int main()
 	object_temple->set_position_global(40,-5,0);
 	object_temple->setRotationLocal(-90,-90,0);
 
+	
+	auto object_sphere = new Mesh3D(scene->get_root(), sphere);
+	object_sphere->name = "sphere";
+	object_sphere->set_material(grey_shader);
+	object_sphere->set_position_global(0,0,0);
+	object_sphere->setRotationLocal(0,0,0);
+
 
 	//WIDNOWS
 	//INTI GUI MANAGER
@@ -501,7 +509,7 @@ int main()
 
 
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear radiance_ambient buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 		//PHYSICS
@@ -624,7 +632,7 @@ int main()
 		memset(mouseButtonsReleased, 0, MOUSE_BUTTON_AMOUNT * sizeof(bool));
 
 		glFlush();
-		glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);;
+		main_thread_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		GLenum result = glClientWaitSync(main_thread_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 1000000);
 		if (result == GL_ALREADY_SIGNALED || result == GL_CONDITION_SATISFIED) {
 			// Render thread has finished

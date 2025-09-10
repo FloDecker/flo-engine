@@ -2,8 +2,8 @@
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
 #define OCTREE_HALF_TOTOAL_EXTENSION 256
-#define BUCKET_SIZE 128
-#define SURFELS_BUCKET_AMOUNT 80000
+#define BUCKET_SIZE 256
+#define SURFELS_BUCKET_AMOUNT 40000
 #define SURFEL_OCTREE_SIZE 100000
 #define MAX_OCTREE_LEVEL 9
 #define FOV 90
@@ -74,6 +74,13 @@ uniform sampler2D direct_light_map_texture;
 uniform int offset_id;
 uniform int calculation_level;
 
+uniform float minimal_surfel_radius;
+uniform float surfel_insertion_threshold;
+uniform float surfel_insert_size_multiplier;
+uniform int pixels_per_surfel;
+uniform vec3 camera_position;
+uniform vec3 random_offset;
+
 uniform sampler2D gPos;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
@@ -81,8 +88,7 @@ uniform sampler2D gSurfels;
 uniform sampler2D gEmissive;
 uniform sampler2D surfel_framebuffer_metadata_0;
 
-uniform vec3 camera_position;
-uniform vec3 random_offset;
+
 
 uniform mat4 projection_matrix;
 uniform mat4 view_matrix;
@@ -259,7 +265,6 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         if (prev == 0u) {
             uint bucket_pointer;
             if (!create_new_bucket(bucket_pointer)) {
-                atomicAdd(allocationMetadata[0].debug_int_32,1);
                 return false;
             }
             atomicExchange(octreeElements[current_element_index].surfels_at_layer_pointer, bucket_pointer);
@@ -338,11 +343,10 @@ uvec3(0, 0, 0),
 shared uint[8] temp_copy_locations;
 
 void main() {
-    float pixels_per_surfel = 128.0;//real_world_size.x;
-
+    float pixels_per_surfel_f = float(pixels_per_surfel);
     uvec2 sizeTex = textureSize(gNormal, 0);
-    vec2 TexCoords_original = (vec2(gl_WorkGroupID.xy * pixels_per_surfel)) / sizeTex;
-    TexCoords_original+=random_offset.xy * (pixels_per_surfel / sizeTex); 
+    vec2 TexCoords_original = (vec2(gl_WorkGroupID.xy * pixels_per_surfel_f)) / sizeTex;
+    TexCoords_original+=random_offset.xy * (pixels_per_surfel_f / sizeTex); 
     vec3 pos_ws_original = vec3(texture(gPos, TexCoords_original));
 
 
@@ -350,14 +354,13 @@ void main() {
     
     //FOV is defined in the y direction 
     float fov_rad = FOV * PI / 180.0;
-    float ws_radius_min = 1.0f;
     
     float height_camera = 2.0 * tan(fov_rad*0.5f);
-    float surfel_radius_on_camera_plane = height_camera / (( sizeTex.y/ pixels_per_surfel));
+    float surfel_radius_on_camera_plane = height_camera / (( sizeTex.y/ pixels_per_surfel_f));
 
     float real_world_diameter = (d_camera_pos) * surfel_radius_on_camera_plane ;
 
-    real_world_diameter = max(ws_radius_min * 2.0, real_world_diameter);
+    real_world_diameter = max(minimal_surfel_radius * 2.0, real_world_diameter);
 
     float acutal_pixel_diameter = (real_world_diameter / (d_camera_pos) );
     
@@ -366,7 +369,7 @@ void main() {
     
     vec2 TexCoords = (ndc.rg + 1.0) * 0.5f;
     
-    const float edge_distance = 0.05;
+    const float edge_distance = 0.01;
 
     if (TexCoords.y < edge_distance ||
     TexCoords.x < edge_distance ||
@@ -385,13 +388,13 @@ void main() {
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
     if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION)) ||
-    surfel_buffer.a > 0.4) {
+    surfel_buffer.a > surfel_insertion_threshold) {
         return;
     }
     
     
     
-    float radius = (real_world_diameter * 0.5f)*1.5f;
+    float radius = (real_world_diameter * 0.5f)*surfel_insert_size_multiplier;
 
     uint level = get_octree_level_for_surfel(radius);
     

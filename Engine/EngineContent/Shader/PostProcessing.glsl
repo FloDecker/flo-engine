@@ -198,7 +198,7 @@ struct stack_item {
     vec3 min_pos;
 };
 
-bool traverseHERO(Ray ray, out vec3 c, out float d) {
+bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug) {
     const int MAX_STACK = 64;
     stack_item stack[MAX_STACK];
 
@@ -217,7 +217,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
         OctreeElement o = octreeElements[stack[stackPtr].id];
         float current_bucket_size = stack[stackPtr].extension;
         vec3 current_bucket_min = stack[stackPtr].min_pos;
-        
+        debug.r++;
 
         float near_distance;
         float dist;
@@ -225,6 +225,9 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
 
         bool abort_iteration = stackPtr < 0 || dist > closest_hit;
         tries = abort_iteration ? MAX_OCTREE_RAYTRACING_STEPS : tries;
+        if(dist > closest_hit) {
+            debug.b++;
+        }
         
 
         //check if there are surfels hit on the current layer 
@@ -233,6 +236,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
         uint surfle_data_pointer = o.surfels_at_layer_pointer;
         for (int i = 0; i < surfels_amount; i++) {
             Surfel s = surfels[surfle_data_pointer + i];
+            debug.g++;
             vec3 hit_location;
             if (ray_surfel_intersection(s, ray, hit_location)) {
                 d = distance(hit_location, ray.origin);
@@ -440,7 +444,7 @@ void main()
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
 
-    //FragColor= vec4(surfel_metadata_0.www - vec3(33.0),  1.0);
+    //FragColor= vec4(surfel_buffer.www,  1.0);
     //FragColor= vec4(surfel_metadata_1.rgb * 00.01,  1.0);
     //FragColor= vec4((surfel_metadata_1-6).aaa,  1.0);
     //bool b = is_ws_pos_contained_in_bb(surfel_metadata_1.rgb, vec3(-64.0,-32.0,-32.0),vec3(-32.0,0.0,0.0));
@@ -511,13 +515,14 @@ void main()
     s.normal = vec4(normalize(vec3(1,0,0)),0);
     s.mean_r = vec4(10.0,10.0,10.0,1.0);
    
-    vec4 debug_data;
-
-     bool b= traverseHERO(r,c, d);
+    vec4 debug_data = vec4(0.0);
+    
+     bool b= traverseHERO(r,c, d, debug_data);
         
     
-    FragColor = float(b)*vec4((c + float(b)*0.1f) * 1.0f + LightPass * 0.0f,  1.0);
-    //FragColor = debug_data.gggg/1000.0f;
+    //FragColor = float(b)*vec4((c) * 1.0f + LightPass * 0.0f,  1.0);
+    FragColor = debug_data.gggg/1000.0f;
+    FragColor = vec4(float_to_heat_map(1.0-debug_data.g/500.0),1.0);
     #endif 
     return;
     if(TexCoords.y < 0.1f) {

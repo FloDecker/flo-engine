@@ -30,6 +30,12 @@ uniform sampler2D gNormal;
 #define MAX_LIGHT_SAMPLES FLOAT_MAX
 #define GAUSSIAN_SAMPLES 512
 #define MAX_LAYERS 9
+
+#define ICLINATION_MAX 0.9f
+#define ICLINATION_MIN 0.7f
+#define DISTANCE_MAX 1.0f
+
+
 uint bitmask_surfel_amount = 0x00FFFFFF;
 float total_extension = 512.0;
 
@@ -226,11 +232,6 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 vec3 get_ao_color(){
     return vec3(80.0/255.0,156.0/255.0,250.0/255.0) * 0.5;
 }
-
-
-#define ICLINATION_MAX 0.8f
-#define ICLINATION_MIN 0.2f
-#define DISTANCE_MAX 1.0f 
 
 const float distance_reciprocal = 1.0f / DISTANCE_MAX;
 

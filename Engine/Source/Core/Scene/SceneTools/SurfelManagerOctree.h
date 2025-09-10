@@ -9,7 +9,7 @@
 
 #include "../../Renderer/ssbo_double_buffer.h"
 
-constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 128; //amount of surfels a single bucket holds (also the increment)
+constexpr int SURFEL_BUCKET_SIZE_ON_GPU = 256; //amount of surfels a single bucket holds (also the increment)
 constexpr int SURFELS_BUCKET_AMOUNT = 40000; //total amount of surfel buckets that can be allocated
 constexpr int SURFEL_BUCKET_TOTAL_MEMORY = SURFEL_BUCKET_SIZE_ON_GPU * SURFELS_BUCKET_AMOUNT; //total memory allocated for surfels 
 constexpr int SURFEL_OCTREE_SIZE = 100000;
@@ -55,6 +55,21 @@ struct surfel_octree_metadata
 	std::vector<surfel*>* surfels = new std::vector<surfel*>;
 };
 
+struct state_history
+{
+	int state;
+	double time_stamp;
+	double render_time;
+};
+
+struct surfel_parameters
+{
+	float minimal_surfel_radius = 1.0f;
+	float surfel_insertion_threshold = 0.4f;
+	float surfel_insert_size_multiplier = 1.4f;
+	int pixels_per_surfel = 128;
+};
+
 
 class SurfelManagerOctree
 {
@@ -77,7 +92,7 @@ public:
 	int get_octree_level_for_surfel(const surfel* surfel);
 	bool insert_surfel_into_octree(surfel* surfel);
 	void generate_surfels_via_compute_shader() const;
-	void find_surfels_to_update();
+	void copy_update_positions_to_cpu();
 	bool update_surfels_in_update_queue(int amount);
 	void find_best_world_positions_to_update_lighting() const;
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
@@ -111,6 +126,7 @@ public:
 	void swap_surfel_buffers() const;
 
 	int get_manager_state() const;
+	void record_state_time(double time, double delta, int state);
 
 	
 
@@ -150,15 +166,18 @@ private:
 
 	ssbo<glm::vec4>* least_shaded_regions;
 
-	GLsync compute_fence_;
+	GLsync compute_fence_state_machine_;
 	
-
+	GLuint time_query_ = 0;
+	
 	//a vector that holds all surfels currently used
 	//deprecated
 	std::vector<std::unique_ptr<surfel>> surfels_ = std::vector<std::unique_ptr<surfel>>();
 
 	//for debugging and statistics
 	std::vector<std::pair<double, ::surfel_allocation_metadata>> meta_data_history = std::vector<std::pair<double, ::surfel_allocation_metadata>>();
+	std::vector<state_history> state_pass_time_history = std::vector<state_history>();
+	
 	double recording_start = 0.0;
 	void dump_metadata_history() const;
 
@@ -198,6 +217,9 @@ private:
 	uint32_t next_free_spot_in_octree_ = 1;
 	bool create_new_octree_element(uint32_t& index, uint32_t parent_index);
 	uint32_t last_updated_surfel = 0;
+
+	surfel_parameters surfel_parameters_;
+
 	//GPU calls
 
 	//surfel stack
@@ -233,4 +255,6 @@ private:
 
 	*/
 	int manager_state_ = 0;
+	int last_state_ = 0;
+	bool last_updated_regions_available_ = false;
 };
