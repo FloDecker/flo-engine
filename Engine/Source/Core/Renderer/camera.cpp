@@ -38,8 +38,9 @@ void camera::use() const
 
 void camera::setViewPortDimension(float width, float height)
 {
-	this->width_ = width;
-	this->height_ = height;
+	
+	this->width_ = std::max(1.0f,width);
+	this->height_ = std::max(1.0f,height);
 	recalculateProjection();
 	//update render target if attached
 	if (has_attached_render_target_)
