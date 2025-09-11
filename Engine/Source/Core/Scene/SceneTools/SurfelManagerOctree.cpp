@@ -112,6 +112,7 @@ void SurfelManagerOctree::draw_ui()
 	}
 
 	ImGui::SeparatorText("Surfel parameters");
+	ImGui::PushItemWidth(100);
 	ImGui::DragFloat("Minimal size of a surfel", &surfel_parameters_.minimal_surfel_radius);
 	ImGui::DragFloat("Surfel size multiplier post insertion", &surfel_parameters_.surfel_insert_size_multiplier);
 	ImGui::DragFloat("Surfel insertion threshold", &surfel_parameters_.surfel_insertion_threshold);

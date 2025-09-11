@@ -788,6 +788,11 @@ void processInput(Camera3D* camera3D, Scene* scene_context, GLFWwindow* window)
 			}
 		}
 	}
+	if (keyClicked[GLFW_KEY_F] && scene->has_selected_object())
+	{
+		auto pos = scene->get_selected_object()->getWorldPosition() - camera3D->getForwardVector() * 10.0f;
+		camera3D->set_position_global(pos);
+	}
 
 	if (keyClicked[GLFW_KEY_H]) show_engine_ui = !show_engine_ui;
 	
