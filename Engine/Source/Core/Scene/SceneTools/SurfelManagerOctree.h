@@ -55,29 +55,37 @@ struct surfel_parameters
 	bool draw_debug_boxes = false;
 };
 
+//for debugging
+constexpr const char* draw_id_types[] =  {"Shaded", "Coverage", "Sample amount"};
+struct debug_surfel_ubo
+{
+	int draw_id;
+};
+
 class SurfelManagerOctree
 {
 public:
 	SurfelManagerOctree(Scene* scene);
 	void draw_ui();
 
-
-	bool update_surfels_next_tick = false;
-	bool skip_gi = false;
+	//size of octree
 	float octree_total_extension = 512.0;
+	
 
-	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
-
+	//initializer method -> surfel framebuffer is created in Engine.cpp before the main loop
 	void register_scene_data(Camera3D* camera, const framebuffer_object* surfel_framebuffer);
 
-
-	//compute shaders
+	//////////////////////////compute shaders
 	compute_shader* insert_surfel_compute_shader;
 	compute_shader* compute_shader_approximate_gi;
 	compute_shader* compute_shader_find_least_shaded_pos;
 	compute_shader* compute_shader_sync_buffers;
+	////////////////////////////////////
 
+	//called each engine tick
 	void tick(double time_stamp);
+
+	//used for debugging 
 	void record_state_time(double time, double delta, int state);
 
 private:
@@ -85,13 +93,13 @@ private:
 	Camera3D* camera_ = nullptr; //camera object used to determine the center of view 
 
 
-	// SSBOs
+	//////////////////////////////////// SSBOs
 	ssbo<glm::uint>* updated_octree_positions_;
 	ssbo_double_buffer<surfel_gpu>* surfel_ssbo_consumer_;
 	ssbo_double_buffer<surfel_octree_element>* surfels_octree_consumer_;
 	ssbo<surfel_allocation_metadata>* surfel_allocation_metadata_;
 	ssbo<glm::vec4>* least_shaded_regions_;
-	//
+	//////////////////////////////////////
 
 	//////////// DEBUGGING AND STATISTICS 
 	std::vector<std::pair<double, ::surfel_allocation_metadata>> meta_data_history_ = std::vector<std::pair<
@@ -103,19 +111,26 @@ private:
 	float history_sample_interval_ = 0.1f;
 	bool record_surfel_metadata_ = false;
 	double last_sample_;
+	surfel_parameters surfel_parameters_;
+	int selected_draw_mode_ = 0;
+	uniform_buffer_object<debug_surfel_ubo> debug_surfel_ubo_;
+
+	bool update_surfels_next_tick_ = false;
+	bool skip_gi_ = false;
+
+	void dump_metadata_history() const;
+	void clear_surfels_on_gpu();
+	void clear_history();
 	/////////////////////////////////////
 
-	std::vector<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons_ = {};
 
+	/////////helper methods
 	glm::uvec3 get_bucket_coordinates_from_ws(glm::vec3 ws_pos, int level) const;
 	glm::vec3 get_ws_bucket_lowest_edge_from_octree_index(int layer, glm::uvec3 octree_index) const;
 	static unsigned int get_bucket_amount_at_level(unsigned int level);
 	float node_size_at_level(unsigned int level) const;
-
+	/////////////////////////////////////
 	GLsync compute_fence_state_machine_;
-	surfel_parameters surfel_parameters_;
-
-
 
 	/*
 	states:
@@ -125,6 +140,8 @@ private:
 	3 -> GI UPDATE
 	4 -> SWAP BUFFERS
 	*/
+
+	//state machine data
 	int manager_state_ = 0;
 	bool last_updated_regions_available_ = false;
 
@@ -135,10 +152,11 @@ private:
 	bool update_surfels_in_update_queue(int amount); //3 -> GI UPDATE
 	void copy_update_positions_to_cpu(); //3 -> GI UPDATE
 	void swap_surfel_buffers() const; //4 -> SWAP BUFFERS
+	
+	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
 
 	
-	void dump_metadata_history() const;
-	void clear_surfels_on_gpu();
-	void clear_history();
+	//positions of octree nodes to update next (level, coordinates)
+	std::vector<std::pair<unsigned, std::array<unsigned, 3>>> sample_positons_ = {};
 
 };

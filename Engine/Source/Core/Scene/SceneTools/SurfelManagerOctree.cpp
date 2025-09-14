@@ -32,7 +32,7 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	surfel_allocation_metadata_->insert_data(new surfel_allocation_metadata(1, 1), 0);
 
 	least_shaded_regions_ = new ssbo<glm::vec4>();
-	least_shaded_regions_->init_buffer_object(4096, 7);
+	least_shaded_regions_->init_buffer_object(16384, 7);
 
 	updated_octree_positions_ = new ssbo<glm::uint>();
 	updated_octree_positions_->init_buffer_object(40000, 8);
@@ -54,6 +54,11 @@ SurfelManagerOctree::SurfelManagerOctree(Scene* scene)
 	compute_shader_sync_buffers->compileShader();
 
 	glGenQueries(1, &time_query_);
+
+	debug_surfel_ubo_ = uniform_buffer_object<debug_surfel_ubo>();
+	debug_surfel_ubo_.allocate_ubo(GL_DYNAMIC_DRAW,2);
+	auto temp_ubo =  debug_surfel_ubo {.draw_id = 0};
+	debug_surfel_ubo_.update_uniform_buffer(&temp_ubo);
 }
 
 void SurfelManagerOctree::dump_metadata_history() const
@@ -103,10 +108,10 @@ void SurfelManagerOctree::draw_ui()
 		dump_metadata_history();
 	}
 
-	ImGui::Checkbox("Skip GI calculation", &skip_gi);
-	if (ImGui::Checkbox("Update Surfels", &update_surfels_next_tick))
+	ImGui::Checkbox("Skip GI calculation", &skip_gi_);
+	if (ImGui::Checkbox("Update Surfels", &update_surfels_next_tick_))
 	{
-		if (update_surfels_next_tick)
+		if (update_surfels_next_tick_)
 		{
 			clear_history();
 		}
@@ -125,6 +130,23 @@ void SurfelManagerOctree::draw_ui()
 	ImGui::Checkbox("Draw boxes on update nodes", &surfel_parameters_.draw_debug_boxes);
 	ImGui::Checkbox("Record surfel metadata", &record_surfel_metadata_);
 	ImGui::DragFloat("Meta data sample interval", &history_sample_interval_);
+
+
+	if (ImGui::TreeNode("Select Draw Mode"))
+	{
+		for (int n = 0; n < 3; n++)
+		{
+			if (ImGui::Selectable(draw_id_types[n], selected_draw_mode_ == n))
+			{
+				selected_draw_mode_ = n;
+				auto temp_ubo =  debug_surfel_ubo {.draw_id = selected_draw_mode_};
+				debug_surfel_ubo_.update_uniform_buffer(&temp_ubo);
+			}
+				
+		}
+		ImGui::TreePop();
+	}
+
 
 	::surfel_allocation_metadata allocation_metadata;
 	if (!meta_data_history_.empty())
@@ -279,7 +301,7 @@ float SurfelManagerOctree::node_size_at_level(unsigned int level) const
 
 void SurfelManagerOctree::record_state_time(double time, double delta, int state)
 {
-	if (update_surfels_next_tick)
+	if (update_surfels_next_tick_)
 	{
 		state_history s = {.state = state, .time_stamp = time - recording_start_, .render_time = delta};
 		state_pass_time_history_.push_back(s);
@@ -335,7 +357,7 @@ void SurfelManagerOctree::register_scene_data(Camera3D* camera, const framebuffe
 
 void SurfelManagerOctree::tick(double time_stamp)
 {
-	if (!update_surfels_next_tick)
+	if (!update_surfels_next_tick_)
 	{
 		return;
 	}
@@ -385,7 +407,7 @@ void SurfelManagerOctree::tick(double time_stamp)
 	case 1: // INSERT SURFELS
 		generate_surfels_via_compute_shader();
 		compute_fence_state_machine_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		manager_state_ = skip_gi?4:2;
+		manager_state_ = skip_gi_?4:2;
 		break;
 	case 2: // FIND UPDATE POSITIONS
 		find_best_world_positions_to_update_lighting();

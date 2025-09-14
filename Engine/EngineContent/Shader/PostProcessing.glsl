@@ -39,6 +39,11 @@ layout (std140,  binding = 1) uniform DIRECT_LIGHT_UNIFORMS
 	float direct_light_light_angle;
 	mat4 direct_light_light_space_matrix;
 };
+
+layout (std140,  binding = 2) uniform SURFEL_DEBUG_UNIFORM
+{
+    int mode;
+};
 #define OCTREE_TOTOAL_EXTENSION 512
 
 uniform vec3 cameraPosWs;
@@ -443,10 +448,13 @@ void main()
     vec3 final_color = vec3(0.0);
     LightPass = gamma_correction(LightPass);
     FragColor = vec4(LightPass,  1.0);
+    if (mode == 1) {
+        FragColor= vec4(surfel_buffer.www,  1.0);
+    } else if (mode == 2) {
+        FragColor= vec4(surfel_metadata_0.aaa * 0.001,  1.0);
+    }
 
-    //FragColor= vec4(surfel_buffer.www,  1.0);
-    //FragColor= vec4(surfel_metadata_1.rgb * 00.01,  1.0);
-    //FragColor= vec4((surfel_metadata_1-6).aaa,  1.0);
+    
     //bool b = is_ws_pos_contained_in_bb(surfel_metadata_1.rgb, vec3(-64.0,-32.0,-32.0),vec3(-32.0,0.0,0.0));
     //f (b) {
     //   FragColor= vec4(1.0);
@@ -520,9 +528,9 @@ void main()
      bool b= traverseHERO(r,c, d, debug_data);
         
     
-    //FragColor = float(b)*vec4((c) * 1.0f + LightPass * 0.0f,  1.0);
-    FragColor = debug_data.gggg/1000.0f;
-    FragColor = vec4(float_to_heat_map(1.0-debug_data.g/500.0),1.0);
+    FragColor = float(b)*vec4((c) * 1.0f + LightPass * 0.0f,  1.0);
+    //FragColor = debug_data.gggg/1000.0f;
+    //FragColor = vec4(float_to_heat_map(1.0-debug_data.g/500.0),1.0);
     #endif 
     return;
     if(TexCoords.y < 0.1f) {
