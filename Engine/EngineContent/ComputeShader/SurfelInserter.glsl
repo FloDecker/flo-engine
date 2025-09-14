@@ -1,7 +1,7 @@
 ﻿#version 430 core
 #define PI 3.14159265359
 #define OCTREE_TOTOAL_EXTENSION 512
-#define OCTREE_HALF_TOTOAL_EXTENSION 256
+#define OCTREE_HALF_EXTENSION 256
 #define BUCKET_SIZE 256
 #define SURFELS_BUCKET_AMOUNT 40000
 #define SURFEL_OCTREE_SIZE 100000
@@ -124,7 +124,7 @@ uvec3 get_cell_size_at_level(uint level) {
 }
 
 uvec3 get_surfel_cell_index_from_ws(vec3 ws, uint level) {
-    ws+=vec3(OCTREE_HALF_TOTOAL_EXTENSION);
+    ws+=vec3(OCTREE_HALF_EXTENSION);
     return uvec3(ws / get_cell_size_at_level(level));
 }
 
@@ -329,7 +329,7 @@ void main() {
     vec3 emissive = vec3(texture(gEmissive, TexCoords));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
-    if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_TOTOAL_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION)) ||
+    if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION)) ||
     surfel_buffer.a > surfel_insertion_threshold) {
         return;
     }
