@@ -978,45 +978,165 @@
     <ClInclude Include="Source\Util\StackedBB.h" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="EngineContent\Arrow.fbx" />
-    <Content Include="EngineContent\CanyonGroundRock_basecolor.png" />
-    <Content Include="EngineContent\ComputeShader\LowestPosFinder.glsl" />
-    <Content Include="EngineContent\ComputeShader\SurfelAoApproximatorParallelized.glsl" />
-    <Content Include="EngineContent\ComputeShader\SurfelInserter.glsl" />
-    <Content Include="EngineContent\ComputeShader\SyncBuffers.glsl" />
-    <Content Include="EngineContent\coordinates.fbx" />
-    <Content Include="EngineContent\coordinates2.fbx" />
-    <Content Include="EngineContent\Cube.fbx" />
-    <Content Include="EngineContent\Cube.obj" />
-    <Content Include="EngineContent\cubeArray.fbx" />
-    <Content Include="EngineContent\Shader\BasicEmissive.glsl" />
-    <Content Include="EngineContent\Shader\BasicGreen.glsl" />
-    <Content Include="EngineContent\Shader\BasicGrey.glsl" />
-    <Content Include="EngineContent\Shader\GaussianGI.glsl" />
-    <Content Include="EngineContent\Shader\PBRLighting.glsl" />
-    <Content Include="EngineContent\Shader\PostProcessing.glsl" />
-    <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl" />
-    <Content Include="EngineContent\Shader\DebugColorChangable.glsl" />
-    <Content Include="EngineContent\Shader\DefaultShader.glsl" />
-    <Content Include="EngineContent\Shader\DepthOnlyLightpassShader.glsl" />
-    <Content Include="EngineContent\Shader\HandlerBlue.glsl" />
-    <Content Include="EngineContent\Shader\HandlerGreen.glsl" />
-    <Content Include="EngineContent\Shader\HandlerRed.glsl" />
-    <Content Include="EngineContent\Shader\lightingTest.glsl" />
-    <Content Include="EngineContent\Shader\NormalVisualizer.glsl" />
-    <Content Include="EngineContent\Shader\SkySphere.glsl" />
-    <Content Include="EngineContent\Shader\SurfelPass.glsl" />
-    <Content Include="EngineContent\Shader\test.glsl" />
-    <Content Include="EngineContent\Shader\test2.glsl" />
-    <Content Include="EngineContent\Shader\testVisualizeDepthMap.glsl" />
-    <Content Include="EngineContent\Shader\TriangleVisualizer.glsl" />
-    <Content Include="EngineContent\Shader\TriplanarMapping.glsl" />
-    <Content Include="EngineContent\Shader\VoxelGI.glsl" />
-    <Content Include="EngineContent\Shader\VoxelVisualizer.glsl" />
-    <Content Include="EngineContent\Shader\WorldPosition.glsl" />
-    <Content Include="EngineContent\SkySphere.fbx" />
-    <Content Include="EngineContent\Sphere.fbx" />
-    <Content Include="EngineContent\testSpheres.fbx" />
+    <Content Include="EngineContent\Arrow.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\brutalist.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\CanyonGroundRock_basecolor.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\city.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\closedSpaceTest.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\ComputeShader\LowestPosFinder.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\ComputeShader\SurfelAoApproximatorParallelized.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\ComputeShader\SurfelInserter.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\ComputeShader\SyncBuffers.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\coordinates.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\coordinates2.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Cube.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Cube.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\cubeArray.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\grass_base.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\grass_normal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\inertiaTest.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\inertiaTest_mass_center.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Landscape.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\OnlyWallTest.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Plane.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\BasicEmissive.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\BasicGreen.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\BasicGrey.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\GaussianGI.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\PBRLighting.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\PostProcessing.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\SkySphereAtmosphericScattering.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\DebugColorChangable.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\DefaultShader.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\DepthOnlyLightpassShader.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\HandlerBlue.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\HandlerGreen.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\HandlerRed.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\lightingTest.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\NormalVisualizer.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\SkySphere.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\SurfelPass.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\test.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\test2.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\testVisualizeDepthMap.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\TriangleVisualizer.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\VoxelGI.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\VoxelVisualizer.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Shader\WorldPosition.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\SimpleBuilding.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\SkySphere.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Sphere.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Substance_graph_normal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Substance_graph_output.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\temple.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\testSpheres.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EngineContent\Triangle.fbx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
