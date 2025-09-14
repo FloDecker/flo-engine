@@ -108,7 +108,7 @@ bool is_ws_pos_contained_in_bb(vec3 pos, vec3 bb_min, vec3 extension) {
 //from https://www.pbr-book.org/3ed-2018/Monte_Carlo_Integration/2D_Sampling_with_Multidimensional_Transformations#ConcentricSampleDisk
 vec2 ConcentricSampleDisk(vec2 u) {
     vec2 uOffset = 2.f * u - vec2(1.0f);
-    if (uOffset.x == 0f && uOffset.y == 0f) return vec2(0f);
+    if (uOffset.x == 0.0f && uOffset.y == 0.0f) return vec2(0.0f);
     float theta, r;
     bool x_over_y = abs(uOffset.x) > abs(uOffset.y);
     r = x_over_y?uOffset.x:uOffset.y;
