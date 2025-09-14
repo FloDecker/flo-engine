@@ -1,33 +1,40 @@
 ﻿#pragma once
 #include "glm.hpp"
-#include <vec3.hpp>
 #include <GL/glew.h>
 
-struct ubo_direct_light
-{
-	alignas(16) glm::vec3 light_direction;
-	alignas(4) float light_intensity;
-	alignas(16)glm::vec3 light_color;
-	alignas(4) float light_angle;
-	alignas(16) glm::mat4 direct_light_light_space_matrix;
-
-};
-
+template <typename T>
 class uniform_buffer_object
 {
 public:
-	uniform_buffer_object();
-	void init();
-	void update_direct_light();
-	ubo_direct_light* ubo_direct_light = new struct ubo_direct_light;
+	void update_uniform_buffer(const T* data) const
+	{
+		if (!initialized_)
+		{
+			std::printf("UBO not initialized\n");
+			return;
+		}
+		
+		glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), data);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+	
+	void allocate_ubo(const GLenum usage, unsigned int binding)
+	{
+		if (initialized_)
+		{
+			std::printf("UBO already initialized\n");
+			return;
+		}
+		glGenBuffers(1, &ubo_);
+		glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(T), nullptr, usage);
+		glBindBufferBase(GL_UNIFORM_BUFFER, binding, ubo_);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		initialized_ = true;
+	}
 
 private:
 	bool initialized_ = false;
-	unsigned int allocate_ubo(unsigned int size_byte, GLenum usage, unsigned int binding);
-	void update_uniform_buffer(unsigned int ubo, unsigned int size_byte, const void* data);
-
-	//current UBO's
-
-	//direcet light
-	unsigned int direct_light_ubo_location;
+	unsigned int ubo_ = 0;
 };

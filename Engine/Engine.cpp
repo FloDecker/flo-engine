@@ -166,9 +166,7 @@ int main()
 		.line = new Line,
 		.plane = new primtitive_plane,
 	};
-
-	global_context.uniform_buffer_object = new uniform_buffer_object();
-
+	
 	//Inti Scene Context
 	//scene root
 	//init scene context

@@ -3,6 +3,17 @@
 #include "../../Renderer/Texture/texture_2d.h"
 #include "../../Renderer/framebuffer_object.h"
 
+
+struct ubo_direct_light_data
+{
+	alignas(16) glm::vec3 light_direction;
+	alignas(4) float light_intensity;
+	alignas(16)glm::vec3 light_color;
+	alignas(4) float light_angle;
+	alignas(16) glm::mat4 direct_light_light_space_matrix;
+
+};
+
 class Line3D;
 
 class direct_light : public light
@@ -28,10 +39,6 @@ public:
 	void draw_object_specific_ui() override;
 	glm::vec3 get_light_direction();
 
-protected:
-	void on_light_changed() override;
-
-public:
 	//this should be before the light pass to update the lights position
 	void set_light_center_position(glm::vec3 position);
 
@@ -39,4 +46,8 @@ public:
 	{
 		return light_map_;
 	}
+
+private:
+	void on_light_changed() override;
+	uniform_buffer_object<ubo_direct_light_data> direct_light_ubo_;
 };

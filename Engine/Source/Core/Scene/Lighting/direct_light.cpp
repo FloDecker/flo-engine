@@ -17,6 +17,8 @@ direct_light::direct_light(Object3D* parent, unsigned int light_map_width, unsig
 	debug_line_ = new Line3D(this, glm::vec3(0.0), -vec_z * 20.0f);
 	debug_line_->color = glm::vec3(1, 224. / 255., 102. / 255.);
 	this->name = "direct_light";
+
+	direct_light_ubo_.allocate_ubo(GL_DYNAMIC_DRAW,1);
 }
 
 void direct_light::set_light_settings(float size, float near_plane, float far_plane, float light_camera_distance)
@@ -72,12 +74,14 @@ void direct_light::on_light_changed()
 
 	light_matrix_ = light_projection * inverse(light_pos);
 
-	auto l = global_context_->uniform_buffer_object->ubo_direct_light;
-	l->light_direction = getForwardVector();
-	l->light_intensity = intensity;
-	l->light_color = color;
-	l->light_angle = angle;
-	l->direct_light_light_space_matrix = light_matrix_;
-
-	global_context_->uniform_buffer_object->update_direct_light();
+	auto l = ubo_direct_light_data {
+		.light_direction = getForwardVector(),
+		.light_intensity = intensity,
+		.light_color = color,
+		.light_angle = angle,
+		.direct_light_light_space_matrix = light_matrix_,
+	};
+	direct_light_ubo_.update_uniform_buffer(&l);
 }
+
+

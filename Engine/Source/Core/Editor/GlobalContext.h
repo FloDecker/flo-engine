@@ -75,7 +75,6 @@ struct GlobalContext
 	Logger* logger = new Logger();
 	performance_metrics* performance_metrics = new ::performance_metrics();
 	global_primitives global_primitives;
-	uniform_buffer_object* uniform_buffer_object;
 
 	//global shaders
 	ShaderProgram* default_shader;
