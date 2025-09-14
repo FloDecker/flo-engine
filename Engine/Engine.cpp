@@ -294,9 +294,9 @@ int main()
 	scene->recalculate_from_root();
 
 	//ADD DIRECT LIGHT
-	auto direct_scene_light = new direct_light(scene->get_root(), 1024, 1024);
-	direct_scene_light->setRotationLocal(-44, -9, 0);
-	direct_scene_light->intensity = 1;
+	auto direct_scene_light = new direct_light(scene->get_root(), 2048, 2048);
+	direct_scene_light->setRotationLocalDegrees(-44, -9, 0);
+	direct_scene_light->intensity = 2.5;
 	direct_scene_light->set_light_settings(150,0.01,100,60);
 
 
@@ -308,21 +308,22 @@ int main()
 	auto object_plane = new Mesh3D(scene->get_root(), plane);
 	object_plane->name = "plane_light";
 	object_plane->set_material(grey_shader);
-	object_plane->set_position_global(0, -4, 0);
-	object_plane->setRotationLocal(-90, 0, 0);
-	object_plane->setScale(50, 50, 1);
+	object_plane->set_position_global(0, 3, 0);
+	object_plane->setRotationLocalDegrees(-90, 0, 0);
+	object_plane->setScale(255, 255, 1);
 
 	auto object_house = new Mesh3D(scene->get_root(), me_test_building);
 	object_house->name = "object_house";
 	object_house->set_material(grey_shader);
-	object_house->set_position_global(-12,-1.7,0);
-	object_house->setRotationLocal(-90,0,0);
+	object_house->set_position_global(-40,-2,4);
+	object_house->setRotationLocalDegrees(-90,0,0);
 
 	auto object_landscape = new Mesh3D(scene->get_root(), me_test_landscape);
 	object_landscape->name = "object_landscape";
 	object_landscape->set_material(green_shader);
-	object_landscape->set_position_global(-12,-1.7,0);
-	object_landscape->setRotationLocal(-90,0,0);
+	object_landscape->set_position_global(0,0,0);
+	object_landscape->setRotationLocalDegrees(-90,0,0);
+	object_landscape->setScale(2);
 
 	auto object_brutalist = new Mesh3D(scene->get_root(), me_brutalist);
 	object_brutalist->name = "object_brutalist";
@@ -340,14 +341,16 @@ int main()
 	auto object_simple_building = new Mesh3D(scene->get_root(), me_simple_building);
 	object_simple_building->name = "object_simple_building";
 	object_simple_building->set_material(grey_shader);
-	object_simple_building->set_position_global(-40,-5,0);
-	object_simple_building->setRotationLocal(-90,-90,0);
+	object_simple_building->set_position_global(-90,2,0);
+	object_simple_building->setRotationLocalDegrees(-90,-90,0);
+	object_simple_building->setScale(1.5f);
 	
 	auto object_temple = new Mesh3D(scene->get_root(), me_temple);
 	object_temple->name = "me_temple";
 	object_temple->set_material(grey_shader);
-	object_temple->set_position_global(40,-5,0);
-	object_temple->setRotationLocal(-90,-90,0);
+	object_temple->set_position_global(28,2,6);
+	object_temple->setRotationLocalDegrees(-90,-90,0);
+	object_temple->setScale(2);
 
 	
 	auto object_sphere = new Mesh3D(scene->get_root(), sphere);

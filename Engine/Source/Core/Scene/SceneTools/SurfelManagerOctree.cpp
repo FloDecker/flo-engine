@@ -103,6 +103,7 @@ void SurfelManagerOctree::draw_ui()
 		dump_metadata_history();
 	}
 
+	ImGui::Checkbox("Skip GI calculation", &skip_gi);
 	if (ImGui::Checkbox("Update Surfels", &update_surfels_next_tick))
 	{
 		if (update_surfels_next_tick)
@@ -384,7 +385,7 @@ void SurfelManagerOctree::tick(double time_stamp)
 	case 1: // INSERT SURFELS
 		generate_surfels_via_compute_shader();
 		compute_fence_state_machine_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		manager_state_ = 2;
+		manager_state_ = skip_gi?4:2;
 		break;
 	case 2: // FIND UPDATE POSITIONS
 		find_best_world_positions_to_update_lighting();

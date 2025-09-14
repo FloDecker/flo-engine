@@ -10,7 +10,7 @@
 #define MAX_TRIES_INSERTION 10000
 #define BITMASK_SURFEL_AMOUNT 0x00FFFFFFu
 #define BIAS_SHADOW_MAPPING 0.01f
-#define LOCK_SENTINAL 0xFFFFFFFFu
+#define LOCK_SENTINEL 0xFFFFFFFFu
 
 struct Surfel {
     vec4 mean_r;
@@ -177,7 +177,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         if (cur == 0u) {
             //node has to be created
             //try to aquire lock
-            uint prev = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, LOCK_SENTINAL);
+            uint prev = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, LOCK_SENTINEL);
             if (prev == 0u) {
                 uint p;
                 if (create_new_surfel_node(p)) {
@@ -201,7 +201,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
             if (tries > MAX_TRIES_INSERTION){
                 return false;
             }
-        } while (cur == LOCK_SENTINAL);
+        } while (cur == LOCK_SENTINEL);
 
         current_element_index = cur;
 
@@ -218,7 +218,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
     //check if a bucket exists
     uint cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
     if (cur == 0u) {
-        uint prev = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, LOCK_SENTINAL);
+        uint prev = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, LOCK_SENTINEL);
         //create bucket
         if (prev == 0u) {
             uint bucket_pointer;
@@ -237,7 +237,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         if (tries > MAX_TRIES_INSERTION){
             return false;
         }
-    } while (cur == LOCK_SENTINAL);
+    } while (cur == LOCK_SENTINEL);
 
     if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);

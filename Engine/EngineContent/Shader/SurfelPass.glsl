@@ -271,7 +271,7 @@ vec3 get_color_from_octree(vec3 pos, vec3 normal_ws, out int amount_texture_fetc
                 float distance_difference = max(1.0f - distance(pos, s.mean_r.xyz) / s.mean_r.w, 0.0);
                 float normal_difference = smoothstep(ICLINATION_MIN, ICLINATION_MAX, max(dot(s.normal.xyz, normal_ws),0.0));
                 float distance_to_surfel = max(1.0f - abs(dot(pos-s.mean_r.xyz, s.normal.xyz)) * distance_reciprocal, 0.0);
-                float surfel_sample_attenuation = smoothstep(0,1500,s.radiance_ambient.w);
+                float surfel_sample_attenuation = smoothstep(1,32,s.radiance_ambient.w);
 
 
                 float attenuation =  distance_difference * normal_difference  * distance_to_surfel;

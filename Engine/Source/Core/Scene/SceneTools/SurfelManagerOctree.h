@@ -63,6 +63,7 @@ public:
 
 
 	bool update_surfels_next_tick = false;
+	bool skip_gi = false;
 	float octree_total_extension = 512.0;
 
 	void compute_shader_ao_approximation(uint32_t level, glm::uvec3 pos_in_octree) const;
