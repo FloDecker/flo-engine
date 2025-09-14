@@ -23,8 +23,8 @@ struct Surfel {
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
-    uint surfels_at_layer_pointer;
-    uint next_layer_surfels_pointer[8];
+    uint surfel_bucket_pointer;
+    uint child_nodes_pointer[8];
 };
 
 struct Ray {
@@ -253,7 +253,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
         //check if there are surfels hit on the current layer 
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
 
-        uint surfle_data_pointer = o.surfels_at_layer_pointer;
+        uint surfle_data_pointer = o.surfel_bucket_pointer;
         for (int i = 0; i < surfels_amount; i++) {
             Surfel s = surfels[surfle_data_pointer + i];
             vec3 hit_location;
@@ -280,7 +280,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d) {
             uint id = ordered_ids[i];
 
             if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, id)) continue;
-            uint childIndex = o.next_layer_surfels_pointer[id];
+            uint childIndex = o.child_nodes_pointer[id];
 
             vec3 offset = vec3(
             (id & (1u<<2)) != 0 ? 1.0 : 0.0,
@@ -351,7 +351,7 @@ bool get_surfe_pointer_at_octree_pos(uint level, uvec3 pos, out uint pointer, ou
             return false;
         }
 
-        current_element_index = o.next_layer_surfels_pointer[index];
+        current_element_index = o.child_nodes_pointer[index];
 
         uvec3 offset = uvec3(
         (index & uint(1<<2)) != 0 ? 1 : 0,
@@ -397,7 +397,7 @@ void main() {
         uint id = gl_WorkGroupID.x;
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
         if (id < surfels_amount) {
-            uint surfle_data_pointer = o.surfels_at_layer_pointer;
+            uint surfle_data_pointer = o.surfel_bucket_pointer;
             surfel_pointer = surfle_data_pointer + id;
             surfel = surfels[surfel_pointer];
             vec3 surfel_pos = surfel.mean_r.xyz;

@@ -24,8 +24,8 @@ struct Surfel {
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
-    uint surfels_at_layer_pointer;
-    uint next_layer_surfels_pointer[8];
+    uint surfel_bucket_pointer;
+    uint child_nodes_pointer[8];
 };
 
 struct AllocationMetadata{
@@ -173,18 +173,18 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
         uint index = get_next_octree_index_(center, pos);
 
         //atomic read -> if mem != 0u dont exchange, if mem == 0u its replaced by 0u -> idempotent
-        uint cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, 0u);
+        uint cur = atomicCompSwap(octreeElements[current_element_index].child_nodes_pointer[index], 0u, 0u);
         if (cur == 0u) {
             //node has to be created
             //try to aquire lock
-            uint prev = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, LOCK_SENTINEL);
+            uint prev = atomicCompSwap(octreeElements[current_element_index].child_nodes_pointer[index], 0u, LOCK_SENTINEL);
             if (prev == 0u) {
                 uint p;
                 if (create_new_surfel_node(p)) {
                     //set child octree bit
                     atomicOr(octreeElements[current_element_index].surfels_at_layer_amount, (1u << (31u - index)));
                     //set pointer to next node
-                    atomicExchange(octreeElements[current_element_index].next_layer_surfels_pointer[index], p);
+                    atomicExchange(octreeElements[current_element_index].child_nodes_pointer[index], p);
                     insert_update_info(current_element_index);
                     insert_update_info(p);
                     memoryBarrierBuffer();
@@ -196,7 +196,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
 
         uint tries = 0;
         do {
-            cur = atomicCompSwap(octreeElements[current_element_index].next_layer_surfels_pointer[index], 0u, 0u);
+            cur = atomicCompSwap(octreeElements[current_element_index].child_nodes_pointer[index], 0u, 0u);
             tries++;
             if (tries > MAX_TRIES_INSERTION){
                 return false;
@@ -216,23 +216,23 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
     //insert if reached target level
 
     //check if a bucket exists
-    uint cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
+    uint cur = atomicCompSwap(octreeElements[current_element_index].surfel_bucket_pointer, 0u, 0u);
     if (cur == 0u) {
-        uint prev = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, LOCK_SENTINEL);
+        uint prev = atomicCompSwap(octreeElements[current_element_index].surfel_bucket_pointer, 0u, LOCK_SENTINEL);
         //create bucket
         if (prev == 0u) {
             uint bucket_pointer;
             if (!create_new_bucket(bucket_pointer)) {
                 return false;
             }
-            atomicExchange(octreeElements[current_element_index].surfels_at_layer_pointer, bucket_pointer);
+            atomicExchange(octreeElements[current_element_index].surfel_bucket_pointer, bucket_pointer);
             memoryBarrierBuffer();
         }
     }
 
     uint tries = 0;
     do {
-        cur = atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_pointer, 0u, 0u);
+        cur = atomicCompSwap(octreeElements[current_element_index].surfel_bucket_pointer, 0u, 0u);
         tries++;
         if (tries > MAX_TRIES_INSERTION){
             return false;
@@ -241,7 +241,7 @@ bool insert_surfel_at_octree_pos(Surfel s, uint level, uvec3 pos, out uint octre
 
     if (get_surfel_amount(atomicCompSwap(octreeElements[current_element_index].surfels_at_layer_amount, 0u, 0u)) < BUCKET_SIZE){
         uint insert_at_local = atomicAdd(octreeElements[current_element_index].surfels_at_layer_amount, 1);
-        uint insert_at_global = octreeElements[current_element_index].surfels_at_layer_pointer + get_surfel_amount(insert_at_local);
+        uint insert_at_global = octreeElements[current_element_index].surfel_bucket_pointer + get_surfel_amount(insert_at_local);
         octree_node_index = current_element_index;
         final_surfel_index = insert_at_global;
         memoryBarrierBuffer();

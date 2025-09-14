@@ -16,8 +16,8 @@ class Camera3D;
 struct surfel_octree_element
 {
 	uint32_t surfels_at_layer_amount;
-	uint32_t surfels_at_layer_pointer; 
-	uint32_t next_layer_surfels_pointer[8];
+	uint32_t surfel_bucket_pointer; 
+	uint32_t child_nodes_pointer[8];
 };
 
 struct surfel_gpu

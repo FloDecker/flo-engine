@@ -18,8 +18,8 @@ struct Surfel {
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
-    uint surfels_at_layer_pointer;
-    uint next_layer_surfels_pointer[8];
+    uint surfel_bucket_pointer;
+    uint child_nodes_pointer[8];
 };
 
 struct AllocationMetadata{
@@ -73,7 +73,7 @@ void main() {
     octreeElements_back[pointer_to_update] = octree_front;
     
     //update surfels of octree element
-    uint surfel_pointer = octree_front.surfels_at_layer_pointer;
+    uint surfel_pointer = octree_front.surfel_bucket_pointer;
     for (uint i = 0; i < get_surfel_amount(octree_front.surfels_at_layer_amount); i++) {
         Surfel surfel_front = surfels_front[surfel_pointer + i];
         surfels_back[surfel_pointer + i] = surfel_front;

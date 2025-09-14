@@ -51,8 +51,8 @@ struct Surfel {
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
-    uint surfels_at_layer_pointer;
-    uint next_layer_surfels_pointer[8];
+    uint surfel_bucket_pointer;
+    uint child_nodes_pointer[8];
 };
 
 layout(std430, binding = 0) buffer SurfelBuffer {
@@ -225,7 +225,7 @@ vec3 get_color_from_octree(vec3 pos) {
         //sample surfles from bucket:
         uint surfle_data_pointer;
         if (surfels_amount > 0) {
-            surfle_data_pointer = o.surfels_at_layer_pointer;
+            surfle_data_pointer = o.surfel_bucket_pointer;
             amount_texture_fetches++;
             //sample all of the surfels in bucket
  
@@ -249,7 +249,7 @@ vec3 get_color_from_octree(vec3 pos) {
         uint index_of_next_pointer = get_next_octree_index_(pos_relative);
         if (is_child_octree_bit_set_at(bucket_info, int(index_of_next_pointer))) {
             //there is another child octree containing information for this texel
-            index = o.next_layer_surfels_pointer[index_of_next_pointer];
+            index = o.child_nodes_pointer[index_of_next_pointer];
             amount_texture_fetches++;
             current_center = get_next_center(current_center, pos_relative, current_layer);
         } else {

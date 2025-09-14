@@ -64,8 +64,8 @@ struct Surfel {
 struct OctreeElement
 {
     uint surfels_at_layer_amount;
-    uint surfels_at_layer_pointer;
-    uint next_layer_surfels_pointer[8];
+    uint surfel_bucket_pointer;
+    uint child_nodes_pointer[8];
 };
 
 struct Ray {
@@ -238,7 +238,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug) {
         //check if there are surfels hit on the current layer 
         uint surfels_amount = get_surfel_amount(o.surfels_at_layer_amount);
         
-        uint surfle_data_pointer = o.surfels_at_layer_pointer;
+        uint surfle_data_pointer = o.surfel_bucket_pointer;
         for (int i = 0; i < surfels_amount; i++) {
             Surfel s = surfels[surfle_data_pointer + i];
             debug.g++;
@@ -266,7 +266,7 @@ bool traverseHERO(Ray ray, out vec3 c, out float d, out vec4 debug) {
             uint id = ordered_ids[i];
 
             if (!is_child_octree_bit_set_at(o.surfels_at_layer_amount, id)) continue;
-            uint childIndex = o.next_layer_surfels_pointer[id];
+            uint childIndex = o.child_nodes_pointer[id];
 
             vec3 offset = vec3(
             (id & (1u<<2)) != 0 ? 1.0 : 0.0,
