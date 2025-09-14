@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -151,6 +151,9 @@
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\GLFW64\lib-vc2017;$(SolutionDir)Dependencies\GLEW64\libs64;$(SolutionDir)Dependencies\assimp64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;glew32.lib;assimp-vc143-mtd.lib;User32.lib;Gdi32.lib;Shell32.lib;opengl32.lib;glu32.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY $(SolutionDir)dlls\*.dll $(TargetDir) /D /K /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
