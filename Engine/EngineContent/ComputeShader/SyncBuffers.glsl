@@ -2,7 +2,8 @@
 #define BITMASK_SURFEL_AMOUNT 0x00FFFFFFu
 
 /*
-This compute shader copys the data that has changed from the frontbuffer to the backbuffer
+Computeshader copys the data that has changed from the frontbuffer to the backbuffer
+Corresponds to section 4.6 in the thesis
 */
 
 //STRUCT DEFINITIONS

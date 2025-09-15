@@ -12,6 +12,11 @@
 #define BIAS_SHADOW_MAPPING 0.01f
 #define LOCK_SENTINEL 0xFFFFFFFFu
 
+/*
+Computeshader that insertes surfels in the octree
+Corresponds to section 4.3 in the thesis
+*/
+
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
@@ -117,15 +122,15 @@ uint get_next_octree_index_(uvec3 center, uvec3 pos)
     (uint(pos.z >= center.z) << 0);
 }
 
-uvec3 get_cell_size_at_level(uint level) {
+uvec3 get_node_size_at_level(uint level) {
     uint buckets = 1 << level;
     return uvec3(vec3(OCTREE_TOTOAL_EXTENSION) / buckets);
 
 }
 
-uvec3 get_surfel_cell_index_from_ws(vec3 ws, uint level) {
+uvec3 get_node_index_from_ws(vec3 ws, uint level) {
     ws+=vec3(OCTREE_HALF_EXTENSION);
-    return uvec3(ws / get_cell_size_at_level(level));
+    return uvec3(ws / get_node_size_at_level(level));
 }
 
 bool create_new_surfel_node(out uint pointer) {
@@ -313,6 +318,7 @@ void main() {
 
     const float edge_distance = 0.01;
 
+    //insert position is outisde of the screen -> discard
     if (TexCoords.y < edge_distance ||
     TexCoords.x < edge_distance ||
     TexCoords.x > 1-edge_distance
@@ -329,6 +335,7 @@ void main() {
     vec3 emissive = vec3(texture(gEmissive, TexCoords));
     vec4 surfel_buffer = vec4(texture(gSurfels, TexCoords));
 
+    //new surfel would be outside of octree or doesent pass the insetion threshold -> discard 
     if (!is_ws_pos_contained_in_bb(pos_ws, vec3(-OCTREE_HALF_EXTENSION), vec3(OCTREE_TOTOAL_EXTENSION)) ||
     surfel_buffer.a > surfel_insertion_threshold) {
         return;
@@ -340,18 +347,17 @@ void main() {
 
     uint level = get_octree_level_for_surfel(radius);
 
+    
+    uvec3 node_index = get_node_index_from_ws(pos_ws, level);
 
-    //calculate overlap
-    uvec3 cell_index = get_surfel_cell_index_from_ws(pos_ws, level);
-
-    //local offset inside cell
-    vec3 cell_size = get_cell_size_at_level(level);
-    vec3 offset_from_cell_center = mod(pos_ws, cell_size) / cell_size;
+    //local offset inside node
+    vec3 node_size = get_node_size_at_level(level);
+    vec3 offset_from_node_center = mod(pos_ws, node_size) / node_size;
 
     uvec3 offset_vector = uvec3(0);
-    offset_vector.x = offset_from_cell_center.x < 0.5f ? -1 : 1;
-    offset_vector.y = offset_from_cell_center.y < 0.5f ? -1 : 1;
-    offset_vector.z = offset_from_cell_center.z < 0.5f ? -1 : 1;
+    offset_vector.x = offset_from_node_center.x < 0.5f ? -1 : 1;
+    offset_vector.y = offset_from_node_center.y < 0.5f ? -1 : 1;
+    offset_vector.z = offset_from_node_center.z < 0.5f ? -1 : 1;
 
     vec3 surfel_metadata_0 = vec3(texture(surfel_framebuffer_metadata_0, TexCoords));
 
@@ -361,21 +367,19 @@ void main() {
     s.radiance_ambient = vec4(surfel_metadata_0.rgb, 16.0);
     s.albedo = vec4(albedo, 0.0);
 
+    //shadowmapping for insert position
     float NdotL = dot(normal_ws, normalize(direct_light_direction));
     float diffuseIntensity = clamp(NdotL, 0, 1);
-
     vec3 direct_light = (in_light_map_shadow(pos_ws) ? vec3(0.0) :
     direct_light_intensity * direct_light_color * albedo * diffuseIntensity);
-
 
     s.radiance_direct_and_surface = vec4(direct_light + emissive, 1.0);
     s.normal = vec4(normal_ws, 0);
 
 
-
     uint octree_index_of_bucket;
     uint final_surfel_index;
-    if (insert_surfel_at_octree_pos(s, level, cell_index + offset_vector * component_multiplier[gl_LocalInvocationID.x], octree_index_of_bucket, final_surfel_index)){
+    if (insert_surfel_at_octree_pos(s, level, node_index + offset_vector * component_multiplier[gl_LocalInvocationID.x], octree_index_of_bucket, final_surfel_index)){
         atomicAdd(allocationMetadata[0].debug_int_32, 1);
     }
     temp_copy_locations[gl_LocalInvocationID.x] = final_surfel_index;

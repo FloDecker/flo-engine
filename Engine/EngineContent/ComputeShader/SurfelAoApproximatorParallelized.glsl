@@ -11,6 +11,11 @@
 
 #define BITMASK_SURFEL_AMOUNT 0x00FFFFFFu
 
+/*
+Computeshader that approximates global illumination for a surfel
+Corresponds to section 4.5 in the thesis
+*/
+
 struct Surfel {
     vec4 mean_r;
     vec4 normal;

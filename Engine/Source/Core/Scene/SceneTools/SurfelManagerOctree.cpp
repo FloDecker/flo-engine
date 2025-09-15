@@ -159,43 +159,6 @@ void SurfelManagerOctree::draw_ui()
 }
 
 
-void SurfelManagerOctree::generate_surfels_via_compute_shader() const
-{
-	if (camera_ != nullptr)
-	{
-		auto t = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
-		if (t != nullptr)
-		{
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
-			insert_surfel_compute_shader->use();
-			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",
-			                                                 glm::value_ptr(camera_->getWorldPosition()));
-
-			insert_surfel_compute_shader->setUniformMatrix4("projection_matrix",
-			                                                glm::value_ptr(*camera_->get_camera()->getProjection()));
-			insert_surfel_compute_shader->setUniformMatrix4("view_matrix",
-			                                                glm::value_ptr(*camera_->get_camera()->getView()));
-
-			insert_surfel_compute_shader->set_uniform_float("minimal_surfel_radius",
-			                                                surfel_parameters_.minimal_surfel_radius);
-			insert_surfel_compute_shader->set_uniform_float("surfel_insertion_threshold",
-			                                                surfel_parameters_.surfel_insertion_threshold);
-			insert_surfel_compute_shader->set_uniform_float("surfel_insert_size_multiplier",
-			                                                surfel_parameters_.surfel_insert_size_multiplier);
-			insert_surfel_compute_shader->setUniformInt("pixels_per_surfel", surfel_parameters_.pixels_per_surfel);
-
-			auto offset = glm::vec3(float_dist_0_1(gen), float_dist_0_1(gen), 0.0);
-			insert_surfel_compute_shader->set_uniform_vec3_f("random_offset",
-			                                                 glm::value_ptr(offset));
-			const unsigned int x_groups = t->width() / surfel_parameters_.pixels_per_surfel + 1;
-			const unsigned int y_groups = t->height() / surfel_parameters_.pixels_per_surfel + 1;
-			glDispatchCompute(x_groups, y_groups, 1);
-		}
-	}
-}
-
 void SurfelManagerOctree::copy_update_positions_to_cpu()
 {
 	const auto least_shaded_regions = static_cast<glm::vec4*>(least_shaded_regions_->write_ssbo_to_cpu());
@@ -243,6 +206,49 @@ bool SurfelManagerOctree::update_surfels_in_update_queue(int amount)
 		sample_positons_.pop_back();
 	}
 	return sample_positons_.empty();
+}
+
+void SurfelManagerOctree::swap_surfel_buffers() const
+{
+	surfel_ssbo_consumer_->swap();
+	surfels_octree_consumer_->swap();
+}
+
+void SurfelManagerOctree::generate_surfels_via_compute_shader() const
+{
+	if (camera_ != nullptr)
+	{
+		auto t = camera_->get_camera()->get_render_target()->get_color_attachment_at_index(0);
+		if (t != nullptr)
+		{
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<float> float_dist_0_1(0.0f, 1.0f);
+			insert_surfel_compute_shader->use();
+			insert_surfel_compute_shader->set_uniform_vec3_f("camera_position",
+			                                                 glm::value_ptr(camera_->getWorldPosition()));
+
+			insert_surfel_compute_shader->setUniformMatrix4("projection_matrix",
+			                                                glm::value_ptr(*camera_->get_camera()->getProjection()));
+			insert_surfel_compute_shader->setUniformMatrix4("view_matrix",
+			                                                glm::value_ptr(*camera_->get_camera()->getView()));
+
+			insert_surfel_compute_shader->set_uniform_float("minimal_surfel_radius",
+			                                                surfel_parameters_.minimal_surfel_radius);
+			insert_surfel_compute_shader->set_uniform_float("surfel_insertion_threshold",
+			                                                surfel_parameters_.surfel_insertion_threshold);
+			insert_surfel_compute_shader->set_uniform_float("surfel_insert_size_multiplier",
+			                                                surfel_parameters_.surfel_insert_size_multiplier);
+			insert_surfel_compute_shader->setUniformInt("pixels_per_surfel", surfel_parameters_.pixels_per_surfel);
+
+			auto offset = glm::vec3(float_dist_0_1(gen), float_dist_0_1(gen), 0.0);
+			insert_surfel_compute_shader->set_uniform_vec3_f("random_offset",
+			                                                 glm::value_ptr(offset));
+			const unsigned int x_groups = t->width() / surfel_parameters_.pixels_per_surfel + 1;
+			const unsigned int y_groups = t->height() / surfel_parameters_.pixels_per_surfel + 1;
+			glDispatchCompute(x_groups, y_groups, 1);
+		}
+	}
 }
 
 void SurfelManagerOctree::find_best_world_positions_to_update_lighting() const
@@ -437,8 +443,4 @@ void SurfelManagerOctree::tick(double time_stamp)
 	glEndQuery(GL_TIME_ELAPSED);
 }
 
-void SurfelManagerOctree::swap_surfel_buffers() const
-{
-	surfel_ssbo_consumer_->swap();
-	surfels_octree_consumer_->swap();
-}
+

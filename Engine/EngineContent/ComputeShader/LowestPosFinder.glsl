@@ -1,6 +1,13 @@
 ﻿#version 430 core
 #define MAX_SAMPLES_PER_SURFEL 10000
-layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+#define QUADRANT_SIZE 32
+
+/*
+Computeshader that finds the surfels updated least in is quadrant
+Corresponds to section 4.4 in the thesis
+*/
+
+layout (local_size_x = QUADRANT_SIZE, local_size_y = QUADRANT_SIZE, local_size_z = 1) in;
 
 layout(std430, binding = 7) buffer LeastShaded {
     vec4 least_shaded_regions[];

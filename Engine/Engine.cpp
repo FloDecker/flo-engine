@@ -192,6 +192,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	auto editor3DCamera = new Camera3D(scene->get_root(), editorRenderContext);
+	editor3DCamera->set_position_global(0,20,60);
 	double renderFrameStart;
 
 

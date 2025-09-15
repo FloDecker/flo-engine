@@ -61,7 +61,7 @@ float _ambientLightIntensity = 1;
 
 vec3 _object_color = vec3(1.0);
 
-float bias = 0.002;
+float bias = 0.01;
 struct Surfel {
     vec4 mean_r;
     vec4 normal;
